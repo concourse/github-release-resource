@@ -10,28 +10,31 @@ import (
 )
 
 type FakeGitHub struct {
-	CreateReleaseStub        func(release github.RepositoryRelease) (github.RepositoryRelease, error)
+	CreateReleaseStub        func(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
 	createReleaseMutex       sync.RWMutex
 	createReleaseArgsForCall []struct {
-		release github.RepositoryRelease
+		release *github.RepositoryRelease
 	}
 	createReleaseReturns struct {
-		result1 github.RepositoryRelease
+		result1 *github.RepositoryRelease
 		result2 error
 	}
-	UploadReleaseAssetStub        func(release github.RepositoryRelease, name string, file *os.File)
+	UploadReleaseAssetStub        func(release *github.RepositoryRelease, name string, file *os.File) error
 	uploadReleaseAssetMutex       sync.RWMutex
 	uploadReleaseAssetArgsForCall []struct {
-		release github.RepositoryRelease
+		release *github.RepositoryRelease
 		name    string
 		file    *os.File
 	}
+	uploadReleaseAssetReturns struct {
+		result1 error
+	}
 }
 
-func (fake *FakeGitHub) CreateRelease(release github.RepositoryRelease) (github.RepositoryRelease, error) {
+func (fake *FakeGitHub) CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error) {
 	fake.createReleaseMutex.Lock()
 	fake.createReleaseArgsForCall = append(fake.createReleaseArgsForCall, struct {
-		release github.RepositoryRelease
+		release *github.RepositoryRelease
 	}{release})
 	fake.createReleaseMutex.Unlock()
 	if fake.CreateReleaseStub != nil {
@@ -47,30 +50,32 @@ func (fake *FakeGitHub) CreateReleaseCallCount() int {
 	return len(fake.createReleaseArgsForCall)
 }
 
-func (fake *FakeGitHub) CreateReleaseArgsForCall(i int) github.RepositoryRelease {
+func (fake *FakeGitHub) CreateReleaseArgsForCall(i int) *github.RepositoryRelease {
 	fake.createReleaseMutex.RLock()
 	defer fake.createReleaseMutex.RUnlock()
 	return fake.createReleaseArgsForCall[i].release
 }
 
-func (fake *FakeGitHub) CreateReleaseReturns(result1 github.RepositoryRelease, result2 error) {
+func (fake *FakeGitHub) CreateReleaseReturns(result1 *github.RepositoryRelease, result2 error) {
 	fake.CreateReleaseStub = nil
 	fake.createReleaseReturns = struct {
-		result1 github.RepositoryRelease
+		result1 *github.RepositoryRelease
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeGitHub) UploadReleaseAsset(release github.RepositoryRelease, name string, file *os.File) {
+func (fake *FakeGitHub) UploadReleaseAsset(release *github.RepositoryRelease, name string, file *os.File) error {
 	fake.uploadReleaseAssetMutex.Lock()
 	fake.uploadReleaseAssetArgsForCall = append(fake.uploadReleaseAssetArgsForCall, struct {
-		release github.RepositoryRelease
+		release *github.RepositoryRelease
 		name    string
 		file    *os.File
 	}{release, name, file})
 	fake.uploadReleaseAssetMutex.Unlock()
 	if fake.UploadReleaseAssetStub != nil {
-		fake.UploadReleaseAssetStub(release, name, file)
+		return fake.UploadReleaseAssetStub(release, name, file)
+	} else {
+		return fake.uploadReleaseAssetReturns.result1
 	}
 }
 
@@ -80,10 +85,17 @@ func (fake *FakeGitHub) UploadReleaseAssetCallCount() int {
 	return len(fake.uploadReleaseAssetArgsForCall)
 }
 
-func (fake *FakeGitHub) UploadReleaseAssetArgsForCall(i int) (github.RepositoryRelease, string, *os.File) {
+func (fake *FakeGitHub) UploadReleaseAssetArgsForCall(i int) (*github.RepositoryRelease, string, *os.File) {
 	fake.uploadReleaseAssetMutex.RLock()
 	defer fake.uploadReleaseAssetMutex.RUnlock()
 	return fake.uploadReleaseAssetArgsForCall[i].release, fake.uploadReleaseAssetArgsForCall[i].name, fake.uploadReleaseAssetArgsForCall[i].file
+}
+
+func (fake *FakeGitHub) UploadReleaseAssetReturns(result1 error) {
+	fake.UploadReleaseAssetStub = nil
+	fake.uploadReleaseAssetReturns = struct {
+		result1 error
+	}{result1}
 }
 
 var _ resource.GitHub = new(FakeGitHub)
