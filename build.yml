@@ -1,0 +1,9 @@
+---
+image: docker:///concourse/static-golang
+
+inputs:
+  - name: github-release-resource
+    path: gopath/src/github.com/concourse/github-release-resource
+
+run:
+  path: gopath/src/github.com/concourse/github-release-resource/scripts/test

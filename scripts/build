@@ -1,0 +1,4 @@
+#!/bin/bash
+
+go build -o built-out ./cmd/out
+go build -o built-check ./cmd/check
