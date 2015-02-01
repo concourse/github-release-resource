@@ -1,15 +1,20 @@
 package resource
 
-type OutRequest struct {
-	Source OutSource `json:"source"`
-	Params OutParams `json:"params"`
-}
-
-type OutSource struct {
+type Source struct {
 	AccessToken string `json:"access_token"`
 
 	User       string `json:"user"`
 	Repository string `json:"repository"`
+}
+
+type CheckRequest struct {
+	Source  Source  `json:"source"`
+	Version Version `json:"version"`
+}
+
+type OutRequest struct {
+	Source Source    `json:"source"`
+	Params OutParams `json:"params"`
 }
 
 type OutParams struct {

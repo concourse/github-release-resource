@@ -11,6 +11,7 @@ import (
 //go:generate counterfeiter . GitHub
 
 type GitHub interface {
+	ListReleases() ([]github.RepositoryRelease, error)
 	CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
 	UploadReleaseAsset(release *github.RepositoryRelease, name string, file *os.File) error
 }
@@ -22,7 +23,7 @@ type GitHubClient struct {
 	repository string
 }
 
-func NewGitHubClient(source OutSource) *GitHubClient {
+func NewGitHubClient(source Source) *GitHubClient {
 	transport := &oauth.Transport{
 		Token: &oauth.Token{
 			AccessToken: source.AccessToken,
@@ -36,6 +37,15 @@ func NewGitHubClient(source OutSource) *GitHubClient {
 		user:       source.User,
 		repository: source.Repository,
 	}
+}
+
+func (g *GitHubClient) ListReleases() ([]github.RepositoryRelease, error) {
+	releases, _, err := g.client.Repositories.ListReleases(g.user, g.repository, nil)
+	if err != nil {
+		return []github.RepositoryRelease{}, err
+	}
+
+	return releases, nil
 }
 
 func (g *GitHubClient) CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error) {
