@@ -1,0 +1,36 @@
+{
+	"ImportPath": "github.com/concourse/github-release-resource",
+	"GoVersion": "go1.4.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/goauth2/oauth",
+			"Comment": "weekly-43",
+			"Rev": "d4571a95014ff1fdd0055dc0f6b7e977a42b1e5a"
+		},
+		{
+			"ImportPath": "github.com/google/go-github/github",
+			"Rev": "32eadd61120c7a84b8eeac3ac3795cb453a33054"
+		},
+		{
+			"ImportPath": "github.com/google/go-querystring/query",
+			"Rev": "ec0a78e0f4db229b7897be36596a8944230b857a"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/colorstring",
+			"Rev": "9797cb57e314a5a2c4d735ff060d5c6dcba57749"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Comment": "v1.1.0-33-g17ea479",
+			"Rev": "17ea479729ee427265ac1e913443018350946ddf"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Comment": "v1.0-28-g8adf9e1",
+			"Rev": "8adf9e1730c55cdc590de7d49766cb2acc88d8f2"
+		}
+	]
+}
