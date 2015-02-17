@@ -11,6 +11,11 @@
 			"Rev": "d4571a95014ff1fdd0055dc0f6b7e977a42b1e5a"
 		},
 		{
+			"ImportPath": "github.com/blang/semver",
+			"Comment": "v2.1.0",
+			"Rev": "9bf7bff48b0388cb75991e58c6df7d13e982f1f2"
+		},
+		{
 			"ImportPath": "github.com/google/go-github/github",
 			"Rev": "32eadd61120c7a84b8eeac3ac3795cb453a33054"
 		},

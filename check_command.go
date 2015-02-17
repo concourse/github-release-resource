@@ -2,7 +2,9 @@ package resource
 
 import (
 	"errors"
+	"sort"
 
+	"github.com/blang/semver"
 	"github.com/google/go-github/github"
 )
 
@@ -26,7 +28,9 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		return []Version{}, errors.New("repository had no releases")
 	}
 
-	latestVersion := *releases[0].TagName
+	sort.Sort(byVersion(releases))
+
+	latestVersion := *releases[len(releases)-1].TagName
 
 	if request.Version.Tag == "" {
 		return []Version{
@@ -40,7 +44,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 
 	upToLatest := false
 	reversedVersions := []Version{}
-	for _, release := range reverse(releases) {
+	for _, release := range releases {
 		version := *release.TagName
 
 		if upToLatest {
@@ -53,10 +57,30 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	return reversedVersions, nil
 }
 
-func reverse(s []github.RepositoryRelease) []github.RepositoryRelease {
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
+type byVersion []github.RepositoryRelease
+
+func (r byVersion) Len() int {
+	return len(r)
+}
+
+func (r byVersion) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r byVersion) Less(i, j int) bool {
+	if r[i].TagName == nil || r[j].TagName == nil {
+		return false
 	}
 
-	return s
+	first, err := semver.New(*r[i].TagName)
+	if err != nil {
+		return true
+	}
+
+	second, err := semver.New(*r[j].TagName)
+	if err != nil {
+		return false
+	}
+
+	return first.LT(second)
 }

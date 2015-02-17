@@ -79,8 +79,8 @@ var _ = Describe("Check Command", func() {
 		Context("when there are releases", func() {
 			BeforeEach(func() {
 				returnedReleases = []github.RepositoryRelease{
-					{TagName: github.String("0.4.0")},
 					{TagName: github.String("0.1.4")},
+					{TagName: github.String("0.4.0")},
 					{TagName: github.String("0.1.3")},
 					{TagName: github.String("0.1.2")},
 				}
@@ -99,7 +99,7 @@ var _ = Describe("Check Command", func() {
 				Ω(response).Should(BeEmpty())
 			})
 
-			It("all of the versions that are newer", func() {
+			It("returns all of the versions that are newer", func() {
 				command := resource.NewCheckCommand(githubClient)
 
 				response, err := command.Run(resource.CheckRequest{
@@ -109,7 +109,6 @@ var _ = Describe("Check Command", func() {
 				})
 				Ω(err).ShouldNot(HaveOccurred())
 
-				Ω(response).Should(HaveLen(2))
 				Ω(response).Should(Equal([]resource.Version{
 					{Tag: "0.1.4"},
 					{Tag: "0.4.0"},
