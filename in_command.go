@@ -14,11 +14,13 @@ import (
 
 type InCommand struct {
 	github GitHub
+	writer io.Writer
 }
 
-func NewInCommand(github GitHub) *InCommand {
+func NewInCommand(github GitHub, writer io.Writer) *InCommand {
 	return &InCommand{
 		github: github,
+		writer: writer,
 	}
 }
 
@@ -81,6 +83,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			continue
 		}
 
+		fmt.Fprintf(c.writer, "downloading asset: %s\n", *asset.Name)
 		err := c.downloadFile(url, path)
 		if err != nil {
 			return InResponse{}, nil

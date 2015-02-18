@@ -32,7 +32,7 @@ var _ = Describe("In Command", func() {
 		var err error
 
 		githubClient = &fakes.FakeGitHub{}
-		command = resource.NewInCommand(githubClient)
+		command = resource.NewInCommand(githubClient, ioutil.Discard)
 
 		destDir, err = ioutil.TempDir("", "github-release")
 		Ω(err).ShouldNot(HaveOccurred())
