@@ -43,6 +43,7 @@ type Repository struct {
 	SubscribersCount *int             `json:"subscribers_count,omitempty"`
 	WatchersCount    *int             `json:"watchers_count,omitempty"`
 	Size             *int             `json:"size,omitempty"`
+	AutoInit         *bool            `json:"auto_init,omitempty"`
 	Parent           *Repository      `json:"parent,omitempty"`
 	Source           *Repository      `json:"source,omitempty"`
 	Organization     *Organization    `json:"organization,omitempty"`
@@ -53,6 +54,8 @@ type Repository struct {
 	HasIssues    *bool `json:"has_issues"`
 	HasWiki      *bool `json:"has_wiki"`
 	HasDownloads *bool `json:"has_downloads"`
+	// Creating an organization repository. Required for non-owners.
+	TeamID *int `json:"team_id"`
 
 	// API URLs
 	URL              *string `json:"url,omitempty"`
@@ -91,6 +94,10 @@ type Repository struct {
 	TagsURL          *string `json:"tags_url,omitempty"`
 	TreesURL         *string `json:"trees_url,omitempty"`
 	TeamsURL         *string `json:"teams_url,omitempty"`
+
+	// TextMatches is only populated from search results that request text matches
+	// See: search.go and https://developer.github.com/v3/search/#text-match-metadata
+	TextMatches []TextMatch `json:"text_matches,omitempty"`
 }
 
 func (r Repository) String() string {
