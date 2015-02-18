@@ -13,6 +13,8 @@ import (
 type GitHub interface {
 	ListReleases() ([]github.RepositoryRelease, error)
 	CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
+
+	ListReleaseAssets(release *github.RepositoryRelease) ([]github.ReleaseAsset, error)
 	UploadReleaseAsset(release *github.RepositoryRelease, name string, file *os.File) error
 }
 
@@ -55,6 +57,15 @@ func (g *GitHubClient) CreateRelease(release *github.RepositoryRelease) (*github
 	}
 
 	return createdRelease, nil
+}
+
+func (g *GitHubClient) ListReleaseAssets(release *github.RepositoryRelease) ([]github.ReleaseAsset, error) {
+	assets, _, err := g.client.Repositories.ListReleaseAssets(g.user, g.repository, *release.ID, nil)
+	if err != nil {
+		return []github.ReleaseAsset{}, nil
+	}
+
+	return assets, nil
 }
 
 func (g *GitHubClient) UploadReleaseAsset(release *github.RepositoryRelease, name string, file *os.File) error {

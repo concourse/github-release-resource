@@ -44,9 +44,9 @@ var _ = Describe("Check Command", func() {
 		Context("when there are releases", func() {
 			BeforeEach(func() {
 				returnedReleases = []github.RepositoryRelease{
-					{TagName: github.String("0.4.0")},
+					{TagName: github.String("v0.4.0")},
 					{TagName: github.String("0.1.3")},
-					{TagName: github.String("0.1.2")},
+					{TagName: github.String("v0.1.2")},
 				}
 			})
 
@@ -58,7 +58,7 @@ var _ = Describe("Check Command", func() {
 
 				Ω(response).Should(HaveLen(1))
 				Ω(response[0]).Should(Equal(resource.Version{
-					Tag: "0.4.0",
+					Tag: "v0.4.0",
 				}))
 			})
 		})
@@ -79,9 +79,9 @@ var _ = Describe("Check Command", func() {
 		Context("when there are releases", func() {
 			BeforeEach(func() {
 				returnedReleases = []github.RepositoryRelease{
-					{TagName: github.String("0.1.4")},
+					{TagName: github.String("v0.1.4")},
 					{TagName: github.String("0.4.0")},
-					{TagName: github.String("0.1.3")},
+					{TagName: github.String("v0.1.3")},
 					{TagName: github.String("0.1.2")},
 				}
 			})
@@ -104,13 +104,13 @@ var _ = Describe("Check Command", func() {
 
 				response, err := command.Run(resource.CheckRequest{
 					Version: resource.Version{
-						Tag: "0.1.3",
+						Tag: "v0.1.3",
 					},
 				})
 				Ω(err).ShouldNot(HaveOccurred())
 
 				Ω(response).Should(Equal([]resource.Version{
-					{Tag: "0.1.4"},
+					{Tag: "v0.1.4"},
 					{Tag: "0.4.0"},
 				}))
 			})

@@ -12,6 +12,21 @@ type CheckRequest struct {
 	Version Version `json:"version"`
 }
 
+type InRequest struct {
+	Source  Source   `json:"source"`
+	Version *Version `json:"version"`
+	Params  InParams `json:"params"`
+}
+
+type InParams struct {
+	Globs []string `json:"globs"`
+}
+
+type InResponse struct {
+	Version  Version        `json:"version"`
+	Metadata []MetadataPair `json:"metadata"`
+}
+
 type OutRequest struct {
 	Source Source    `json:"source"`
 	Params OutParams `json:"params"`

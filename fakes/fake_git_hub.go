@@ -26,6 +26,15 @@ type FakeGitHub struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
+	ListReleaseAssetsStub        func(release *github.RepositoryRelease) ([]github.ReleaseAsset, error)
+	listReleaseAssetsMutex       sync.RWMutex
+	listReleaseAssetsArgsForCall []struct {
+		release *github.RepositoryRelease
+	}
+	listReleaseAssetsReturns struct {
+		result1 []github.ReleaseAsset
+		result2 error
+	}
 	UploadReleaseAssetStub        func(release *github.RepositoryRelease, name string, file *os.File) error
 	uploadReleaseAssetMutex       sync.RWMutex
 	uploadReleaseAssetArgsForCall []struct {
@@ -92,6 +101,39 @@ func (fake *FakeGitHub) CreateReleaseReturns(result1 *github.RepositoryRelease, 
 	fake.CreateReleaseStub = nil
 	fake.createReleaseReturns = struct {
 		result1 *github.RepositoryRelease
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitHub) ListReleaseAssets(release *github.RepositoryRelease) ([]github.ReleaseAsset, error) {
+	fake.listReleaseAssetsMutex.Lock()
+	fake.listReleaseAssetsArgsForCall = append(fake.listReleaseAssetsArgsForCall, struct {
+		release *github.RepositoryRelease
+	}{release})
+	fake.listReleaseAssetsMutex.Unlock()
+	if fake.ListReleaseAssetsStub != nil {
+		return fake.ListReleaseAssetsStub(release)
+	} else {
+		return fake.listReleaseAssetsReturns.result1, fake.listReleaseAssetsReturns.result2
+	}
+}
+
+func (fake *FakeGitHub) ListReleaseAssetsCallCount() int {
+	fake.listReleaseAssetsMutex.RLock()
+	defer fake.listReleaseAssetsMutex.RUnlock()
+	return len(fake.listReleaseAssetsArgsForCall)
+}
+
+func (fake *FakeGitHub) ListReleaseAssetsArgsForCall(i int) *github.RepositoryRelease {
+	fake.listReleaseAssetsMutex.RLock()
+	defer fake.listReleaseAssetsMutex.RUnlock()
+	return fake.listReleaseAssetsArgsForCall[i].release
+}
+
+func (fake *FakeGitHub) ListReleaseAssetsReturns(result1 []github.ReleaseAsset, result2 error) {
+	fake.ListReleaseAssetsStub = nil
+	fake.listReleaseAssetsReturns = struct {
+		result1 []github.ReleaseAsset
 		result2 error
 	}{result1, result2}
 }

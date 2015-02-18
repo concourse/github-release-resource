@@ -14,15 +14,23 @@ Fetches and creates versioned GitHub resources.
 
 ## Behavior
 
-### `check`: Extract versions from the bucket.
+### `check`: Check for released versions.
 
-*TODO*
+Releases are listed and sorted by their tag, using
+[semver](http://semver.org) semantics if possible.
 
-### `in`: Fetch an object from the bucket.
+### `in`: Fetch assets from a release.
 
-*TODO*
+Fetches artifacts from the given release version. If the version is not
+specified, the latest version is chosen using [semver](http://semver.org)
+semantics.
 
-### `out`: Upload an object to the bucket.
+#### Parameters
+
+* `globs`: *Optional.* A list of globs for files that will be downloaded from
+  the release. If not specified, all assets will be fetched.
+
+### `out`: Publish a release.
 
 Given a name specified in `name`, a body specified in `body`, and the tag to use
 specified in `tag`, this creates a release on GitHub then uploads the files
