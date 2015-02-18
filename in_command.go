@@ -94,6 +94,11 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		Version: Version{
 			Tag: *foundRelease.TagName,
 		},
+		Metadata: []MetadataPair{
+			{Name: "name", Value: *foundRelease.Name, URL: *foundRelease.HTMLURL},
+			{Name: "url", Value: *foundRelease.HTMLURL},
+			{Name: "body", Value: *foundRelease.Body, Markdown: true},
+		},
 	}, nil
 }
 

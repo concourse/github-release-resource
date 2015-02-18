@@ -50,6 +50,8 @@ type Version struct {
 }
 
 type MetadataPair struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name     string `json:"name"`
+	Value    string `json:"value"`
+	URL      string `json:"url"`
+	Markdown bool   `json:"markdown"`
 }

@@ -55,9 +55,16 @@ var _ = Describe("In Command", func() {
 	})
 
 	buildRelease := func(id int, tag string) github.RepositoryRelease {
+		url := "http://google.com"
+		name := "release-name"
+		body := "*markdown*"
+
 		return github.RepositoryRelease{
 			ID:      &id,
 			TagName: &tag,
+			HTMLURL: &url,
+			Name:    &name,
+			Body:    &body,
 		}
 	}
 
@@ -104,6 +111,14 @@ var _ = Describe("In Command", func() {
 
 				It("returns the fetched version", func() {
 					Ω(inResponse.Version).Should(Equal(resource.Version{Tag: "v0.35.0"}))
+				})
+
+				It("has some sweet metadata", func() {
+					Ω(inResponse.Metadata).Should(ConsistOf(
+						resource.MetadataPair{Name: "url", Value: "http://google.com"},
+						resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+						resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+					))
 				})
 
 				It("downloads only the files that match the globs", func() {
