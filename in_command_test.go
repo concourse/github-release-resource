@@ -55,25 +55,19 @@ var _ = Describe("In Command", func() {
 	})
 
 	buildRelease := func(id int, tag string) github.RepositoryRelease {
-		url := "http://google.com"
-		name := "release-name"
-		body := "*markdown*"
-
 		return github.RepositoryRelease{
-			ID:      &id,
-			TagName: &tag,
-			HTMLURL: &url,
-			Name:    &name,
-			Body:    &body,
+			ID:      github.Int(id),
+			TagName: github.String(tag),
+			HTMLURL: github.String("http://google.com"),
+			Name:    github.String("release-name"),
+			Body:    github.String("*markdown*"),
 		}
 	}
 
 	buildAsset := func(name string) github.ReleaseAsset {
-		url := server.URL() + "/" + name
-
 		return github.ReleaseAsset{
 			Name:               &name,
-			BrowserDownloadURL: &url,
+			BrowserDownloadURL: github.String(server.URL() + "/" + name),
 		}
 	}
 
@@ -158,6 +152,14 @@ var _ = Describe("In Command", func() {
 					Ω(inResponse.Version).Should(Equal(resource.Version{Tag: "v0.35.0"}))
 				})
 
+				It("has some sweet metadata", func() {
+					Ω(inResponse.Metadata).Should(ConsistOf(
+						resource.MetadataPair{Name: "url", Value: "http://google.com"},
+						resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+						resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+					))
+				})
+
 				It("downloads all of the files", func() {
 					_, err := os.Stat(filepath.Join(destDir, "example.txt"))
 					Ω(err).ShouldNot(HaveOccurred())
@@ -194,6 +196,14 @@ var _ = Describe("In Command", func() {
 
 			It("returns the fetched version", func() {
 				Ω(inResponse.Version).Should(Equal(resource.Version{Tag: "v0.35.0"}))
+			})
+
+			It("has some sweet metadata", func() {
+				Ω(inResponse.Metadata).Should(ConsistOf(
+					resource.MetadataPair{Name: "url", Value: "http://google.com"},
+					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+				))
 			})
 
 			It("fetches from the latest release", func() {

@@ -45,6 +45,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		TagName: github.String(tag),
 		Body:    github.String(body),
 	}
+
 	createdRelease, err := c.github.CreateRelease(release)
 	if err != nil {
 		return OutResponse{}, err
@@ -76,6 +77,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		Version: Version{
 			Tag: tag,
 		},
+		Metadata: metadataFromRelease(createdRelease),
 	}, nil
 }
 

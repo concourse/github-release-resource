@@ -30,6 +30,15 @@ var _ = Describe("Out Command", func() {
 
 		sourcesDir, err = ioutil.TempDir("", "github-release")
 		Ω(err).ShouldNot(HaveOccurred())
+
+		githubClient.CreateReleaseStub = func(gh *github.RepositoryRelease) (*github.RepositoryRelease, error) {
+			createdRel := *gh
+			createdRel.ID = github.Int(112)
+			createdRel.HTMLURL = github.String("http://google.com")
+			createdRel.Name = github.String("release-name")
+			createdRel.Body = github.String("*markdown*")
+			return &createdRel, nil
+		}
 	})
 
 	AfterEach(func() {
@@ -105,8 +114,9 @@ var _ = Describe("Out Command", func() {
 		file(globNotMatching, "not matching")
 
 		githubClient.CreateReleaseStub = func(gh *github.RepositoryRelease) (*github.RepositoryRelease, error) {
-			gh.ID = github.Int(112)
-			return gh, nil
+			createdRel := *gh
+			createdRel.ID = github.Int(112)
+			return &createdRel, nil
 		}
 
 		request := resource.OutRequest{
@@ -130,6 +140,33 @@ var _ = Describe("Out Command", func() {
 		Ω(*release.ID).Should(Equal(112))
 		Ω(name).Should(Equal("great-file.tgz"))
 		Ω(file.Name()).Should(Equal(filepath.Join(sourcesDir, "great-file.tgz")))
+	})
+
+	It("has some sweet metadata", func() {
+		namePath := filepath.Join(sourcesDir, "name")
+		bodyPath := filepath.Join(sourcesDir, "body")
+		tagPath := filepath.Join(sourcesDir, "tag")
+
+		file(namePath, "v0.3.12")
+		file(bodyPath, "this is a great release")
+		file(tagPath, "0.3.12")
+
+		request := resource.OutRequest{
+			Params: resource.OutParams{
+				NamePath: "name",
+				BodyPath: "body",
+				TagPath:  "tag",
+			},
+		}
+
+		outResponse, err := command.Run(sourcesDir, request)
+		Ω(err).ShouldNot(HaveOccurred())
+
+		Ω(outResponse.Metadata).Should(ConsistOf(
+			resource.MetadataPair{Name: "url", Value: "http://google.com"},
+			resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+			resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+		))
 	})
 })
 
