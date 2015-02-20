@@ -54,6 +54,14 @@ type FakeGitHub struct {
 	uploadReleaseAssetReturns struct {
 		result1 error
 	}
+	DeleteReleaseAssetStub        func(asset github.ReleaseAsset) error
+	deleteReleaseAssetMutex       sync.RWMutex
+	deleteReleaseAssetArgsForCall []struct {
+		asset github.ReleaseAsset
+	}
+	deleteReleaseAssetReturns struct {
+		result1 error
+	}
 }
 
 func (fake *FakeGitHub) ListReleases() ([]github.RepositoryRelease, error) {
@@ -210,6 +218,38 @@ func (fake *FakeGitHub) UploadReleaseAssetArgsForCall(i int) (*github.Repository
 func (fake *FakeGitHub) UploadReleaseAssetReturns(result1 error) {
 	fake.UploadReleaseAssetStub = nil
 	fake.uploadReleaseAssetReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeGitHub) DeleteReleaseAsset(asset github.ReleaseAsset) error {
+	fake.deleteReleaseAssetMutex.Lock()
+	fake.deleteReleaseAssetArgsForCall = append(fake.deleteReleaseAssetArgsForCall, struct {
+		asset github.ReleaseAsset
+	}{asset})
+	fake.deleteReleaseAssetMutex.Unlock()
+	if fake.DeleteReleaseAssetStub != nil {
+		return fake.DeleteReleaseAssetStub(asset)
+	} else {
+		return fake.deleteReleaseAssetReturns.result1
+	}
+}
+
+func (fake *FakeGitHub) DeleteReleaseAssetCallCount() int {
+	fake.deleteReleaseAssetMutex.RLock()
+	defer fake.deleteReleaseAssetMutex.RUnlock()
+	return len(fake.deleteReleaseAssetArgsForCall)
+}
+
+func (fake *FakeGitHub) DeleteReleaseAssetArgsForCall(i int) github.ReleaseAsset {
+	fake.deleteReleaseAssetMutex.RLock()
+	defer fake.deleteReleaseAssetMutex.RUnlock()
+	return fake.deleteReleaseAssetArgsForCall[i].asset
+}
+
+func (fake *FakeGitHub) DeleteReleaseAssetReturns(result1 error) {
+	fake.DeleteReleaseAssetStub = nil
+	fake.deleteReleaseAssetReturns = struct {
 		result1 error
 	}{result1}
 }

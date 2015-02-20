@@ -63,9 +63,18 @@ var _ = Describe("Out Command", func() {
 	})
 
 	Context("when the release has already been created", func() {
+		existingAssets := []github.ReleaseAsset{
+			{ID: github.Int(456789)},
+			{ID: github.Int(3450798)},
+		}
+
 		BeforeEach(func() {
 			githubClient.ListReleasesReturns([]github.RepositoryRelease{
-				{ID: github.Int(112), TagName: github.String("some-tag-name")},
+				{
+					ID:      github.Int(112),
+					TagName: github.String("some-tag-name"),
+					Assets:  existingAssets,
+				},
 			}, nil)
 
 			namePath := filepath.Join(sourcesDir, "name")
@@ -91,6 +100,13 @@ var _ = Describe("Out Command", func() {
 			updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
 			Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
 			Ω(*updatedRelease.Body).Should(Equal("this is a great release"))
+		})
+
+		It("deletes the existing assets", func() {
+			Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(2))
+
+			Ω(githubClient.DeleteReleaseAssetArgsForCall(0)).Should(Equal(existingAssets[0]))
+			Ω(githubClient.DeleteReleaseAssetArgsForCall(1)).Should(Equal(existingAssets[1]))
 		})
 	})
 

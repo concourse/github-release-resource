@@ -63,6 +63,13 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		existingRelease.Name = github.String(name)
 		existingRelease.Body = github.String(body)
 
+		for _, asset := range existingRelease.Assets {
+			err := c.github.DeleteReleaseAsset(asset)
+			if err != nil {
+				return OutResponse{}, err
+			}
+		}
+
 		release, err = c.github.UpdateRelease(existingRelease)
 	} else {
 		release, err = c.github.CreateRelease(release)
