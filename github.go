@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"errors"
 	"os"
 
 	"code.google.com/p/goauth2/oauth"
@@ -13,6 +14,7 @@ import (
 type GitHub interface {
 	ListReleases() ([]github.RepositoryRelease, error)
 	CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
+	UpdateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
 
 	ListReleaseAssets(release *github.RepositoryRelease) ([]github.ReleaseAsset, error)
 	UploadReleaseAsset(release *github.RepositoryRelease, name string, file *os.File) error
@@ -57,6 +59,19 @@ func (g *GitHubClient) CreateRelease(release *github.RepositoryRelease) (*github
 	}
 
 	return createdRelease, nil
+}
+
+func (g *GitHubClient) UpdateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error) {
+	if release.ID == nil {
+		return nil, errors.New("release did not have an ID: has it been saved yet?")
+	}
+
+	updatedRelease, _, err := g.client.Repositories.EditRelease(g.user, g.repository, *release.ID, release)
+	if err != nil {
+		return &github.RepositoryRelease{}, err
+	}
+
+	return updatedRelease, nil
 }
 
 func (g *GitHubClient) ListReleaseAssets(release *github.RepositoryRelease) ([]github.ReleaseAsset, error) {

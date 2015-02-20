@@ -14,12 +14,19 @@ import (
 	"github.com/google/go-github/github"
 )
 
+func file(path, contents string) {
+	Ω(ioutil.WriteFile(path, []byte(contents), 0644)).Should(Succeed())
+}
+
 var _ = Describe("Out Command", func() {
 	var (
 		command      *resource.OutCommand
 		githubClient *fakes.FakeGitHub
 
 		sourcesDir string
+
+		request  resource.OutRequest
+		response resource.OutResponse
 	)
 
 	BeforeEach(func() {
@@ -39,137 +46,142 @@ var _ = Describe("Out Command", func() {
 			createdRel.Body = github.String("*markdown*")
 			return &createdRel, nil
 		}
+
+		githubClient.UpdateReleaseStub = func(gh *github.RepositoryRelease) (*github.RepositoryRelease, error) {
+			return gh, nil
+		}
+	})
+
+	JustBeforeEach(func() {
+		var err error
+		response, err = command.Run(sourcesDir, request)
+		Ω(err).ShouldNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
 		Ω(os.RemoveAll(sourcesDir)).Should(Succeed())
 	})
 
-	It("creates a release on GitHub", func() {
-		namePath := filepath.Join(sourcesDir, "name")
-		bodyPath := filepath.Join(sourcesDir, "body")
-		tagPath := filepath.Join(sourcesDir, "tag")
+	Context("when the release has already been created", func() {
+		BeforeEach(func() {
+			githubClient.ListReleasesReturns([]github.RepositoryRelease{
+				{ID: github.Int(112), TagName: github.String("some-tag-name")},
+			}, nil)
 
-		file(namePath, "v0.3.12")
-		file(bodyPath, "this is a great release")
-		file(tagPath, "0.3.12")
+			namePath := filepath.Join(sourcesDir, "name")
+			bodyPath := filepath.Join(sourcesDir, "body")
+			tagPath := filepath.Join(sourcesDir, "tag")
 
-		request := resource.OutRequest{
-			Params: resource.OutParams{
-				NamePath: "name",
-				BodyPath: "body",
-				TagPath:  "tag",
-			},
-		}
+			file(namePath, "v0.3.12")
+			file(bodyPath, "this is a great release")
+			file(tagPath, "some-tag-name")
 
-		_, err := command.Run(sourcesDir, request)
-		Ω(err).ShouldNot(HaveOccurred())
-
-		Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
-		release := githubClient.CreateReleaseArgsForCall(0)
-
-		Ω(*release.Name).Should(Equal("v0.3.12"))
-		Ω(*release.TagName).Should(Equal("0.3.12"))
-		Ω(*release.Body).Should(Equal("this is a great release"))
-	})
-
-	It("works without a body", func() {
-		namePath := filepath.Join(sourcesDir, "name")
-		tagPath := filepath.Join(sourcesDir, "tag")
-
-		file(namePath, "v0.3.12")
-		file(tagPath, "0.3.12")
-
-		request := resource.OutRequest{
-			Params: resource.OutParams{
-				NamePath: "name",
-				TagPath:  "tag",
-			},
-		}
-
-		_, err := command.Run(sourcesDir, request)
-		Ω(err).ShouldNot(HaveOccurred())
-
-		Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
-		release := githubClient.CreateReleaseArgsForCall(0)
-
-		Ω(*release.Name).Should(Equal("v0.3.12"))
-		Ω(*release.TagName).Should(Equal("0.3.12"))
-		Ω(*release.Body).Should(Equal(""))
-	})
-
-	It("uploads matching file globs", func() {
-		namePath := filepath.Join(sourcesDir, "name")
-		bodyPath := filepath.Join(sourcesDir, "body")
-		tagPath := filepath.Join(sourcesDir, "tag")
-
-		file(namePath, "v0.3.12")
-		file(bodyPath, "this is a great release")
-		file(tagPath, "0.3.12")
-
-		globMatching := filepath.Join(sourcesDir, "great-file.tgz")
-		globNotMatching := filepath.Join(sourcesDir, "bad-file.txt")
-
-		file(globMatching, "matching")
-		file(globNotMatching, "not matching")
-
-		githubClient.CreateReleaseStub = func(gh *github.RepositoryRelease) (*github.RepositoryRelease, error) {
-			createdRel := *gh
-			createdRel.ID = github.Int(112)
-			return &createdRel, nil
-		}
-
-		request := resource.OutRequest{
-			Params: resource.OutParams{
-				NamePath: "name",
-				BodyPath: "body",
-				TagPath:  "tag",
-
-				Globs: []string{
-					"*.tgz",
+			request = resource.OutRequest{
+				Params: resource.OutParams{
+					NamePath: "name",
+					BodyPath: "body",
+					TagPath:  "tag",
 				},
-			},
-		}
+			}
+		})
 
-		_, err := command.Run(sourcesDir, request)
-		Ω(err).ShouldNot(HaveOccurred())
+		It("updates the existing release", func() {
+			Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
 
-		Ω(githubClient.UploadReleaseAssetCallCount()).Should(Equal(1))
-		release, name, file := githubClient.UploadReleaseAssetArgsForCall(0)
-
-		Ω(*release.ID).Should(Equal(112))
-		Ω(name).Should(Equal("great-file.tgz"))
-		Ω(file.Name()).Should(Equal(filepath.Join(sourcesDir, "great-file.tgz")))
+			updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
+			Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
+			Ω(*updatedRelease.Body).Should(Equal("this is a great release"))
+		})
 	})
 
-	It("has some sweet metadata", func() {
-		namePath := filepath.Join(sourcesDir, "name")
-		bodyPath := filepath.Join(sourcesDir, "body")
-		tagPath := filepath.Join(sourcesDir, "tag")
+	Context("when the release has not already been created", func() {
+		BeforeEach(func() {
+			namePath := filepath.Join(sourcesDir, "name")
+			tagPath := filepath.Join(sourcesDir, "tag")
 
-		file(namePath, "v0.3.12")
-		file(bodyPath, "this is a great release")
-		file(tagPath, "0.3.12")
+			file(namePath, "v0.3.12")
+			file(tagPath, "0.3.12")
 
-		request := resource.OutRequest{
-			Params: resource.OutParams{
-				NamePath: "name",
-				BodyPath: "body",
-				TagPath:  "tag",
-			},
-		}
+			request = resource.OutRequest{
+				Params: resource.OutParams{
+					NamePath: "name",
+					TagPath:  "tag",
+				},
+			}
+		})
 
-		outResponse, err := command.Run(sourcesDir, request)
-		Ω(err).ShouldNot(HaveOccurred())
+		Context("with a body", func() {
+			BeforeEach(func() {
+				bodyPath := filepath.Join(sourcesDir, "body")
+				file(bodyPath, "this is a great release")
+				request.Params.BodyPath = "body"
+			})
 
-		Ω(outResponse.Metadata).Should(ConsistOf(
-			resource.MetadataPair{Name: "url", Value: "http://google.com"},
-			resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
-			resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
-		))
+			It("creates a release on GitHub", func() {
+				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
+				release := githubClient.CreateReleaseArgsForCall(0)
+
+				Ω(*release.Name).Should(Equal("v0.3.12"))
+				Ω(*release.TagName).Should(Equal("0.3.12"))
+				Ω(*release.Body).Should(Equal("this is a great release"))
+			})
+		})
+
+		Context("without a body", func() {
+			It("works", func() {
+				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
+				release := githubClient.CreateReleaseArgsForCall(0)
+
+				Ω(*release.Name).Should(Equal("v0.3.12"))
+				Ω(*release.TagName).Should(Equal("0.3.12"))
+				Ω(*release.Body).Should(Equal(""))
+			})
+		})
+
+		Context("with file globs", func() {
+			BeforeEach(func() {
+				globMatching := filepath.Join(sourcesDir, "great-file.tgz")
+				globNotMatching := filepath.Join(sourcesDir, "bad-file.txt")
+
+				file(globMatching, "matching")
+				file(globNotMatching, "not matching")
+
+				request = resource.OutRequest{
+					Params: resource.OutParams{
+						NamePath: "name",
+						BodyPath: "body",
+						TagPath:  "tag",
+
+						Globs: []string{
+							"*.tgz",
+						},
+					},
+				}
+
+				bodyPath := filepath.Join(sourcesDir, "body")
+				file(bodyPath, "*markdown*")
+				request.Params.BodyPath = "body"
+			})
+
+			It("uploads matching file globs", func() {
+				Ω(githubClient.UploadReleaseAssetCallCount()).Should(Equal(1))
+				release, name, file := githubClient.UploadReleaseAssetArgsForCall(0)
+
+				Ω(*release.ID).Should(Equal(112))
+				Ω(name).Should(Equal("great-file.tgz"))
+				Ω(file.Name()).Should(Equal(filepath.Join(sourcesDir, "great-file.tgz")))
+			})
+
+			It("has some sweet metadata", func() {
+				outResponse, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				Ω(outResponse.Metadata).Should(ConsistOf(
+					resource.MetadataPair{Name: "url", Value: "http://google.com"},
+					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+				))
+			})
+		})
 	})
 })
-
-func file(path, contents string) {
-	Ω(ioutil.WriteFile(path, []byte(contents), 0644)).Should(Succeed())
-}

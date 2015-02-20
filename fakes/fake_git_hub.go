@@ -26,6 +26,15 @@ type FakeGitHub struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
+	UpdateReleaseStub        func(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
+	updateReleaseMutex       sync.RWMutex
+	updateReleaseArgsForCall []struct {
+		release *github.RepositoryRelease
+	}
+	updateReleaseReturns struct {
+		result1 *github.RepositoryRelease
+		result2 error
+	}
 	ListReleaseAssetsStub        func(release *github.RepositoryRelease) ([]github.ReleaseAsset, error)
 	listReleaseAssetsMutex       sync.RWMutex
 	listReleaseAssetsArgsForCall []struct {
@@ -100,6 +109,39 @@ func (fake *FakeGitHub) CreateReleaseArgsForCall(i int) *github.RepositoryReleas
 func (fake *FakeGitHub) CreateReleaseReturns(result1 *github.RepositoryRelease, result2 error) {
 	fake.CreateReleaseStub = nil
 	fake.createReleaseReturns = struct {
+		result1 *github.RepositoryRelease
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitHub) UpdateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error) {
+	fake.updateReleaseMutex.Lock()
+	fake.updateReleaseArgsForCall = append(fake.updateReleaseArgsForCall, struct {
+		release *github.RepositoryRelease
+	}{release})
+	fake.updateReleaseMutex.Unlock()
+	if fake.UpdateReleaseStub != nil {
+		return fake.UpdateReleaseStub(release)
+	} else {
+		return fake.updateReleaseReturns.result1, fake.updateReleaseReturns.result2
+	}
+}
+
+func (fake *FakeGitHub) UpdateReleaseCallCount() int {
+	fake.updateReleaseMutex.RLock()
+	defer fake.updateReleaseMutex.RUnlock()
+	return len(fake.updateReleaseArgsForCall)
+}
+
+func (fake *FakeGitHub) UpdateReleaseArgsForCall(i int) *github.RepositoryRelease {
+	fake.updateReleaseMutex.RLock()
+	defer fake.updateReleaseMutex.RUnlock()
+	return fake.updateReleaseArgsForCall[i].release
+}
+
+func (fake *FakeGitHub) UpdateReleaseReturns(result1 *github.RepositoryRelease, result2 error) {
+	fake.UpdateReleaseStub = nil
+	fake.updateReleaseReturns = struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}{result1, result2}

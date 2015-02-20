@@ -46,7 +46,28 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		Body:    github.String(body),
 	}
 
-	createdRelease, err := c.github.CreateRelease(release)
+	existingReleases, err := c.github.ListReleases()
+	if err != nil {
+		return OutResponse{}, err
+	}
+
+	var existingRelease *github.RepositoryRelease
+	for _, e := range existingReleases {
+		if *e.TagName == tag {
+			existingRelease = &e
+			break
+		}
+	}
+
+	if existingRelease != nil {
+		existingRelease.Name = github.String(name)
+		existingRelease.Body = github.String(body)
+
+		release, err = c.github.UpdateRelease(existingRelease)
+	} else {
+		release, err = c.github.CreateRelease(release)
+	}
+
 	if err != nil {
 		return OutResponse{}, err
 	}
@@ -64,7 +85,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 			}
 
 			name := filepath.Base(filePath)
-			err = c.github.UploadReleaseAsset(createdRelease, name, file)
+			err = c.github.UploadReleaseAsset(release, name, file)
 			if err != nil {
 				return OutResponse{}, err
 			}
@@ -77,7 +98,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		Version: Version{
 			Tag: tag,
 		},
-		Metadata: metadataFromRelease(createdRelease),
+		Metadata: metadataFromRelease(release),
 	}, nil
 }
 
