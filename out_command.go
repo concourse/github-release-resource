@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,11 +13,13 @@ import (
 
 type OutCommand struct {
 	github GitHub
+	writer io.Writer
 }
 
-func NewOutCommand(github GitHub) *OutCommand {
+func NewOutCommand(github GitHub, writer io.Writer) *OutCommand {
 	return &OutCommand{
 		github: github,
+		writer: writer,
 	}
 }
 
@@ -64,14 +68,19 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		existingRelease.Body = github.String(body)
 
 		for _, asset := range existingRelease.Assets {
+			fmt.Fprintf(c.writer, "clearing existing asset: %s\n", asset.Name)
+
 			err := c.github.DeleteReleaseAsset(asset)
 			if err != nil {
 				return OutResponse{}, err
 			}
 		}
 
+		fmt.Fprintf(c.writer, "updating release %s\n", name)
+
 		release, err = c.github.UpdateRelease(existingRelease)
 	} else {
+		fmt.Fprintf(c.writer, "creating release %s\n", name)
 		release, err = c.github.CreateRelease(release)
 	}
 
@@ -90,6 +99,8 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 			if err != nil {
 				return OutResponse{}, err
 			}
+
+			fmt.Fprintf(c.writer, "uploading %s\n", filePath)
 
 			name := filepath.Base(filePath)
 			err = c.github.UploadReleaseAsset(release, name, file)

@@ -33,7 +33,7 @@ var _ = Describe("Out Command", func() {
 		var err error
 
 		githubClient = &fakes.FakeGitHub{}
-		command = resource.NewOutCommand(githubClient)
+		command = resource.NewOutCommand(githubClient, ioutil.Discard)
 
 		sourcesDir, err = ioutil.TempDir("", "github-release")
 		Ω(err).ShouldNot(HaveOccurred())

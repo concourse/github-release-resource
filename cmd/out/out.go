@@ -19,7 +19,7 @@ func main() {
 	sourceDir := os.Args[1]
 
 	github := resource.NewGitHubClient(request.Source)
-	command := resource.NewOutCommand(github)
+	command := resource.NewOutCommand(github, os.Stderr)
 	response, err := command.Run(sourceDir, request)
 	if err != nil {
 		resource.Fatal("running command", err)
