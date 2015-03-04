@@ -64,8 +64,14 @@ var _ = Describe("Out Command", func() {
 
 	Context("when the release has already been created", func() {
 		existingAssets := []github.ReleaseAsset{
-			{ID: github.Int(456789)},
-			{ID: github.Int(3450798)},
+			{
+				ID:   github.Int(456789),
+				Name: github.String("unicorns.txt"),
+			},
+			{
+				ID:   github.Int(3450798),
+				Name: github.String("rainbows.txt"),
+			},
 		}
 
 		BeforeEach(func() {
