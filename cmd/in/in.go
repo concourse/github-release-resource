@@ -18,7 +18,11 @@ func main() {
 
 	destDir := os.Args[1]
 
-	github := resource.NewGitHubClient(request.Source)
+	github, err := resource.NewGitHubClient(request.Source)
+	if err != nil {
+		resource.Fatal("constructing github client", err)
+	}
+
 	command := resource.NewInCommand(github, os.Stderr)
 	response, err := command.Run(destDir, request)
 	if err != nil {

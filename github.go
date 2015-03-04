@@ -2,6 +2,7 @@ package resource
 
 import (
 	"errors"
+	"net/url"
 	"os"
 
 	"code.google.com/p/goauth2/oauth"
@@ -28,20 +29,34 @@ type GitHubClient struct {
 	repository string
 }
 
-func NewGitHubClient(source Source) *GitHubClient {
+func NewGitHubClient(source Source) (*GitHubClient, error) {
 	transport := &oauth.Transport{
 		Token: &oauth.Token{
 			AccessToken: source.AccessToken,
 		},
 	}
 
-	client := github.NewClient(transport.Client())
+	var client *github.Client
+
+	if transport.Token.AccessToken == "" {
+		client = github.NewClient(nil)
+	} else {
+		client = github.NewClient(transport.Client())
+	}
+
+	if source.GitHubAPIURL != "" {
+		var err error
+		client.BaseURL, err = url.Parse(source.GitHubAPIURL)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return &GitHubClient{
 		client:     client,
 		user:       source.User,
 		repository: source.Repository,
-	}
+	}, nil
 }
 
 func (g *GitHubClient) ListReleases() ([]github.RepositoryRelease, error) {

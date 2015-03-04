@@ -25,9 +25,14 @@ func NewInCommand(github GitHub, writer io.Writer) *InCommand {
 }
 
 func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
+	err := os.MkdirAll(destDir, 0755)
+	if err != nil {
+		return InResponse{}, err
+	}
+
 	releases, err := c.github.ListReleases()
 	if err != nil {
-		return InResponse{}, nil
+		return InResponse{}, err
 	}
 
 	sort.Sort(byVersion(releases))
@@ -55,7 +60,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 	assets, err := c.github.ListReleaseAssets(foundRelease)
 	if err != nil {
-		return InResponse{}, nil
+		return InResponse{}, err
 	}
 
 	for _, asset := range assets {
@@ -87,7 +92,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 		err := c.downloadFile(url, path)
 		if err != nil {
-			return InResponse{}, nil
+			return InResponse{}, err
 		}
 	}
 

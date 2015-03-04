@@ -4,13 +4,16 @@ Fetches and creates versioned GitHub resources.
 
 ## Source Configuration
 
-* `access_token`: *Required.* The GitHub access token that should be used to
-  access the API.
-
 * `user`: *Required.* The GitHub username or organization name for the
   repository that the releases are in.
 
 * `repository`: *Required.* The repository name that contains the releases.
+
+* `access_token`: *Optional.* The GitHub access token that should be used to
+  access the API. Only required for publishing releases.
+
+* `github_api_url`: *Optional.* If you use a non-public GitHub deployment then
+  you can set your API URL here.
 
 ## Behavior
 

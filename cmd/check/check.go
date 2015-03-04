@@ -11,7 +11,11 @@ func main() {
 	var request resource.CheckRequest
 	inputRequest(&request)
 
-	github := resource.NewGitHubClient(request.Source)
+	github, err := resource.NewGitHubClient(request.Source)
+	if err != nil {
+		resource.Fatal("constructing github client", err)
+	}
+
 	command := resource.NewCheckCommand(github)
 	response, err := command.Run(request)
 	if err != nil {

@@ -1,6 +1,7 @@
 package resource_test
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,6 +26,7 @@ var _ = Describe("In Command", func() {
 		inResponse resource.InResponse
 		inErr      error
 
+		tmpDir  string
 		destDir string
 	)
 
@@ -34,8 +36,10 @@ var _ = Describe("In Command", func() {
 		githubClient = &fakes.FakeGitHub{}
 		command = resource.NewInCommand(githubClient, ioutil.Discard)
 
-		destDir, err = ioutil.TempDir("", "github-release")
+		tmpDir, err = ioutil.TempDir("", "github-release")
 		Ω(err).ShouldNot(HaveOccurred())
+
+		destDir = filepath.Join(tmpDir, "destination")
 
 		server = ghttp.NewServer()
 		server.RouteToHandler("GET", "/example.txt", ghttp.RespondWith(200, "example.txt"))
@@ -50,8 +54,11 @@ var _ = Describe("In Command", func() {
 	})
 
 	AfterEach(func() {
-		server.Close()
-		Ω(os.RemoveAll(destDir)).Should(Succeed())
+		if server != nil {
+			server.Close()
+		}
+
+		Ω(os.RemoveAll(tmpDir)).Should(Succeed())
 	})
 
 	buildRelease := func(id int, tag string) github.RepositoryRelease {
@@ -171,6 +178,29 @@ var _ = Describe("In Command", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 				})
 			})
+
+			Context("when downloading an asset fails", func() {
+				BeforeEach(func() {
+					server.Close()
+					server = nil
+				})
+
+				It("returns an error", func() {
+					Ω(inErr).Should(HaveOccurred())
+				})
+			})
+
+			Context("when listing release assets fails", func() {
+				disaster := errors.New("nope")
+
+				BeforeEach(func() {
+					githubClient.ListReleaseAssetsReturns(nil, disaster)
+				})
+
+				It("returns the error", func() {
+					Ω(inErr).Should(Equal(disaster))
+				})
+			})
 		})
 
 		Context("when the specified version is not available", func() {
@@ -226,6 +256,18 @@ var _ = Describe("In Command", func() {
 
 		It("returns an error", func() {
 			Ω(inErr).Should(HaveOccurred())
+		})
+	})
+
+	Context("when listing releases fails", func() {
+		disaster := errors.New("nope")
+
+		BeforeEach(func() {
+			githubClient.ListReleasesReturns(nil, disaster)
+		})
+
+		It("returns the error", func() {
+			Ω(inErr).Should(Equal(disaster))
 		})
 	})
 })
