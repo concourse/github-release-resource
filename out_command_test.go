@@ -204,6 +204,17 @@ var _ = Describe("Out Command", func() {
 					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
 				))
 			})
+
+			It("returns an error if a glob is provided that does not match any files", func() {
+				request.Params.Globs = []string{
+					"*.tgz",
+					"*.gif",
+				}
+
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).Should(HaveOccurred())
+				Ω(err).Should(MatchError("could not find file that matches glob '*.gif'"))
+			})
 		})
 	})
 })

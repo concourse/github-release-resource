@@ -94,6 +94,10 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 			return OutResponse{}, err
 		}
 
+		if len(matches) == 0 {
+			return OutResponse{}, fmt.Errorf("could not find file that matches glob '%s'", fileGlob)
+		}
+
 		for _, filePath := range matches {
 			file, err := os.Open(filePath)
 			if err != nil {
