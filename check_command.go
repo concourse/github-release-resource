@@ -72,12 +72,12 @@ func (r byVersion) Less(i, j int) bool {
 		return false
 	}
 
-	first, err := semver.New(dropLeadingAlpha(*r[i].TagName))
+	first, err := semver.New(determineVersionFromTag(*r[i].TagName))
 	if err != nil {
 		return true
 	}
 
-	second, err := semver.New(dropLeadingAlpha(*r[j].TagName))
+	second, err := semver.New(determineVersionFromTag(*r[j].TagName))
 	if err != nil {
 		return false
 	}
