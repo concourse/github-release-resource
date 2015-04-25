@@ -65,6 +65,13 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		return InResponse{}, err
 	}
 
+	version := determineVersionFromTag(*foundRelease.TagName)
+	versionPath := filepath.Join(destDir, "version")
+	err = ioutil.WriteFile(versionPath, []byte(version), 0644)
+	if err != nil {
+		return InResponse{}, err
+	}
+
 	assets, err := c.github.ListReleaseAssets(foundRelease)
 	if err != nil {
 		return InResponse{}, err

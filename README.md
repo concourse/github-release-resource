@@ -28,7 +28,10 @@ Fetches artifacts from the given release version. If the version is not
 specified, the latest version is chosen using [semver](http://semver.org)
 semantics.
 
-Creates a file `tag` containing the tag name/version of the release being fetched.
+Also creates the following files:
+
+* `tag` containing the git tag name of the release being fetched.
+* `version` containing the version determined by the git tag of the release being fetched.
 
 #### Parameters
 
