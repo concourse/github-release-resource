@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "github.com/blang/semver",
-			"Comment": "v2.1.0",
-			"Rev": "9bf7bff48b0388cb75991e58c6df7d13e982f1f2"
+			"Comment": "v3.0.0",
+			"Rev": "2f3112b6f8f18f9df8743cc75ed51da08094ef6a"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",

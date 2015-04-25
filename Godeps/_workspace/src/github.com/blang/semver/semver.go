@@ -191,12 +191,19 @@ func (v Version) Validate() error {
 	return nil
 }
 
-// Alias for Parse, parses version string and returns a validated Version or error
-func New(s string) (Version, error) {
+// New is an alias for Parse and returns a pointer, parses version string and returns a validated Version or error
+func New(s string) (vp *Version, err error) {
+	v, err := Parse(s)
+	vp = &v
+	return
+}
+
+// Make is an alias for Parse, parses version string and returns a validated Version or error
+func Make(s string) (Version, error) {
 	return Parse(s)
 }
 
-// Parses version string and returns a validated Version or error
+// Parse parses version string and returns a validated Version or error
 func Parse(s string) (Version, error) {
 	if len(s) == 0 {
 		return Version{}, errors.New("Version string empty")
@@ -283,6 +290,15 @@ func Parse(s string) (Version, error) {
 	}
 
 	return v, nil
+}
+
+// MustParse is like Parse but panics if the version cannot be parsed.
+func MustParse(s string) Version {
+	v, err := Parse(s)
+	if err != nil {
+		panic(`semver: Parse(` + s + `): ` + err.Error())
+	}
+	return v
 }
 
 // PreRelease Version

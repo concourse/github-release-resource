@@ -82,5 +82,5 @@ func (r byVersion) Less(i, j int) bool {
 		return false
 	}
 
-	return first.LT(second)
+	return first.LT(*second)
 }
