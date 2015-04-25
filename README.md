@@ -28,6 +28,11 @@ Fetches artifacts from the given release version. If the version is not
 specified, the latest version is chosen using [semver](http://semver.org)
 semantics.
 
+Also creates the following files:
+
+* `tag` containing the git tag name of the release being fetched.
+* `version` containing the version determined by the git tag of the release being fetched.
+
 #### Parameters
 
 * `globs`: *Optional.* A list of globs for files that will be downloaded from

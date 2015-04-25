@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -56,6 +57,19 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 	if foundRelease == nil {
 		return InResponse{}, fmt.Errorf("could not find release with tag: %s", request.Version.Tag)
+	}
+
+	tagPath := filepath.Join(destDir, "tag")
+	err = ioutil.WriteFile(tagPath, []byte(*foundRelease.TagName), 0644)
+	if err != nil {
+		return InResponse{}, err
+	}
+
+	version := determineVersionFromTag(*foundRelease.TagName)
+	versionPath := filepath.Join(destDir, "version")
+	err = ioutil.WriteFile(versionPath, []byte(version), 0644)
+	if err != nil {
+		return InResponse{}, err
 	}
 
 	assets, err := c.github.ListReleaseAssets(foundRelease)

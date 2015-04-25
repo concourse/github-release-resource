@@ -236,6 +236,26 @@ var _ = Describe("In Command", func() {
 				))
 			})
 
+			It("stores git tag in a file", func() {
+				_, err := os.Stat(filepath.Join(destDir, "tag"))
+				Ω(err).ShouldNot(HaveOccurred())
+
+				tag, err := ioutil.ReadFile(filepath.Join(destDir, "tag"))
+				Ω(err).ShouldNot(HaveOccurred())
+
+				Ω(string(tag)).Should(Equal("v0.35.0"))
+			})
+
+			It("stores version in a file", func() {
+				_, err := os.Stat(filepath.Join(destDir, "version"))
+				Ω(err).ShouldNot(HaveOccurred())
+
+				version, err := ioutil.ReadFile(filepath.Join(destDir, "version"))
+				Ω(err).ShouldNot(HaveOccurred())
+
+				Ω(string(version)).Should(Equal("0.35.0"))
+			})
+
 			It("fetches from the latest release", func() {
 				_, err := os.Stat(filepath.Join(destDir, "example.txt"))
 				Ω(err).ShouldNot(HaveOccurred())
