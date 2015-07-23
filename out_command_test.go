@@ -100,19 +100,39 @@ var _ = Describe("Out Command", func() {
 			}
 		})
 
-		It("updates the existing release", func() {
-			Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
-
-			updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
-			Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
-			Ω(*updatedRelease.Body).Should(Equal("this is a great release"))
-		})
-
 		It("deletes the existing assets", func() {
 			Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(2))
 
 			Ω(githubClient.DeleteReleaseAssetArgsForCall(0)).Should(Equal(existingAssets[0]))
 			Ω(githubClient.DeleteReleaseAssetArgsForCall(1)).Should(Equal(existingAssets[1]))
+		})
+
+		Context("when a commitish is not supplied", func() {
+			It("updates the existing release", func() {
+				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
+
+				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
+				Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
+				Ω(*updatedRelease.Body).Should(Equal("this is a great release"))
+				Ω(updatedRelease.TargetCommitish).Should(Equal(github.String("")))
+			})
+		})
+
+		Context("when a commitish is supplied", func() {
+			BeforeEach(func() {
+				commitishPath := filepath.Join(sourcesDir, "commitish")
+				file(commitishPath, "1z22f1")
+				request.Params.CommitishPath = "commitish"
+			})
+
+			It("updates the existing release", func() {
+				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
+
+				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
+				Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
+				Ω(*updatedRelease.Body).Should(Equal("this is a great release"))
+				Ω(updatedRelease.TargetCommitish).Should(Equal(github.String("1z22f1")))
+			})
 		})
 	})
 
@@ -130,6 +150,31 @@ var _ = Describe("Out Command", func() {
 					TagPath:  "tag",
 				},
 			}
+		})
+
+		Context("with a commitish", func() {
+			BeforeEach(func() {
+				commitishPath := filepath.Join(sourcesDir, "commitish")
+				file(commitishPath, "a2f4a3")
+				request.Params.CommitishPath = "commitish"
+			})
+
+			It("creates a release on GitHub with the commitish", func() {
+				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
+				release := githubClient.CreateReleaseArgsForCall(0)
+
+				Ω(release.TargetCommitish).Should(Equal(github.String("a2f4a3")))
+			})
+		})
+
+		Context("without a commitish", func() {
+			It("creates a release on GitHub without the commitish", func() {
+				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
+				release := githubClient.CreateReleaseArgsForCall(0)
+
+				// GitHub treats empty string the same as not suppying the field.
+				Ω(release.TargetCommitish).Should(Equal(github.String("")))
+			})
 		})
 
 		Context("with a body", func() {

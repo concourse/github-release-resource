@@ -34,9 +34,10 @@ type OutRequest struct {
 }
 
 type OutParams struct {
-	NamePath string `json:"name"`
-	BodyPath string `json:"body"`
-	TagPath  string `json:"tag"`
+	NamePath      string `json:"name"`
+	BodyPath      string `json:"body"`
+	TagPath       string `json:"tag"`
+	CommitishPath string `json:"commitsh"`
 
 	Globs []string `json:"globs"`
 }

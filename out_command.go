@@ -44,10 +44,19 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		}
 	}
 
+	targetCommitish := ""
+	if request.Params.CommitishPath != "" {
+		targetCommitish, err = c.fileContents(filepath.Join(sourceDir, request.Params.CommitishPath))
+		if err != nil {
+			return OutResponse{}, err
+		}
+	}
+
 	release := &github.RepositoryRelease{
-		Name:    github.String(name),
-		TagName: github.String(tag),
-		Body:    github.String(body),
+		Name:            github.String(name),
+		TagName:         github.String(tag),
+		Body:            github.String(body),
+		TargetCommitish: github.String(targetCommitish),
 	}
 
 	existingReleases, err := c.github.ListReleases()
@@ -66,6 +75,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 	if existingRelease != nil {
 		existingRelease.Name = github.String(name)
 		existingRelease.Body = github.String(body)
+		existingRelease.TargetCommitish = github.String(targetCommitish)
 
 		for _, asset := range existingRelease.Assets {
 			fmt.Fprintf(c.writer, "clearing existing asset: %s\n", *asset.Name)

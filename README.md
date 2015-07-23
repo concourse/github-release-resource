@@ -51,6 +51,9 @@ matching the patterns in `globs` to the release.
 * `tag`: *Required.* A path to a file containing the name of the Git tag to use
   for the release.
 
+* `commitish`: *Optional.* A path to a file containing the commitish (SHA, tag,
+  branch name) that the release should be associated with.
+
 * `body`: *Optional.* A path to a file containing the body text of the release.
 
 * `globs`: *Optional.* A list of globs for files that will be uploaded alongside
