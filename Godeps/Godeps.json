@@ -36,6 +36,10 @@
 			"ImportPath": "github.com/onsi/gomega",
 			"Comment": "v1.0-28-g8adf9e1",
 			"Rev": "8adf9e1730c55cdc590de7d49766cb2acc88d8f2"
+		},
+		{
+			"ImportPath": "github.com/zachgersh/go-github/github",
+			"Rev": "f47a8b33261f10482dfede3cc839c4fcf34da04f"
 		}
 	]
 }
