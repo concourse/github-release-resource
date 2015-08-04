@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
 
-	"github.com/google/go-github/github"
+	"github.com/zachgersh/go-github/github"
 )
 
 type InCommand struct {
@@ -31,32 +29,26 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		return InResponse{}, err
 	}
 
-	releases, err := c.github.ListReleases()
-	if err != nil {
-		return InResponse{}, err
-	}
-
-	sort.Sort(byVersion(releases))
-
-	if len(releases) == 0 {
-		return InResponse{}, errors.New("no releases")
-	}
-
 	var foundRelease *github.RepositoryRelease
 
 	if request.Version == nil {
-		foundRelease = &releases[len(releases)-1]
+		var err error
+
+		foundRelease, err = c.github.LatestRelease()
+		if err != nil {
+			return InResponse{}, err
+		}
 	} else {
-		for _, release := range releases {
-			if *release.TagName == request.Version.Tag {
-				foundRelease = &release
-				break
-			}
+		var err error
+
+		foundRelease, err = c.github.GetReleaseByTag(request.Version.Tag)
+		if err != nil {
+			return InResponse{}, err
 		}
 	}
 
 	if foundRelease == nil {
-		return InResponse{}, fmt.Errorf("could not find release with tag: %s", request.Version.Tag)
+		return InResponse{}, errors.New("no releases")
 	}
 
 	tagPath := filepath.Join(destDir, "tag")
@@ -72,13 +64,12 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		return InResponse{}, err
 	}
 
-	assets, err := c.github.ListReleaseAssets(foundRelease)
+	assets, err := c.github.ListReleaseAssets(*foundRelease)
 	if err != nil {
 		return InResponse{}, err
 	}
 
 	for _, asset := range assets {
-		url := *asset.BrowserDownloadURL
 		path := filepath.Join(destDir, *asset.Name)
 
 		var matchFound bool
@@ -104,7 +95,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 		fmt.Fprintf(c.writer, "downloading asset: %s\n", *asset.Name)
 
-		err := c.downloadFile(url, path)
+		err := c.downloadFile(&asset, path)
 		if err != nil {
 			return InResponse{}, err
 		}
@@ -118,20 +109,20 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	}, nil
 }
 
-func (c *InCommand) downloadFile(url, destPath string) error {
+func (c *InCommand) downloadFile(asset *github.ReleaseAsset, destPath string) error {
 	out, err := os.Create(destPath)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	resp, err := http.Get(url)
+	content, err := c.github.DownloadReleaseAsset(asset)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer content.Close()
 
-	_, err = io.Copy(out, resp.Body)
+	_, err = io.Copy(out, content)
 	if err != nil {
 		return err
 	}

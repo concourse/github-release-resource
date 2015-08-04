@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/go-github/github"
+	"github.com/zachgersh/go-github/github"
 )
 
 type OutCommand struct {
