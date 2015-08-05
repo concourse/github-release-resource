@@ -108,7 +108,9 @@ var _ = Describe("In Command", func() {
 					))
 				})
 
-				PIt("downloads only the files that match the globs", func() {
+				It("downloads only the files that match the globs", func() {
+					Ω(*githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
+					Ω(*githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
 				})
 			})
 
@@ -148,7 +150,10 @@ var _ = Describe("In Command", func() {
 					))
 				})
 
-				PIt("downloads all of the files", func() {
+				It("downloads all of the files", func() {
+					Ω(*githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
+					Ω(*githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
+					Ω(*githubClient.DownloadReleaseAssetArgsForCall(2)).Should(Equal(buildAsset(2, "example.wtf")))
 				})
 			})
 
@@ -180,6 +185,10 @@ var _ = Describe("In Command", func() {
 		Context("when the version is not specified", func() {
 			BeforeEach(func() {
 				githubClient.LatestReleaseReturns(buildRelease(1, "v0.37.0"), nil)
+
+				githubClient.ListReleaseAssetsReturns([]github.ReleaseAsset{
+					buildAsset(0, "something.tgz"),
+				}, nil)
 
 				inRequest.Version = nil
 				inResponse, inErr = command.Run(destDir, inRequest)
@@ -222,7 +231,8 @@ var _ = Describe("In Command", func() {
 				Ω(string(version)).Should(Equal("0.37.0"))
 			})
 
-			PIt("fetches from the latest release", func() {
+			It("fetches from the latest release", func() {
+				Ω(*githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "something.tgz")))
 			})
 		})
 	})

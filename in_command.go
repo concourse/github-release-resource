@@ -95,7 +95,8 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 		fmt.Fprintf(c.writer, "downloading asset: %s\n", *asset.Name)
 
-		err := c.downloadFile(&asset, path)
+		assetToDownload := asset
+		err := c.downloadFile(&assetToDownload, path)
 		if err != nil {
 			return InResponse{}, err
 		}
