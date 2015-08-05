@@ -9,8 +9,8 @@ Fetches and creates versioned GitHub resources.
 
 * `repository`: *Required.* The repository name that contains the releases.
 
-* `access_token`: *Optional.* The GitHub access token that should be used to
-  access the API. Only required for publishing releases.
+* `access_token`: *Optional.* Used for accessing a release in a private-repo 
+   during an `in` and pushing a release to a repo during an `out`.
 
 * `github_api_url`: *Optional.* If you use a non-public GitHub deployment then
   you can set your API URL here.
