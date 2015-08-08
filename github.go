@@ -2,24 +2,28 @@ package resource
 
 import (
 	"errors"
+	"io"
 	"net/url"
 	"os"
 
 	"code.google.com/p/goauth2/oauth"
 
-	"github.com/google/go-github/github"
+	"github.com/zachgersh/go-github/github"
 )
 
 //go:generate counterfeiter . GitHub
 
 type GitHub interface {
 	ListReleases() ([]github.RepositoryRelease, error)
+	LatestRelease() (*github.RepositoryRelease, error)
+	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)
 	CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
 	UpdateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
 
-	ListReleaseAssets(release *github.RepositoryRelease) ([]github.ReleaseAsset, error)
+	ListReleaseAssets(release github.RepositoryRelease) ([]github.ReleaseAsset, error)
 	UploadReleaseAsset(release *github.RepositoryRelease, name string, file *os.File) error
 	DeleteReleaseAsset(asset github.ReleaseAsset) error
+	DownloadReleaseAsset(asset *github.ReleaseAsset) (io.ReadCloser, error)
 }
 
 type GitHubClient struct {
@@ -71,6 +75,34 @@ func (g *GitHubClient) ListReleases() ([]github.RepositoryRelease, error) {
 	}
 
 	return releases, nil
+}
+
+func (g *GitHubClient) LatestRelease() (*github.RepositoryRelease, error) {
+	latest, res, err := g.client.Repositories.GetLatestRelease(g.user, g.repository)
+	if err != nil {
+		return &github.RepositoryRelease{}, nil
+	}
+
+	err = res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return latest, nil
+}
+
+func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, error) {
+	release, res, err := g.client.Repositories.GetReleaseByTag(g.user, g.repository, tag)
+	if err != nil {
+		return &github.RepositoryRelease{}, nil
+	}
+
+	err = res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return release, nil
 }
 
 func (g *GitHubClient) CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error) {
@@ -143,4 +175,13 @@ func (g *GitHubClient) DeleteReleaseAsset(asset github.ReleaseAsset) error {
 	}
 
 	return res.Body.Close()
+}
+
+func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error) {
+	res, err := g.client.Repositories.DownloadReleaseAsset(g.user, g.repository, *asset.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, err
 }

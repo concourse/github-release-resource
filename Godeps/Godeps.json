@@ -16,10 +16,6 @@
 			"Rev": "2f3112b6f8f18f9df8743cc75ed51da08094ef6a"
 		},
 		{
-			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "7ea4ee6d222607c11ea86e99a6f6723beeae785d"
-		},
-		{
 			"ImportPath": "github.com/google/go-querystring/query",
 			"Rev": "d8840cbb2baa915f4836edda4750050a2c0b7aea"
 		},
@@ -36,6 +32,10 @@
 			"ImportPath": "github.com/onsi/gomega",
 			"Comment": "v1.0-28-g8adf9e1",
 			"Rev": "8adf9e1730c55cdc590de7d49766cb2acc88d8f2"
+		},
+		{
+			"ImportPath": "github.com/zachgersh/go-github/github",
+			"Rev": "f47a8b33261f10482dfede3cc839c4fcf34da04f"
 		}
 	]
 }

@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/blang/semver"
-	"github.com/google/go-github/github"
+	"github.com/zachgersh/go-github/github"
 )
 
 type CheckCommand struct {
