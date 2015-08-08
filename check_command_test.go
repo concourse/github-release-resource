@@ -35,9 +35,10 @@ var _ = Describe("Check Command", func() {
 				returnedReleases = []github.RepositoryRelease{}
 			})
 
-			It("returns an error when there are no releases", func() {
-				_, err := command.Run(resource.CheckRequest{})
-				Ω(err).Should(HaveOccurred())
+			It("returns no versions", func() {
+				versions, err := command.Run(resource.CheckRequest{})
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(versions).Should(BeEmpty())
 			})
 		})
 
@@ -70,9 +71,10 @@ var _ = Describe("Check Command", func() {
 				returnedReleases = []github.RepositoryRelease{}
 			})
 
-			It("returns an error when there are no releases", func() {
-				_, err := command.Run(resource.CheckRequest{})
-				Ω(err).Should(HaveOccurred())
+			It("returns no versions", func() {
+				versions, err := command.Run(resource.CheckRequest{})
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(versions).Should(BeEmpty())
 			})
 		})
 

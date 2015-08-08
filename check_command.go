@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"errors"
 	"sort"
 
 	"github.com/blang/semver"
@@ -25,7 +24,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	}
 
 	if len(releases) == 0 {
-		return []Version{}, errors.New("repository had no releases")
+		return []Version{}, nil
 	}
 
 	sort.Sort(byVersion(releases))
