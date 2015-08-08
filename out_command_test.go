@@ -38,8 +38,8 @@ var _ = Describe("Out Command", func() {
 		sourcesDir, err = ioutil.TempDir("", "github-release")
 		Ω(err).ShouldNot(HaveOccurred())
 
-		githubClient.CreateReleaseStub = func(gh *github.RepositoryRelease) (*github.RepositoryRelease, error) {
-			createdRel := *gh
+		githubClient.CreateReleaseStub = func(gh github.RepositoryRelease) (*github.RepositoryRelease, error) {
+			createdRel := gh
 			createdRel.ID = github.Int(112)
 			createdRel.HTMLURL = github.String("http://google.com")
 			createdRel.Name = github.String("release-name")
@@ -47,8 +47,8 @@ var _ = Describe("Out Command", func() {
 			return &createdRel, nil
 		}
 
-		githubClient.UpdateReleaseStub = func(gh *github.RepositoryRelease) (*github.RepositoryRelease, error) {
-			return gh, nil
+		githubClient.UpdateReleaseStub = func(gh github.RepositoryRelease) (*github.RepositoryRelease, error) {
+			return &gh, nil
 		}
 	})
 

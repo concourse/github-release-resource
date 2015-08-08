@@ -95,8 +95,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 		fmt.Fprintf(c.writer, "downloading asset: %s\n", *asset.Name)
 
-		assetToDownload := asset
-		err := c.downloadFile(&assetToDownload, path)
+		err := c.downloadFile(asset, path)
 		if err != nil {
 			return InResponse{}, err
 		}
@@ -110,7 +109,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	}, nil
 }
 
-func (c *InCommand) downloadFile(asset *github.ReleaseAsset, destPath string) error {
+func (c *InCommand) downloadFile(asset github.ReleaseAsset, destPath string) error {
 	out, err := os.Create(destPath)
 	if err != nil {
 		return err

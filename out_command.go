@@ -88,10 +88,10 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 
 		fmt.Fprintf(c.writer, "updating release %s\n", name)
 
-		release, err = c.github.UpdateRelease(existingRelease)
+		release, err = c.github.UpdateRelease(*existingRelease)
 	} else {
 		fmt.Fprintf(c.writer, "creating release %s\n", name)
-		release, err = c.github.CreateRelease(release)
+		release, err = c.github.CreateRelease(*release)
 	}
 
 	if err != nil {
@@ -117,7 +117,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 			fmt.Fprintf(c.writer, "uploading %s\n", filePath)
 
 			name := filepath.Base(filePath)
-			err = c.github.UploadReleaseAsset(release, name, file)
+			err = c.github.UploadReleaseAsset(*release, name, file)
 			if err != nil {
 				return OutResponse{}, err
 			}

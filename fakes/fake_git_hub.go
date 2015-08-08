@@ -14,14 +14,14 @@ type FakeGitHub struct {
 	ListReleasesStub        func() ([]github.RepositoryRelease, error)
 	listReleasesMutex       sync.RWMutex
 	listReleasesArgsForCall []struct{}
-	listReleasesReturns     struct {
+	listReleasesReturns struct {
 		result1 []github.RepositoryRelease
 		result2 error
 	}
 	LatestReleaseStub        func() (*github.RepositoryRelease, error)
 	latestReleaseMutex       sync.RWMutex
 	latestReleaseArgsForCall []struct{}
-	latestReleaseReturns     struct {
+	latestReleaseReturns struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
@@ -34,19 +34,19 @@ type FakeGitHub struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
-	CreateReleaseStub        func(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
+	CreateReleaseStub        func(release github.RepositoryRelease) (*github.RepositoryRelease, error)
 	createReleaseMutex       sync.RWMutex
 	createReleaseArgsForCall []struct {
-		release *github.RepositoryRelease
+		release github.RepositoryRelease
 	}
 	createReleaseReturns struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
-	UpdateReleaseStub        func(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
+	UpdateReleaseStub        func(release github.RepositoryRelease) (*github.RepositoryRelease, error)
 	updateReleaseMutex       sync.RWMutex
 	updateReleaseArgsForCall []struct {
-		release *github.RepositoryRelease
+		release github.RepositoryRelease
 	}
 	updateReleaseReturns struct {
 		result1 *github.RepositoryRelease
@@ -61,10 +61,10 @@ type FakeGitHub struct {
 		result1 []github.ReleaseAsset
 		result2 error
 	}
-	UploadReleaseAssetStub        func(release *github.RepositoryRelease, name string, file *os.File) error
+	UploadReleaseAssetStub        func(release github.RepositoryRelease, name string, file *os.File) error
 	uploadReleaseAssetMutex       sync.RWMutex
 	uploadReleaseAssetArgsForCall []struct {
-		release *github.RepositoryRelease
+		release github.RepositoryRelease
 		name    string
 		file    *os.File
 	}
@@ -79,10 +79,10 @@ type FakeGitHub struct {
 	deleteReleaseAssetReturns struct {
 		result1 error
 	}
-	DownloadReleaseAssetStub        func(asset *github.ReleaseAsset) (io.ReadCloser, error)
+	DownloadReleaseAssetStub        func(asset github.ReleaseAsset) (io.ReadCloser, error)
 	downloadReleaseAssetMutex       sync.RWMutex
 	downloadReleaseAssetArgsForCall []struct {
-		asset *github.ReleaseAsset
+		asset github.ReleaseAsset
 	}
 	downloadReleaseAssetReturns struct {
 		result1 io.ReadCloser
@@ -173,10 +173,10 @@ func (fake *FakeGitHub) GetReleaseByTagReturns(result1 *github.RepositoryRelease
 	}{result1, result2}
 }
 
-func (fake *FakeGitHub) CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error) {
+func (fake *FakeGitHub) CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error) {
 	fake.createReleaseMutex.Lock()
 	fake.createReleaseArgsForCall = append(fake.createReleaseArgsForCall, struct {
-		release *github.RepositoryRelease
+		release github.RepositoryRelease
 	}{release})
 	fake.createReleaseMutex.Unlock()
 	if fake.CreateReleaseStub != nil {
@@ -192,7 +192,7 @@ func (fake *FakeGitHub) CreateReleaseCallCount() int {
 	return len(fake.createReleaseArgsForCall)
 }
 
-func (fake *FakeGitHub) CreateReleaseArgsForCall(i int) *github.RepositoryRelease {
+func (fake *FakeGitHub) CreateReleaseArgsForCall(i int) github.RepositoryRelease {
 	fake.createReleaseMutex.RLock()
 	defer fake.createReleaseMutex.RUnlock()
 	return fake.createReleaseArgsForCall[i].release
@@ -206,10 +206,10 @@ func (fake *FakeGitHub) CreateReleaseReturns(result1 *github.RepositoryRelease, 
 	}{result1, result2}
 }
 
-func (fake *FakeGitHub) UpdateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error) {
+func (fake *FakeGitHub) UpdateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error) {
 	fake.updateReleaseMutex.Lock()
 	fake.updateReleaseArgsForCall = append(fake.updateReleaseArgsForCall, struct {
-		release *github.RepositoryRelease
+		release github.RepositoryRelease
 	}{release})
 	fake.updateReleaseMutex.Unlock()
 	if fake.UpdateReleaseStub != nil {
@@ -225,7 +225,7 @@ func (fake *FakeGitHub) UpdateReleaseCallCount() int {
 	return len(fake.updateReleaseArgsForCall)
 }
 
-func (fake *FakeGitHub) UpdateReleaseArgsForCall(i int) *github.RepositoryRelease {
+func (fake *FakeGitHub) UpdateReleaseArgsForCall(i int) github.RepositoryRelease {
 	fake.updateReleaseMutex.RLock()
 	defer fake.updateReleaseMutex.RUnlock()
 	return fake.updateReleaseArgsForCall[i].release
@@ -272,10 +272,10 @@ func (fake *FakeGitHub) ListReleaseAssetsReturns(result1 []github.ReleaseAsset, 
 	}{result1, result2}
 }
 
-func (fake *FakeGitHub) UploadReleaseAsset(release *github.RepositoryRelease, name string, file *os.File) error {
+func (fake *FakeGitHub) UploadReleaseAsset(release github.RepositoryRelease, name string, file *os.File) error {
 	fake.uploadReleaseAssetMutex.Lock()
 	fake.uploadReleaseAssetArgsForCall = append(fake.uploadReleaseAssetArgsForCall, struct {
-		release *github.RepositoryRelease
+		release github.RepositoryRelease
 		name    string
 		file    *os.File
 	}{release, name, file})
@@ -293,7 +293,7 @@ func (fake *FakeGitHub) UploadReleaseAssetCallCount() int {
 	return len(fake.uploadReleaseAssetArgsForCall)
 }
 
-func (fake *FakeGitHub) UploadReleaseAssetArgsForCall(i int) (*github.RepositoryRelease, string, *os.File) {
+func (fake *FakeGitHub) UploadReleaseAssetArgsForCall(i int) (github.RepositoryRelease, string, *os.File) {
 	fake.uploadReleaseAssetMutex.RLock()
 	defer fake.uploadReleaseAssetMutex.RUnlock()
 	return fake.uploadReleaseAssetArgsForCall[i].release, fake.uploadReleaseAssetArgsForCall[i].name, fake.uploadReleaseAssetArgsForCall[i].file
@@ -338,10 +338,10 @@ func (fake *FakeGitHub) DeleteReleaseAssetReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeGitHub) DownloadReleaseAsset(asset *github.ReleaseAsset) (io.ReadCloser, error) {
+func (fake *FakeGitHub) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error) {
 	fake.downloadReleaseAssetMutex.Lock()
 	fake.downloadReleaseAssetArgsForCall = append(fake.downloadReleaseAssetArgsForCall, struct {
-		asset *github.ReleaseAsset
+		asset github.ReleaseAsset
 	}{asset})
 	fake.downloadReleaseAssetMutex.Unlock()
 	if fake.DownloadReleaseAssetStub != nil {
@@ -357,7 +357,7 @@ func (fake *FakeGitHub) DownloadReleaseAssetCallCount() int {
 	return len(fake.downloadReleaseAssetArgsForCall)
 }
 
-func (fake *FakeGitHub) DownloadReleaseAssetArgsForCall(i int) *github.ReleaseAsset {
+func (fake *FakeGitHub) DownloadReleaseAssetArgsForCall(i int) github.ReleaseAsset {
 	fake.downloadReleaseAssetMutex.RLock()
 	defer fake.downloadReleaseAssetMutex.RUnlock()
 	return fake.downloadReleaseAssetArgsForCall[i].asset

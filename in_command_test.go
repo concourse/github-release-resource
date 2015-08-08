@@ -109,8 +109,8 @@ var _ = Describe("In Command", func() {
 				})
 
 				It("downloads only the files that match the globs", func() {
-					Ω(*githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
-					Ω(*githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
 				})
 			})
 
@@ -151,9 +151,9 @@ var _ = Describe("In Command", func() {
 				})
 
 				It("downloads all of the files", func() {
-					Ω(*githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
-					Ω(*githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
-					Ω(*githubClient.DownloadReleaseAssetArgsForCall(2)).Should(Equal(buildAsset(2, "example.wtf")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(2)).Should(Equal(buildAsset(2, "example.wtf")))
 				})
 			})
 
@@ -232,7 +232,7 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("fetches from the latest release", func() {
-				Ω(*githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "something.tgz")))
+				Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "something.tgz")))
 			})
 		})
 	})

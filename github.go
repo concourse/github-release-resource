@@ -17,13 +17,13 @@ type GitHub interface {
 	ListReleases() ([]github.RepositoryRelease, error)
 	LatestRelease() (*github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)
-	CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
-	UpdateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error)
+	CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
+	UpdateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
 
 	ListReleaseAssets(release github.RepositoryRelease) ([]github.ReleaseAsset, error)
-	UploadReleaseAsset(release *github.RepositoryRelease, name string, file *os.File) error
+	UploadReleaseAsset(release github.RepositoryRelease, name string, file *os.File) error
 	DeleteReleaseAsset(asset github.ReleaseAsset) error
-	DownloadReleaseAsset(asset *github.ReleaseAsset) (io.ReadCloser, error)
+	DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error)
 }
 
 type GitHubClient struct {
@@ -105,8 +105,8 @@ func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, e
 	return release, nil
 }
 
-func (g *GitHubClient) CreateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error) {
-	createdRelease, res, err := g.client.Repositories.CreateRelease(g.user, g.repository, release)
+func (g *GitHubClient) CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error) {
+	createdRelease, res, err := g.client.Repositories.CreateRelease(g.user, g.repository, &release)
 	if err != nil {
 		return &github.RepositoryRelease{}, err
 	}
@@ -119,12 +119,12 @@ func (g *GitHubClient) CreateRelease(release *github.RepositoryRelease) (*github
 	return createdRelease, nil
 }
 
-func (g *GitHubClient) UpdateRelease(release *github.RepositoryRelease) (*github.RepositoryRelease, error) {
+func (g *GitHubClient) UpdateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error) {
 	if release.ID == nil {
 		return nil, errors.New("release did not have an ID: has it been saved yet?")
 	}
 
-	updatedRelease, res, err := g.client.Repositories.EditRelease(g.user, g.repository, *release.ID, release)
+	updatedRelease, res, err := g.client.Repositories.EditRelease(g.user, g.repository, *release.ID, &release)
 	if err != nil {
 		return &github.RepositoryRelease{}, err
 	}
@@ -137,7 +137,7 @@ func (g *GitHubClient) UpdateRelease(release *github.RepositoryRelease) (*github
 	return updatedRelease, nil
 }
 
-func (g *GitHubClient) ListReleaseAssets(release *github.RepositoryRelease) ([]github.ReleaseAsset, error) {
+func (g *GitHubClient) ListReleaseAssets(release github.RepositoryRelease) ([]github.ReleaseAsset, error) {
 	assets, res, err := g.client.Repositories.ListReleaseAssets(g.user, g.repository, *release.ID, nil)
 	if err != nil {
 		return []github.ReleaseAsset{}, nil
@@ -151,7 +151,7 @@ func (g *GitHubClient) ListReleaseAssets(release *github.RepositoryRelease) ([]g
 	return assets, nil
 }
 
-func (g *GitHubClient) UploadReleaseAsset(release *github.RepositoryRelease, name string, file *os.File) error {
+func (g *GitHubClient) UploadReleaseAsset(release github.RepositoryRelease, name string, file *os.File) error {
 	_, res, err := g.client.Repositories.UploadReleaseAsset(
 		g.user,
 		g.repository,
