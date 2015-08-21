@@ -2,6 +2,9 @@
 
 Fetches and creates versioned GitHub resources.
 
+> If you're seeing rate limits affecting you then please add a token to the source
+> configuration. This will increase your number of allowed requests.
+
 ## Source Configuration
 
 * `user`: *Required.* The GitHub username or organization name for the
@@ -14,6 +17,31 @@ Fetches and creates versioned GitHub resources.
 
 * `github_api_url`: *Optional.* If you use a non-public GitHub deployment then
   you can set your API URL here.
+
+### Example
+
+``` yaml
+- name: gh-release
+  type: github-release
+  source:
+    user: concourse
+    repository: concourse
+    access_token: abcdef1234567890
+```
+
+``` yaml
+- get: gh-release
+```
+
+``` yaml
+- put: gh-release
+  params:
+    name: path/to/name/file
+    tag: path/to/tag/file
+    body: path/to/body/file
+    globs:
+    - paths/to/files/to/upload-*.tgz
+```
 
 ## Behavior
 
