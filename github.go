@@ -15,7 +15,6 @@ import (
 
 type GitHub interface {
 	ListReleases() ([]github.RepositoryRelease, error)
-	LatestRelease() (*github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)
 	CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
 	UpdateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
@@ -75,20 +74,6 @@ func (g *GitHubClient) ListReleases() ([]github.RepositoryRelease, error) {
 	}
 
 	return releases, nil
-}
-
-func (g *GitHubClient) LatestRelease() (*github.RepositoryRelease, error) {
-	latest, res, err := g.client.Repositories.GetLatestRelease(g.user, g.repository)
-	if err != nil {
-		return &github.RepositoryRelease{}, nil
-	}
-
-	err = res.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	return latest, nil
 }
 
 func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, error) {

@@ -14,15 +14,8 @@ type FakeGitHub struct {
 	ListReleasesStub        func() ([]github.RepositoryRelease, error)
 	listReleasesMutex       sync.RWMutex
 	listReleasesArgsForCall []struct{}
-	listReleasesReturns struct {
+	listReleasesReturns     struct {
 		result1 []github.RepositoryRelease
-		result2 error
-	}
-	LatestReleaseStub        func() (*github.RepositoryRelease, error)
-	latestReleaseMutex       sync.RWMutex
-	latestReleaseArgsForCall []struct{}
-	latestReleaseReturns struct {
-		result1 *github.RepositoryRelease
 		result2 error
 	}
 	GetReleaseByTagStub        func(tag string) (*github.RepositoryRelease, error)
@@ -111,31 +104,6 @@ func (fake *FakeGitHub) ListReleasesReturns(result1 []github.RepositoryRelease, 
 	fake.ListReleasesStub = nil
 	fake.listReleasesReturns = struct {
 		result1 []github.RepositoryRelease
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeGitHub) LatestRelease() (*github.RepositoryRelease, error) {
-	fake.latestReleaseMutex.Lock()
-	fake.latestReleaseArgsForCall = append(fake.latestReleaseArgsForCall, struct{}{})
-	fake.latestReleaseMutex.Unlock()
-	if fake.LatestReleaseStub != nil {
-		return fake.LatestReleaseStub()
-	} else {
-		return fake.latestReleaseReturns.result1, fake.latestReleaseReturns.result2
-	}
-}
-
-func (fake *FakeGitHub) LatestReleaseCallCount() int {
-	fake.latestReleaseMutex.RLock()
-	defer fake.latestReleaseMutex.RUnlock()
-	return len(fake.latestReleaseArgsForCall)
-}
-
-func (fake *FakeGitHub) LatestReleaseReturns(result1 *github.RepositoryRelease, result2 error) {
-	fake.LatestReleaseStub = nil
-	fake.latestReleaseReturns = struct {
-		result1 *github.RepositoryRelease
 		result2 error
 	}{result1, result2}
 }
