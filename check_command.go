@@ -29,7 +29,16 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 
 	sort.Sort(byVersion(releases))
 
-	latestVersion := *releases[len(releases)-1].TagName
+	var filteredReleases []github.RepositoryRelease
+
+	for _, release := range releases {
+		draft := *release.Draft
+		if !draft {
+			filteredReleases = append(filteredReleases, release)
+		}
+	}
+
+	latestVersion := *filteredReleases[len(filteredReleases)-1].TagName
 
 	if request.Version.Tag == "" {
 		return []Version{
@@ -43,7 +52,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 
 	upToLatest := false
 	reversedVersions := []Version{}
-	for _, release := range releases {
+	for _, release := range filteredReleases {
 		version := *release.TagName
 
 		if upToLatest {
