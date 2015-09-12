@@ -181,60 +181,6 @@ var _ = Describe("In Command", func() {
 				})
 			})
 		})
-
-		Context("when the version is not specified", func() {
-			BeforeEach(func() {
-				githubClient.LatestReleaseReturns(buildRelease(1, "v0.37.0"), nil)
-
-				githubClient.ListReleaseAssetsReturns([]github.ReleaseAsset{
-					buildAsset(0, "something.tgz"),
-				}, nil)
-
-				inRequest.Version = nil
-				inResponse, inErr = command.Run(destDir, inRequest)
-			})
-
-			It("succeeds", func() {
-				Ω(inErr).ShouldNot(HaveOccurred())
-				Ω(githubClient.GetReleaseByTagCallCount()).Should(Equal(0))
-			})
-
-			It("returns the fetched version", func() {
-				Ω(inResponse.Version).Should(Equal(resource.Version{Tag: "v0.37.0"}))
-			})
-
-			It("has some sweet metadata", func() {
-				Ω(inResponse.Metadata).Should(ConsistOf(
-					resource.MetadataPair{Name: "url", Value: "http://google.com"},
-					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
-					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
-				))
-			})
-
-			It("stores git tag in a file", func() {
-				_, err := os.Stat(filepath.Join(destDir, "tag"))
-				Ω(err).ShouldNot(HaveOccurred())
-
-				tag, err := ioutil.ReadFile(filepath.Join(destDir, "tag"))
-				Ω(err).ShouldNot(HaveOccurred())
-
-				Ω(string(tag)).Should(Equal("v0.37.0"))
-			})
-
-			It("stores version in a file", func() {
-				_, err := os.Stat(filepath.Join(destDir, "version"))
-				Ω(err).ShouldNot(HaveOccurred())
-
-				version, err := ioutil.ReadFile(filepath.Join(destDir, "version"))
-				Ω(err).ShouldNot(HaveOccurred())
-
-				Ω(string(version)).Should(Equal("0.37.0"))
-			})
-
-			It("fetches from the latest release", func() {
-				Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "something.tgz")))
-			})
-		})
 	})
 
 	Context("when no tagged release is present", func() {
@@ -253,17 +199,6 @@ var _ = Describe("In Command", func() {
 		})
 	})
 
-	Context("when no latest release is present", func() {
-		BeforeEach(func() {
-			githubClient.LatestReleaseReturns(nil, nil)
-			inResponse, inErr = command.Run(destDir, inRequest)
-		})
-
-		It("returns an error", func() {
-			Ω(inErr).Should(MatchError("no releases"))
-		})
-	})
-
 	Context("when getting a tagged release fails", func() {
 		disaster := errors.New("nope")
 
@@ -273,19 +208,6 @@ var _ = Describe("In Command", func() {
 			inRequest.Version = &resource.Version{
 				Tag: "some-tag",
 			}
-			inResponse, inErr = command.Run(destDir, inRequest)
-		})
-
-		It("returns the error", func() {
-			Ω(inErr).Should(Equal(disaster))
-		})
-	})
-
-	Context("when getting the latest release fails", func() {
-		disaster := errors.New("nope-again")
-
-		BeforeEach(func() {
-			githubClient.LatestReleaseReturns(nil, disaster)
 			inResponse, inErr = command.Run(destDir, inRequest)
 		})
 

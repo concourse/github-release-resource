@@ -31,20 +31,9 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 	var foundRelease *github.RepositoryRelease
 
-	if request.Version == nil {
-		var err error
-
-		foundRelease, err = c.github.LatestRelease()
-		if err != nil {
-			return InResponse{}, err
-		}
-	} else {
-		var err error
-
-		foundRelease, err = c.github.GetReleaseByTag(request.Version.Tag)
-		if err != nil {
-			return InResponse{}, err
-		}
+	foundRelease, err = c.github.GetReleaseByTag(request.Version.Tag)
+	if err != nil {
+		return InResponse{}, err
 	}
 
 	if foundRelease == nil {
