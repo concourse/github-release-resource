@@ -23,6 +23,9 @@ type GitHub interface {
 	UploadReleaseAsset(release github.RepositoryRelease, name string, file *os.File) error
 	DeleteReleaseAsset(asset github.ReleaseAsset) error
 	DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error)
+
+	GetTarballLink(tag string) (*url.URL, error)
+	GetZipballLink(tag string) (*url.URL, error)
 }
 
 type GitHubClient struct {
@@ -169,4 +172,24 @@ func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadC
 	}
 
 	return res, err
+}
+
+func (g *GitHubClient) GetTarballLink(tag string) (*url.URL, error) {
+	opt := &github.RepositoryContentGetOptions{Ref: tag}
+	u, res, err := g.client.Repositories.GetArchiveLink(g.user, g.repository, github.Tarball, opt)
+	if err != nil {
+		return nil, err
+	}
+	res.Body.Close()
+	return u, nil
+}
+
+func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
+	opt := &github.RepositoryContentGetOptions{Ref: tag}
+	u, res, err := g.client.Repositories.GetArchiveLink(g.user, g.repository, github.Zipball, opt)
+	if err != nil {
+		return nil, err
+	}
+	res.Body.Close()
+	return u, nil
 }

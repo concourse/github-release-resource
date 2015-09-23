@@ -12,7 +12,7 @@ Fetches and creates versioned GitHub resources.
 
 * `repository`: *Required.* The repository name that contains the releases.
 
-* `access_token`: *Optional.* Used for accessing a release in a private-repo 
+* `access_token`: *Optional.* Used for accessing a release in a private-repo
    during an `in` and pushing a release to a repo during an `out`. The access
    token you create is only required to have the `repo` or `public_repo` scope.
 
@@ -66,6 +66,12 @@ Also creates the following files:
 
 * `globs`: *Optional.* A list of globs for files that will be downloaded from
   the release. If not specified, all assets will be fetched.
+
+* `include_source_tarball`: *Optional.* Enables downloading of the source
+  artifact tarball for the release as `source.tar.gz`. Defaults to `false`.
+
+* `include_source_zip`: *Optional.* Enables downloading of the source
+  artifact zip for the release as `source.zip`. Defaults to `false`.
 
 ### `out`: Publish a release.
 
