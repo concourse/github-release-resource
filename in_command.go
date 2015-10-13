@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -84,8 +85,30 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 		fmt.Fprintf(c.writer, "downloading asset: %s\n", *asset.Name)
 
-		err := c.downloadFile(asset, path)
+		err := c.downloadAsset(asset, path)
 		if err != nil {
+			return InResponse{}, err
+		}
+	}
+
+	if request.Params.IncludeSourceTarball {
+		u, err := c.github.GetTarballLink(request.Version.Tag)
+		if err != nil {
+			return InResponse{}, err
+		}
+		fmt.Fprintln(c.writer, "downloading source tarball to source.tar.gz")
+		if err := c.downloadFile(u.String(), filepath.Join(destDir, "source.tar.gz")); err != nil {
+			return InResponse{}, err
+		}
+	}
+
+	if request.Params.IncludeSourceZip {
+		u, err := c.github.GetZipballLink(request.Version.Tag)
+		if err != nil {
+			return InResponse{}, err
+		}
+		fmt.Fprintln(c.writer, "downloading source zip to source.zip")
+		if err := c.downloadFile(u.String(), filepath.Join(destDir, "source.zip")); err != nil {
 			return InResponse{}, err
 		}
 	}
@@ -98,7 +121,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	}, nil
 }
 
-func (c *InCommand) downloadFile(asset github.ReleaseAsset, destPath string) error {
+func (c *InCommand) downloadAsset(asset github.ReleaseAsset, destPath string) error {
 	out, err := os.Create(destPath)
 	if err != nil {
 		return err
@@ -112,6 +135,31 @@ func (c *InCommand) downloadFile(asset github.ReleaseAsset, destPath string) err
 	defer content.Close()
 
 	_, err = io.Copy(out, content)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *InCommand) downloadFile(url, destPath string) error {
+	out, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download file: HTTP status %d: %s", resp.StatusCode, resp.Status)
+	}
+
+	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		return err
 	}

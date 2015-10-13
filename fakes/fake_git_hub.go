@@ -3,6 +3,7 @@ package fakes
 
 import (
 	"io"
+	"net/url"
 	"os"
 	"sync"
 
@@ -79,6 +80,24 @@ type FakeGitHub struct {
 	}
 	downloadReleaseAssetReturns struct {
 		result1 io.ReadCloser
+		result2 error
+	}
+	GetTarballLinkStub        func(tag string) (*url.URL, error)
+	getTarballLinkMutex       sync.RWMutex
+	getTarballLinkArgsForCall []struct {
+		tag string
+	}
+	getTarballLinkReturns struct {
+		result1 *url.URL
+		result2 error
+	}
+	GetZipballLinkStub        func(tag string) (*url.URL, error)
+	getZipballLinkMutex       sync.RWMutex
+	getZipballLinkArgsForCall []struct {
+		tag string
+	}
+	getZipballLinkReturns struct {
+		result1 *url.URL
 		result2 error
 	}
 }
@@ -335,6 +354,72 @@ func (fake *FakeGitHub) DownloadReleaseAssetReturns(result1 io.ReadCloser, resul
 	fake.DownloadReleaseAssetStub = nil
 	fake.downloadReleaseAssetReturns = struct {
 		result1 io.ReadCloser
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitHub) GetTarballLink(tag string) (*url.URL, error) {
+	fake.getTarballLinkMutex.Lock()
+	fake.getTarballLinkArgsForCall = append(fake.getTarballLinkArgsForCall, struct {
+		tag string
+	}{tag})
+	fake.getTarballLinkMutex.Unlock()
+	if fake.GetReleaseByTagStub != nil {
+		return fake.GetTarballLinkStub(tag)
+	} else {
+		return fake.getTarballLinkReturns.result1, fake.getTarballLinkReturns.result2
+	}
+}
+
+func (fake *FakeGitHub) GetTarballLinkCallCount() int {
+	fake.getTarballLinkMutex.RLock()
+	defer fake.getTarballLinkMutex.RUnlock()
+	return len(fake.getTarballLinkArgsForCall)
+}
+
+func (fake *FakeGitHub) GetTarballLinkArgsForCall(i int) string {
+	fake.getTarballLinkMutex.RLock()
+	defer fake.getTarballLinkMutex.RUnlock()
+	return fake.getTarballLinkArgsForCall[i].tag
+}
+
+func (fake *FakeGitHub) GetTarballLinkReturns(result1 *url.URL, result2 error) {
+	fake.GetTarballLinkStub = nil
+	fake.getTarballLinkReturns = struct {
+		result1 *url.URL
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitHub) GetZipballLink(tag string) (*url.URL, error) {
+	fake.getZipballLinkMutex.Lock()
+	fake.getZipballLinkArgsForCall = append(fake.getZipballLinkArgsForCall, struct {
+		tag string
+	}{tag})
+	fake.getZipballLinkMutex.Unlock()
+	if fake.GetReleaseByTagStub != nil {
+		return fake.GetZipballLinkStub(tag)
+	} else {
+		return fake.getZipballLinkReturns.result1, fake.getZipballLinkReturns.result2
+	}
+}
+
+func (fake *FakeGitHub) GetZipballLinkCallCount() int {
+	fake.getZipballLinkMutex.RLock()
+	defer fake.getZipballLinkMutex.RUnlock()
+	return len(fake.getZipballLinkArgsForCall)
+}
+
+func (fake *FakeGitHub) GetZipballLinkArgsForCall(i int) string {
+	fake.getZipballLinkMutex.RLock()
+	defer fake.getZipballLinkMutex.RUnlock()
+	return fake.getZipballLinkArgsForCall[i].tag
+}
+
+func (fake *FakeGitHub) GetZipballLinkReturns(result1 *url.URL, result2 error) {
+	fake.GetZipballLinkStub = nil
+	fake.getZipballLinkReturns = struct {
+		result1 *url.URL
 		result2 error
 	}{result1, result2}
 }
