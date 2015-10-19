@@ -7,4 +7,4 @@ inputs:
     path: gopath/src/github.com/concourse/github-release-resource
 
 run:
-  path: gopath/src/github.com/concourse/github-release-resource/scripts/test
+  path: gopath/src/github.com/concourse/github-release-resource/scripts/ci
