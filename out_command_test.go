@@ -205,6 +205,31 @@ var _ = Describe("Out Command", func() {
 			})
 		})
 
+		It("always defaults to non-draft mode", func() {
+			Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
+			release := githubClient.CreateReleaseArgsForCall(0)
+
+			Ω(*release.Draft).Should(Equal(false))
+		})
+
+		Context("when set as a draft release", func() {
+			BeforeEach(func() {
+				bodyPath := filepath.Join(sourcesDir, "body")
+				file(bodyPath, "this is a great release")
+				request.Params.Draft = true
+			})
+
+			It("creates a release on GitHub in draft mode", func() {
+				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
+				release := githubClient.CreateReleaseArgsForCall(0)
+
+				Ω(*release.Name).Should(Equal("v0.3.12"))
+				Ω(*release.TagName).Should(Equal("0.3.12"))
+				Ω(*release.Body).Should(Equal(""))
+				Ω(*release.Draft).Should(Equal(true))
+			})
+		})
+
 		Context("with file globs", func() {
 			BeforeEach(func() {
 				globMatching := filepath.Join(sourcesDir, "great-file.tgz")

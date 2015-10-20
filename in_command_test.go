@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
@@ -50,13 +51,14 @@ var _ = Describe("In Command", func() {
 		Ω(os.RemoveAll(tmpDir)).Should(Succeed())
 	})
 
-	buildRelease := func(id int, tag string) *github.RepositoryRelease {
+	buildRelease := func(id int, tag string, draft bool) *github.RepositoryRelease {
 		return &github.RepositoryRelease{
 			ID:      github.Int(id),
 			TagName: github.String(tag),
 			HTMLURL: github.String("http://google.com"),
 			Name:    github.String("release-name"),
 			Body:    github.String("*markdown*"),
+			Draft:   github.Bool(draft),
 		}
 	}
 
@@ -70,7 +72,7 @@ var _ = Describe("In Command", func() {
 	Context("when there is a tagged release", func() {
 		Context("when a present version is specified", func() {
 			BeforeEach(func() {
-				githubClient.GetReleaseByTagReturns(buildRelease(1, "v0.35.0"), nil)
+				githubClient.GetReleaseByTagReturns(buildRelease(1, "v0.35.0", false), nil)
 
 				githubClient.ListReleaseAssetsReturns([]github.ReleaseAsset{
 					buildAsset(0, "example.txt"),
@@ -111,6 +113,16 @@ var _ = Describe("In Command", func() {
 				It("downloads only the files that match the globs", func() {
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
+				})
+
+				It("does create the tag and version files", func() {
+					contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(string(contents)).Should(Equal("v0.35.0"))
+
+					contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(string(contents)).Should(Equal("0.35.0"))
 				})
 			})
 
@@ -213,6 +225,73 @@ var _ = Describe("In Command", func() {
 
 		It("returns the error", func() {
 			Ω(inErr).Should(Equal(disaster))
+		})
+	})
+
+	Context("when there is a draft release", func() {
+		Context("which has a tag", func() {
+			BeforeEach(func() {
+				githubClient.GetReleaseByTagReturns(buildRelease(1, "v0.35.0", true), nil)
+
+				inRequest.Version = &resource.Version{Tag: "v0.35.0"}
+				inResponse, inErr = command.Run(destDir, inRequest)
+			})
+
+			It("succeeds", func() {
+				Ω(inErr).ShouldNot(HaveOccurred())
+			})
+
+			It("returns the fetched version", func() {
+				Ω(inResponse.Version).Should(Equal(resource.Version{Tag: "v0.35.0"}))
+			})
+
+			It("has some sweet metadata", func() {
+				Ω(inResponse.Metadata).Should(ConsistOf(
+					resource.MetadataPair{Name: "url", Value: "http://google.com"},
+					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+				))
+			})
+
+			It("does create the tag and version files", func() {
+				contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(string(contents)).Should(Equal("v0.35.0"))
+
+				contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(string(contents)).Should(Equal("0.35.0"))
+			})
+		})
+
+		Context("which doesn't have a tag", func() {
+			BeforeEach(func() {
+				githubClient.GetReleaseByTagReturns(buildRelease(1, "", true), nil)
+
+				inRequest.Version = &resource.Version{}
+				inResponse, inErr = command.Run(destDir, inRequest)
+			})
+
+			It("succeeds", func() {
+				Ω(inErr).ShouldNot(HaveOccurred())
+			})
+
+			It("returns the fetched version", func() {
+				Ω(inResponse.Version).Should(Equal(resource.Version{Tag: ""}))
+			})
+
+			It("has some sweet metadata", func() {
+				Ω(inResponse.Metadata).Should(ConsistOf(
+					resource.MetadataPair{Name: "url", Value: "http://google.com"},
+					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+				))
+			})
+
+			It("does not create the tag and version files", func() {
+				Ω(path.Join(destDir, "tag")).ShouldNot(BeAnExistingFile())
+				Ω(path.Join(destDir, "version")).ShouldNot(BeAnExistingFile())
+			})
 		})
 	})
 })

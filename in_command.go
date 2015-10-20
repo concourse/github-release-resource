@@ -41,17 +41,19 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		return InResponse{}, errors.New("no releases")
 	}
 
-	tagPath := filepath.Join(destDir, "tag")
-	err = ioutil.WriteFile(tagPath, []byte(*foundRelease.TagName), 0644)
-	if err != nil {
-		return InResponse{}, err
-	}
+	if *foundRelease.TagName != "" {
+		tagPath := filepath.Join(destDir, "tag")
+		err = ioutil.WriteFile(tagPath, []byte(*foundRelease.TagName), 0644)
+		if err != nil {
+			return InResponse{}, err
+		}
 
-	version := determineVersionFromTag(*foundRelease.TagName)
-	versionPath := filepath.Join(destDir, "version")
-	err = ioutil.WriteFile(versionPath, []byte(version), 0644)
-	if err != nil {
-		return InResponse{}, err
+		version := determineVersionFromTag(*foundRelease.TagName)
+		versionPath := filepath.Join(destDir, "version")
+		err = ioutil.WriteFile(versionPath, []byte(version), 0644)
+		if err != nil {
+			return InResponse{}, err
+		}
 	}
 
 	assets, err := c.github.ListReleaseAssets(*foundRelease)
