@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 
 	"github.com/zachgersh/go-github/github"
 
@@ -21,6 +23,7 @@ var _ = Describe("In Command", func() {
 	var (
 		command      *resource.InCommand
 		githubClient *fakes.FakeGitHub
+		githubServer *ghttp.Server
 
 		inRequest resource.InRequest
 
@@ -35,6 +38,7 @@ var _ = Describe("In Command", func() {
 		var err error
 
 		githubClient = &fakes.FakeGitHub{}
+		githubServer = ghttp.NewServer()
 		command = resource.NewInCommand(githubClient, ioutil.Discard)
 
 		tmpDir, err = ioutil.TempDir("", "github-release")
@@ -111,6 +115,7 @@ var _ = Describe("In Command", func() {
 				})
 
 				It("downloads only the files that match the globs", func() {
+					Expect(githubClient.DownloadReleaseAssetCallCount()).To(Equal(2))
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
 				})
@@ -123,6 +128,128 @@ var _ = Describe("In Command", func() {
 					contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("0.35.0"))
+				})
+			})
+
+			Context("when valid asset filename globs are given and include_source_tarball is true", func() {
+				BeforeEach(func() {
+					inRequest.Params = resource.InParams{
+						Globs: []string{"*.txt", "*.rtf"},
+					}
+					inRequest.Params.IncludeSourceTarball = true
+
+					tarballUrl, _ := url.Parse(githubServer.URL())
+					tarballUrl.Path = "/gimme-a-tarball/"
+					githubClient.GetTarballLinkReturns(tarballUrl, nil)
+					githubServer.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", tarballUrl.Path),
+							ghttp.RespondWith(200, "source-tar-file-contents"),
+						),
+					)
+
+					inResponse, inErr = command.Run(destDir, inRequest)
+				})
+
+				It("succeeds", func() {
+					Ω(inErr).ShouldNot(HaveOccurred())
+				})
+
+				It("downloads only the files that match the globs", func() {
+					Expect(githubClient.DownloadReleaseAssetCallCount()).To(Equal(2))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
+				})
+
+				It("downloads the source tarball", func() {
+					Expect(githubServer.ReceivedRequests()).To(HaveLen(1))
+				})
+
+				It("saves the source tarball in the destination directory", func() {
+					fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.tar.gz"))
+					fContents := string(fileContents)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(fContents).To(Equal("source-tar-file-contents"))
+				})
+			})
+
+			Context("when include_source_tarball is true and no globs are specified", func() {
+				BeforeEach(func() {
+					inRequest.Params = resource.InParams{}
+					inRequest.Params.IncludeSourceTarball = true
+
+					tarballUrl, _ := url.Parse(githubServer.URL())
+					tarballUrl.Path = "/gimme-a-tarball/"
+					githubClient.GetTarballLinkReturns(tarballUrl, nil)
+					githubServer.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", tarballUrl.Path),
+							ghttp.RespondWith(200, "source-tar-file-contents"),
+						),
+					)
+
+					inResponse, inErr = command.Run(destDir, inRequest)
+				})
+
+				It("succeeds", func() {
+					Ω(inErr).ShouldNot(HaveOccurred())
+				})
+
+				It("downloads all the assets", func() {
+					Expect(githubClient.DownloadReleaseAssetCallCount()).To(Equal(3))
+					Expect(githubClient.DownloadReleaseAssetArgsForCall(0)).To(Equal(buildAsset(0, "example.txt")))
+					Expect(githubClient.DownloadReleaseAssetArgsForCall(1)).To(Equal(buildAsset(1, "example.rtf")))
+					Expect(githubClient.DownloadReleaseAssetArgsForCall(2)).To(Equal(buildAsset(2, "example.wtf")))
+				})
+
+				It("downloads the source tarball", func() {
+					Expect(githubServer.ReceivedRequests()).To(HaveLen(1))
+				})
+
+				It("saves the source tarball in the destination directory", func() {
+					fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.tar.gz"))
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(fileContents)).To(Equal("source-tar-file-contents"))
+				})
+			})
+
+			Context("when include_source_zip is true and no globs are specified", func() {
+				BeforeEach(func() {
+					inRequest.Params = resource.InParams{}
+					inRequest.Params.IncludeSourceZip = true
+
+					tarballUrl, _ := url.Parse(githubServer.URL())
+					tarballUrl.Path = "/gimme-a-zip/"
+					githubClient.GetZipballLinkReturns(tarballUrl, nil)
+					githubServer.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", tarballUrl.Path),
+							ghttp.RespondWith(200, "source-zip-file-contents"),
+						),
+					)
+
+					inResponse, inErr = command.Run(destDir, inRequest)
+				})
+
+				It("succeeds", func() {
+					Ω(inErr).ShouldNot(HaveOccurred())
+				})
+
+				It("downloads all the assets", func() {
+					Expect(githubClient.DownloadReleaseAssetCallCount()).To(Equal(3))
+					Expect(githubClient.DownloadReleaseAssetArgsForCall(0)).To(Equal(buildAsset(0, "example.txt")))
+					Expect(githubClient.DownloadReleaseAssetArgsForCall(1)).To(Equal(buildAsset(1, "example.rtf")))
+					Expect(githubClient.DownloadReleaseAssetArgsForCall(2)).To(Equal(buildAsset(2, "example.wtf")))
+				})
+
+				It("downloads the source zip", func() {
+					Expect(githubServer.ReceivedRequests()).To(HaveLen(1))
+				})
+
+				It("saves the source zip in the destination directory", func() {
+					fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.zip"))
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(fileContents)).To(Equal("source-zip-file-contents"))
 				})
 			})
 
