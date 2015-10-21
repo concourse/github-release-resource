@@ -52,10 +52,13 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		}
 	}
 
+	draft := request.Params.Draft
+
 	release := &github.RepositoryRelease{
 		Name:            github.String(name),
 		TagName:         github.String(tag),
 		Body:            github.String(body),
+		Draft:           github.Bool(draft),
 		TargetCommitish: github.String(targetCommitish),
 	}
 
