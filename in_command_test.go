@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -94,19 +95,23 @@ var _ = Describe("In Command", func() {
 					inRequest.Params = resource.InParams{
 						Globs: []string{"*.txt", "*.rtf"},
 					}
-
-					inResponse, inErr = command.Run(destDir, inRequest)
 				})
 
 				It("succeeds", func() {
+					inResponse, inErr = command.Run(destDir, inRequest)
+
 					Ω(inErr).ShouldNot(HaveOccurred())
 				})
 
 				It("returns the fetched version", func() {
+					inResponse, inErr = command.Run(destDir, inRequest)
+
 					Ω(inResponse.Version).Should(Equal(resource.Version{Tag: "v0.35.0"}))
 				})
 
 				It("has some sweet metadata", func() {
+					inResponse, inErr = command.Run(destDir, inRequest)
+
 					Ω(inResponse.Metadata).Should(ConsistOf(
 						resource.MetadataPair{Name: "url", Value: "http://google.com"},
 						resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
@@ -115,12 +120,16 @@ var _ = Describe("In Command", func() {
 				})
 
 				It("downloads only the files that match the globs", func() {
+					inResponse, inErr = command.Run(destDir, inRequest)
+
 					Expect(githubClient.DownloadReleaseAssetCallCount()).To(Equal(2))
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
 				})
 
 				It("does create the tag and version files", func() {
+					inResponse, inErr = command.Run(destDir, inRequest)
+
 					contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("v0.35.0"))
@@ -129,141 +138,165 @@ var _ = Describe("In Command", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("0.35.0"))
 				})
-			})
 
-			Context("when valid asset filename globs are given and include_source_tarball is true", func() {
-				BeforeEach(func() {
-					inRequest.Params = resource.InParams{
-						Globs: []string{"*.txt", "*.rtf"},
-					}
-					inRequest.Params.IncludeSourceTarball = true
+				Context("when include_source_tarball is true", func() {
+					var tarballUrl *url.URL
 
-					tarballUrl, _ := url.Parse(githubServer.URL())
-					tarballUrl.Path = "/gimme-a-tarball/"
-					githubClient.GetTarballLinkReturns(tarballUrl, nil)
-					githubServer.AppendHandlers(
-						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", tarballUrl.Path),
-							ghttp.RespondWith(200, "source-tar-file-contents"),
-						),
-					)
+					BeforeEach(func() {
+						inRequest.Params.IncludeSourceTarball = true
 
-					inResponse, inErr = command.Run(destDir, inRequest)
+						tarballUrl, _ = url.Parse(githubServer.URL())
+						tarballUrl.Path = "/gimme-a-tarball/"
+					})
+
+					Context("when getting the tarball link succeeds", func() {
+						BeforeEach(func() {
+							githubClient.GetTarballLinkReturns(tarballUrl, nil)
+						})
+
+						Context("when downloading the tarball succeeds", func() {
+							BeforeEach(func() {
+								githubServer.AppendHandlers(
+									ghttp.CombineHandlers(
+										ghttp.VerifyRequest("GET", tarballUrl.Path),
+										ghttp.RespondWith(http.StatusOK, "source-tar-file-contents"),
+									),
+								)
+							})
+
+							It("succeeds", func() {
+								inResponse, inErr = command.Run(destDir, inRequest)
+
+								Expect(inErr).ToNot(HaveOccurred())
+							})
+
+							It("downloads the source tarball", func() {
+								inResponse, inErr = command.Run(destDir, inRequest)
+
+								Expect(githubServer.ReceivedRequests()).To(HaveLen(1))
+							})
+
+							It("saves the source tarball in the destination directory", func() {
+								inResponse, inErr = command.Run(destDir, inRequest)
+
+								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.tar.gz"))
+								fContents := string(fileContents)
+								Expect(err).NotTo(HaveOccurred())
+								Expect(fContents).To(Equal("source-tar-file-contents"))
+							})
+						})
+
+						Context("when downloading the tarball fails", func() {
+							BeforeEach(func() {
+								githubServer.AppendHandlers(
+									ghttp.CombineHandlers(
+										ghttp.VerifyRequest("GET", tarballUrl.Path),
+										ghttp.RespondWith(http.StatusInternalServerError, ""),
+									),
+								)
+							})
+
+							It("returns an appropriate error", func() {
+								inResponse, inErr = command.Run(destDir, inRequest)
+
+								Expect(inErr).To(MatchError("failed to download file `source.tar.gz`: HTTP status 500"))
+							})
+						})
+					})
+
+					Context("when getting the tarball link fails", func() {
+						disaster := errors.New("oh my")
+
+						BeforeEach(func() {
+							githubClient.GetTarballLinkReturns(nil, disaster)
+						})
+
+						It("returns the error", func() {
+							inResponse, inErr = command.Run(destDir, inRequest)
+
+							Expect(inErr).To(Equal(disaster))
+						})
+					})
 				})
 
-				It("succeeds", func() {
-					Ω(inErr).ShouldNot(HaveOccurred())
-				})
+				Context("when include_source_zip is true", func() {
+					var zipUrl *url.URL
 
-				It("downloads only the files that match the globs", func() {
-					Expect(githubClient.DownloadReleaseAssetCallCount()).To(Equal(2))
-					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
-					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
-				})
+					BeforeEach(func() {
+						inRequest.Params.IncludeSourceZip = true
 
-				It("downloads the source tarball", func() {
-					Expect(githubServer.ReceivedRequests()).To(HaveLen(1))
-				})
+						zipUrl, _ = url.Parse(githubServer.URL())
+						zipUrl.Path = "/gimme-a-zip/"
+					})
 
-				It("saves the source tarball in the destination directory", func() {
-					fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.tar.gz"))
-					fContents := string(fileContents)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(fContents).To(Equal("source-tar-file-contents"))
-				})
-			})
+					Context("when getting the zip link succeeds", func() {
+						BeforeEach(func() {
+							githubClient.GetZipballLinkReturns(zipUrl, nil)
+						})
 
-			Context("when include_source_tarball is true and no globs are specified", func() {
-				BeforeEach(func() {
-					inRequest.Params = resource.InParams{}
-					inRequest.Params.IncludeSourceTarball = true
+						Context("when downloading the zip succeeds", func() {
+							BeforeEach(func() {
+								githubServer.AppendHandlers(
+									ghttp.CombineHandlers(
+										ghttp.VerifyRequest("GET", zipUrl.Path),
+										ghttp.RespondWith(http.StatusOK, "source-zip-file-contents"),
+									),
+								)
+							})
 
-					tarballUrl, _ := url.Parse(githubServer.URL())
-					tarballUrl.Path = "/gimme-a-tarball/"
-					githubClient.GetTarballLinkReturns(tarballUrl, nil)
-					githubServer.AppendHandlers(
-						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", tarballUrl.Path),
-							ghttp.RespondWith(200, "source-tar-file-contents"),
-						),
-					)
+							It("succeeds", func() {
+								inResponse, inErr = command.Run(destDir, inRequest)
 
-					inResponse, inErr = command.Run(destDir, inRequest)
-				})
+								Expect(inErr).ToNot(HaveOccurred())
+							})
 
-				It("succeeds", func() {
-					Ω(inErr).ShouldNot(HaveOccurred())
-				})
+							It("downloads the source zip", func() {
+								inResponse, inErr = command.Run(destDir, inRequest)
 
-				It("downloads all the assets", func() {
-					Expect(githubClient.DownloadReleaseAssetCallCount()).To(Equal(3))
-					Expect(githubClient.DownloadReleaseAssetArgsForCall(0)).To(Equal(buildAsset(0, "example.txt")))
-					Expect(githubClient.DownloadReleaseAssetArgsForCall(1)).To(Equal(buildAsset(1, "example.rtf")))
-					Expect(githubClient.DownloadReleaseAssetArgsForCall(2)).To(Equal(buildAsset(2, "example.wtf")))
-				})
+								Expect(githubServer.ReceivedRequests()).To(HaveLen(1))
+							})
 
-				It("downloads the source tarball", func() {
-					Expect(githubServer.ReceivedRequests()).To(HaveLen(1))
-				})
+							It("saves the source zip in the destination directory", func() {
+								inResponse, inErr = command.Run(destDir, inRequest)
 
-				It("saves the source tarball in the destination directory", func() {
-					fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.tar.gz"))
-					Expect(err).NotTo(HaveOccurred())
-					Expect(string(fileContents)).To(Equal("source-tar-file-contents"))
-				})
-			})
+								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.zip"))
+								fContents := string(fileContents)
+								Expect(err).NotTo(HaveOccurred())
+								Expect(fContents).To(Equal("source-zip-file-contents"))
+							})
+						})
 
-			Context("when include_source_zip is true and no globs are specified", func() {
-				BeforeEach(func() {
-					inRequest.Params = resource.InParams{}
-					inRequest.Params.IncludeSourceZip = true
+						Context("when downloading the zip fails", func() {
+							BeforeEach(func() {
+								githubServer.AppendHandlers(
+									ghttp.CombineHandlers(
+										ghttp.VerifyRequest("GET", zipUrl.Path),
+										ghttp.RespondWith(http.StatusInternalServerError, ""),
+									),
+								)
+							})
 
-					tarballUrl, _ := url.Parse(githubServer.URL())
-					tarballUrl.Path = "/gimme-a-zip/"
-					githubClient.GetZipballLinkReturns(tarballUrl, nil)
-					githubServer.AppendHandlers(
-						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", tarballUrl.Path),
-							ghttp.RespondWith(200, "source-zip-file-contents"),
-						),
-					)
+							It("returns an appropriate error", func() {
+								inResponse, inErr = command.Run(destDir, inRequest)
 
-					inResponse, inErr = command.Run(destDir, inRequest)
-				})
+								Expect(inErr).To(MatchError("failed to download file `source.zip`: HTTP status 500"))
+							})
+						})
+					})
 
-				It("succeeds", func() {
-					Ω(inErr).ShouldNot(HaveOccurred())
-				})
+					Context("when getting the zip link fails", func() {
+						disaster := errors.New("oh my")
 
-				It("downloads all the assets", func() {
-					Expect(githubClient.DownloadReleaseAssetCallCount()).To(Equal(3))
-					Expect(githubClient.DownloadReleaseAssetArgsForCall(0)).To(Equal(buildAsset(0, "example.txt")))
-					Expect(githubClient.DownloadReleaseAssetArgsForCall(1)).To(Equal(buildAsset(1, "example.rtf")))
-					Expect(githubClient.DownloadReleaseAssetArgsForCall(2)).To(Equal(buildAsset(2, "example.wtf")))
-				})
+						BeforeEach(func() {
+							githubClient.GetZipballLinkReturns(nil, disaster)
+						})
 
-				It("downloads the source zip", func() {
-					Expect(githubServer.ReceivedRequests()).To(HaveLen(1))
-				})
+						It("returns the error", func() {
+							inResponse, inErr = command.Run(destDir, inRequest)
 
-				It("saves the source zip in the destination directory", func() {
-					fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.zip"))
-					Expect(err).NotTo(HaveOccurred())
-					Expect(string(fileContents)).To(Equal("source-zip-file-contents"))
-				})
-			})
-
-			Context("when an invalid asset filename glob is given", func() {
-				BeforeEach(func() {
-					inRequest.Params = resource.InParams{
-						Globs: []string{`[`},
-					}
-
-					inResponse, inErr = command.Run(destDir, inRequest)
-				})
-
-				It("returns an error", func() {
-					Ω(inErr).Should(HaveOccurred())
+							Expect(inErr).To(Equal(disaster))
+						})
+					})
 				})
 			})
 

@@ -158,7 +158,7 @@ func (c *InCommand) downloadFile(url, destPath string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to download file: HTTP status %d: %s", resp.StatusCode, resp.Status)
+		return fmt.Errorf("failed to download file `%s`: HTTP status %d", filepath.Base(destPath), resp.StatusCode)
 	}
 
 	_, err = io.Copy(out, resp.Body)
