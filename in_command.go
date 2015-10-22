@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/zachgersh/go-github/github"
 )
@@ -32,7 +33,12 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 	var foundRelease *github.RepositoryRelease
 
-	foundRelease, err = c.github.GetReleaseByTag(request.Version.Tag)
+	if request.Version.Tag != "" {
+		foundRelease, err = c.github.GetReleaseByTag(request.Version.Tag)
+	} else {
+		id, _ := strconv.Atoi(request.Version.ID)
+		foundRelease, err = c.github.GetRelease(id)
+	}
 	if err != nil {
 		return InResponse{}, err
 	}
@@ -41,7 +47,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		return InResponse{}, errors.New("no releases")
 	}
 
-	if *foundRelease.TagName != "" {
+	if foundRelease.TagName != nil && *foundRelease.TagName != "" {
 		tagPath := filepath.Join(destDir, "tag")
 		err = ioutil.WriteFile(tagPath, []byte(*foundRelease.TagName), 0644)
 		if err != nil {
@@ -116,9 +122,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	}
 
 	return InResponse{
-		Version: Version{
-			Tag: *foundRelease.TagName,
-		},
+		Version:  versionFromDraft(foundRelease),
 		Metadata: metadataFromRelease(foundRelease),
 	}, nil
 }

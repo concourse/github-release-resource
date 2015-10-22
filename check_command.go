@@ -2,6 +2,7 @@ package resource
 
 import (
 	"sort"
+	"strconv"
 
 	"github.com/blang/semver"
 	"github.com/zachgersh/go-github/github"
@@ -27,38 +28,53 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		return []Version{}, nil
 	}
 
-	sort.Sort(byVersion(releases))
-
 	var filteredReleases []github.RepositoryRelease
 
 	for _, release := range releases {
-		draft := *release.Draft
-		if !draft {
-			filteredReleases = append(filteredReleases, release)
+		if request.Source.Drafts != *release.Draft {
+			continue
 		}
+		if release.TagName == nil {
+			continue
+		}
+		if _, err := semver.New(determineVersionFromTag(*release.TagName)); err != nil {
+			continue
+		}
+
+		filteredReleases = append(filteredReleases, release)
 	}
 
-	latestVersion := *filteredReleases[len(filteredReleases)-1].TagName
+	sort.Sort(byVersion(filteredReleases))
 
-	if request.Version.Tag == "" {
+	if len(filteredReleases) == 0 {
+		return []Version{}, nil
+	}
+	latestRelease := filteredReleases[len(filteredReleases)-1]
+
+	if (request.Version == Version{}) {
 		return []Version{
-			{Tag: latestVersion},
+			versionFromDraft(&latestRelease),
 		}, nil
 	}
 
-	if latestVersion == request.Version.Tag {
+	if *latestRelease.TagName == request.Version.Tag {
 		return []Version{}, nil
 	}
 
 	upToLatest := false
 	reversedVersions := []Version{}
 	for _, release := range filteredReleases {
-		version := *release.TagName
 
 		if upToLatest {
-			reversedVersions = append(reversedVersions, Version{Tag: version})
+			reversedVersions = append(reversedVersions, versionFromDraft(&release))
 		} else {
-			upToLatest = request.Version.Tag == version
+			if *release.Draft {
+				id := *release.ID
+				upToLatest = request.Version.ID == strconv.Itoa(id)
+			} else {
+				version := *release.TagName
+				upToLatest = request.Version.Tag == version
+			}
 		}
 	}
 
@@ -76,10 +92,6 @@ func (r byVersion) Swap(i, j int) {
 }
 
 func (r byVersion) Less(i, j int) bool {
-	if r[i].TagName == nil || r[j].TagName == nil {
-		return false
-	}
-
 	first, err := semver.New(determineVersionFromTag(*r[i].TagName))
 	if err != nil {
 		return true

@@ -13,18 +13,25 @@ func TestGithubReleaseResource(t *testing.T) {
 	RunSpecs(t, "Github Release Resource Suite")
 }
 
-func newRepositoryRelease(version string) github.RepositoryRelease {
-	draft := false
+func newRepositoryRelease(id int, version string) github.RepositoryRelease {
 	return github.RepositoryRelease{
 		TagName: github.String(version),
-		Draft:   &draft,
+		Draft:   github.Bool(false),
+		ID:      github.Int(id),
 	}
 }
 
-func newDraftRepositoryRelease(version string) github.RepositoryRelease {
-	draft := true
+func newDraftRepositoryRelease(id int, version string) github.RepositoryRelease {
 	return github.RepositoryRelease{
 		TagName: github.String(version),
-		Draft:   &draft,
+		Draft:   github.Bool(true),
+		ID:      github.Int(id),
+	}
+}
+
+func newDraftWithNilTagRepositoryRelease(id int) github.RepositoryRelease {
+	return github.RepositoryRelease{
+		Draft: github.Bool(true),
+		ID:    github.Int(id),
 	}
 }

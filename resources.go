@@ -6,6 +6,7 @@ type Source struct {
 
 	GitHubAPIURL string `json:"github_api_url"`
 	AccessToken  string `json:"access_token"`
+	Drafts       bool   `json:"drafts"`
 }
 
 type CheckRequest struct {
@@ -51,7 +52,8 @@ type OutResponse struct {
 }
 
 type Version struct {
-	Tag string `json:"tag"`
+	Tag string `json:"tag,omitempty"`
+	ID  string `json:"id,omitempty"`
 }
 
 type MetadataPair struct {

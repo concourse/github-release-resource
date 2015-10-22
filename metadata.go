@@ -33,5 +33,19 @@ func metadataFromRelease(release *github.RepositoryRelease) []MetadataPair {
 		})
 	}
 
+	if release.TagName != nil {
+		metadata = append(metadata, MetadataPair{
+			Name:  "tag",
+			Value: *release.TagName,
+		})
+	}
+
+	if *release.Draft {
+		metadata = append(metadata, MetadataPair{
+			Name:  "draft",
+			Value: "true",
+		})
+	}
+
 	return metadata
 }

@@ -69,7 +69,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 
 	var existingRelease *github.RepositoryRelease
 	for _, e := range existingReleases {
-		if *e.TagName == tag {
+		if e.TagName != nil && *e.TagName == tag {
 			existingRelease = &e
 			break
 		}
@@ -130,9 +130,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 	}
 
 	return OutResponse{
-		Version: Version{
-			Tag: tag,
-		},
+		Version:  versionFromDraft(release),
 		Metadata: metadataFromRelease(release),
 	}, nil
 }

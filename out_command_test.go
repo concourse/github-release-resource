@@ -77,9 +77,14 @@ var _ = Describe("Out Command", func() {
 		BeforeEach(func() {
 			githubClient.ListReleasesReturns([]github.RepositoryRelease{
 				{
+					ID:    github.Int(1),
+					Draft: github.Bool(true),
+				},
+				{
 					ID:      github.Int(112),
 					TagName: github.String("some-tag-name"),
 					Assets:  existingAssets,
+					Draft:   github.Bool(false),
 				},
 			}, nil)
 
@@ -228,6 +233,19 @@ var _ = Describe("Out Command", func() {
 				Ω(*release.Body).Should(Equal(""))
 				Ω(*release.Draft).Should(Equal(true))
 			})
+
+			It("has some sweet metadata", func() {
+				outResponse, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				Ω(outResponse.Metadata).Should(ConsistOf(
+					resource.MetadataPair{Name: "url", Value: "http://google.com"},
+					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+					resource.MetadataPair{Name: "tag", Value: "0.3.12"},
+					resource.MetadataPair{Name: "draft", Value: "true"},
+				))
+			})
 		})
 
 		Context("with file globs", func() {
@@ -272,6 +290,7 @@ var _ = Describe("Out Command", func() {
 					resource.MetadataPair{Name: "url", Value: "http://google.com"},
 					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+					resource.MetadataPair{Name: "tag", Value: "0.3.12"},
 				))
 			})
 

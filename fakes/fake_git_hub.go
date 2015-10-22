@@ -15,7 +15,7 @@ type FakeGitHub struct {
 	ListReleasesStub        func() ([]github.RepositoryRelease, error)
 	listReleasesMutex       sync.RWMutex
 	listReleasesArgsForCall []struct{}
-	listReleasesReturns     struct {
+	listReleasesReturns struct {
 		result1 []github.RepositoryRelease
 		result2 error
 	}
@@ -25,6 +25,15 @@ type FakeGitHub struct {
 		tag string
 	}
 	getReleaseByTagReturns struct {
+		result1 *github.RepositoryRelease
+		result2 error
+	}
+	GetReleaseStub        func(id int) (*github.RepositoryRelease, error)
+	getReleaseMutex       sync.RWMutex
+	getReleaseArgsForCall []struct {
+		id int
+	}
+	getReleaseReturns struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
@@ -155,6 +164,39 @@ func (fake *FakeGitHub) GetReleaseByTagArgsForCall(i int) string {
 func (fake *FakeGitHub) GetReleaseByTagReturns(result1 *github.RepositoryRelease, result2 error) {
 	fake.GetReleaseByTagStub = nil
 	fake.getReleaseByTagReturns = struct {
+		result1 *github.RepositoryRelease
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitHub) GetRelease(id int) (*github.RepositoryRelease, error) {
+	fake.getReleaseMutex.Lock()
+	fake.getReleaseArgsForCall = append(fake.getReleaseArgsForCall, struct {
+		id int
+	}{id})
+	fake.getReleaseMutex.Unlock()
+	if fake.GetReleaseStub != nil {
+		return fake.GetReleaseStub(id)
+	} else {
+		return fake.getReleaseReturns.result1, fake.getReleaseReturns.result2
+	}
+}
+
+func (fake *FakeGitHub) GetReleaseCallCount() int {
+	fake.getReleaseMutex.RLock()
+	defer fake.getReleaseMutex.RUnlock()
+	return len(fake.getReleaseArgsForCall)
+}
+
+func (fake *FakeGitHub) GetReleaseArgsForCall(i int) int {
+	fake.getReleaseMutex.RLock()
+	defer fake.getReleaseMutex.RUnlock()
+	return fake.getReleaseArgsForCall[i].id
+}
+
+func (fake *FakeGitHub) GetReleaseReturns(result1 *github.RepositoryRelease, result2 error) {
+	fake.GetReleaseStub = nil
+	fake.getReleaseReturns = struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}{result1, result2}
@@ -364,7 +406,7 @@ func (fake *FakeGitHub) GetTarballLink(tag string) (*url.URL, error) {
 		tag string
 	}{tag})
 	fake.getTarballLinkMutex.Unlock()
-	if fake.GetReleaseByTagStub != nil {
+	if fake.GetTarballLinkStub != nil {
 		return fake.GetTarballLinkStub(tag)
 	} else {
 		return fake.getTarballLinkReturns.result1, fake.getTarballLinkReturns.result2
@@ -397,7 +439,7 @@ func (fake *FakeGitHub) GetZipballLink(tag string) (*url.URL, error) {
 		tag string
 	}{tag})
 	fake.getZipballLinkMutex.Unlock()
-	if fake.GetReleaseByTagStub != nil {
+	if fake.GetZipballLinkStub != nil {
 		return fake.GetZipballLinkStub(tag)
 	} else {
 		return fake.getZipballLinkReturns.result1, fake.getZipballLinkReturns.result2

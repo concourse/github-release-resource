@@ -16,6 +16,7 @@ import (
 type GitHub interface {
 	ListReleases() ([]github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)
+	GetRelease(id int) (*github.RepositoryRelease, error)
 	CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
 	UpdateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
 
@@ -81,6 +82,20 @@ func (g *GitHubClient) ListReleases() ([]github.RepositoryRelease, error) {
 
 func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, error) {
 	release, res, err := g.client.Repositories.GetReleaseByTag(g.user, g.repository, tag)
+	if err != nil {
+		return &github.RepositoryRelease{}, nil
+	}
+
+	err = res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return release, nil
+}
+
+func (g *GitHubClient) GetRelease(id int) (*github.RepositoryRelease, error) {
+	release, res, err := g.client.Repositories.GetRelease(g.user, g.repository, id)
 	if err != nil {
 		return &github.RepositoryRelease{}, nil
 	}

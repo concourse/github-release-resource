@@ -42,12 +42,26 @@ var _ = Describe("Check Command", func() {
 			})
 		})
 
+		Context("when there are releases that get filtered out", func() {
+			BeforeEach(func() {
+				returnedReleases = []github.RepositoryRelease{
+					newDraftRepositoryRelease(1, "v0.1.4"),
+				}
+			})
+
+			It("returns no versions", func() {
+				versions, err := command.Run(resource.CheckRequest{})
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(versions).Should(BeEmpty())
+			})
+		})
+
 		Context("when there are releases", func() {
 			BeforeEach(func() {
 				returnedReleases = []github.RepositoryRelease{
-					newRepositoryRelease("v0.4.0"),
-					newRepositoryRelease("0.1.3"),
-					newRepositoryRelease("v0.1.2"),
+					newRepositoryRelease(1, "v0.4.0"),
+					newRepositoryRelease(2, "0.1.3"),
+					newRepositoryRelease(3, "v0.1.2"),
 				}
 			})
 
@@ -82,10 +96,10 @@ var _ = Describe("Check Command", func() {
 			Context("and the releases do not contain a draft release", func() {
 				BeforeEach(func() {
 					returnedReleases = []github.RepositoryRelease{
-						newRepositoryRelease("v0.1.4"),
-						newRepositoryRelease("0.4.0"),
-						newRepositoryRelease("v0.1.3"),
-						newRepositoryRelease("0.1.2"),
+						newRepositoryRelease(1, "v0.1.4"),
+						newRepositoryRelease(2, "0.4.0"),
+						newRepositoryRelease(3, "v0.1.3"),
+						newRepositoryRelease(4, "0.1.2"),
 					}
 				})
 
@@ -122,9 +136,9 @@ var _ = Describe("Check Command", func() {
 			Context("and one of the releases is a draft", func() {
 				BeforeEach(func() {
 					returnedReleases = []github.RepositoryRelease{
-						newDraftRepositoryRelease("v0.1.4"),
-						newRepositoryRelease("0.4.0"),
-						newRepositoryRelease("v0.1.3"),
+						newDraftRepositoryRelease(1, "v0.1.4"),
+						newRepositoryRelease(2, "0.4.0"),
+						newRepositoryRelease(3, "v0.1.3"),
 					}
 				})
 
@@ -141,6 +155,78 @@ var _ = Describe("Check Command", func() {
 					Ω(response).Should(Equal([]resource.Version{
 						{Tag: "0.4.0"},
 					}))
+				})
+			})
+
+			Context("when draft releases are allowed", func() {
+				Context("and one of the releases is a final release", func() {
+					BeforeEach(func() {
+						returnedReleases = []github.RepositoryRelease{
+							newDraftRepositoryRelease(1, "v0.1.4"),
+							newDraftRepositoryRelease(3, "v0.1.1"),
+							newRepositoryRelease(2, "0.4.0"),
+						}
+					})
+
+					It("returns all of the versions that are newer, and only draft", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{ID: "3"},
+							Source:  resource.Source{Drafts: true},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{ID: "1"},
+						}))
+					})
+				})
+
+				Context("and non-of them are semver", func() {
+					BeforeEach(func() {
+						returnedReleases = []github.RepositoryRelease{
+							newDraftRepositoryRelease(1, "abc"),
+							newDraftRepositoryRelease(2, "123"),
+						}
+					})
+
+					It("returns all of the releases with semver resources", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{},
+							Source:  resource.Source{Drafts: true},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{}))
+					})
+				})
+
+				Context("and one of the releases is not a versioned draft release", func() {
+					BeforeEach(func() {
+						returnedReleases = []github.RepositoryRelease{
+							newDraftRepositoryRelease(1, "v0.1.4"),
+							newDraftRepositoryRelease(2, ""),
+							newDraftWithNilTagRepositoryRelease(3),
+							newDraftRepositoryRelease(4, "asdf123"),
+						}
+					})
+
+					It("returns all of the releases with semver resources", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{},
+							Source:  resource.Source{Drafts: true},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{ID: "1"},
+						}))
+					})
 				})
 			})
 		})

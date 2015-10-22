@@ -67,6 +67,16 @@ var _ = Describe("In Command", func() {
 		}
 	}
 
+	buildNilTagRelease := func(id int) *github.RepositoryRelease {
+		return &github.RepositoryRelease{
+			ID:      github.Int(id),
+			HTMLURL: github.String("http://google.com"),
+			Name:    github.String("release-name"),
+			Body:    github.String("*markdown*"),
+			Draft:   github.Bool(true),
+		}
+	}
+
 	buildAsset := func(id int, name string) github.ReleaseAsset {
 		return github.ReleaseAsset{
 			ID:   github.Int(id),
@@ -116,7 +126,14 @@ var _ = Describe("In Command", func() {
 						resource.MetadataPair{Name: "url", Value: "http://google.com"},
 						resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 						resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+						resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
 					))
+				})
+
+				It("calls #GetReleastByTag with the correct arguments", func() {
+					command.Run(destDir, inRequest)
+
+					Ω(githubClient.GetReleaseByTagArgsForCall(0)).Should(Equal("v0.35.0"))
 				})
 
 				It("downloads only the files that match the globs", func() {
@@ -319,6 +336,7 @@ var _ = Describe("In Command", func() {
 						resource.MetadataPair{Name: "url", Value: "http://google.com"},
 						resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 						resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+						resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
 					))
 				})
 
@@ -391,9 +409,9 @@ var _ = Describe("In Command", func() {
 	Context("when there is a draft release", func() {
 		Context("which has a tag", func() {
 			BeforeEach(func() {
-				githubClient.GetReleaseByTagReturns(buildRelease(1, "v0.35.0", true), nil)
+				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", true), nil)
 
-				inRequest.Version = &resource.Version{Tag: "v0.35.0"}
+				inRequest.Version = &resource.Version{ID: "1"}
 				inResponse, inErr = command.Run(destDir, inRequest)
 			})
 
@@ -402,7 +420,7 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("returns the fetched version", func() {
-				Ω(inResponse.Version).Should(Equal(resource.Version{Tag: "v0.35.0"}))
+				Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1"}))
 			})
 
 			It("has some sweet metadata", func() {
@@ -410,6 +428,8 @@ var _ = Describe("In Command", func() {
 					resource.MetadataPair{Name: "url", Value: "http://google.com"},
 					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+					resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
+					resource.MetadataPair{Name: "draft", Value: "true"},
 				))
 			})
 
@@ -424,11 +444,11 @@ var _ = Describe("In Command", func() {
 			})
 		})
 
-		Context("which doesn't have a tag", func() {
+		Context("which has an empty tag", func() {
 			BeforeEach(func() {
-				githubClient.GetReleaseByTagReturns(buildRelease(1, "", true), nil)
+				githubClient.GetReleaseReturns(buildRelease(1, "", true), nil)
 
-				inRequest.Version = &resource.Version{}
+				inRequest.Version = &resource.Version{ID: "1"}
 				inResponse, inErr = command.Run(destDir, inRequest)
 			})
 
@@ -437,7 +457,7 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("returns the fetched version", func() {
-				Ω(inResponse.Version).Should(Equal(resource.Version{Tag: ""}))
+				Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1"}))
 			})
 
 			It("has some sweet metadata", func() {
@@ -445,6 +465,39 @@ var _ = Describe("In Command", func() {
 					resource.MetadataPair{Name: "url", Value: "http://google.com"},
 					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+					resource.MetadataPair{Name: "tag", Value: ""},
+					resource.MetadataPair{Name: "draft", Value: "true"},
+				))
+			})
+
+			It("does not create the tag and version files", func() {
+				Ω(path.Join(destDir, "tag")).ShouldNot(BeAnExistingFile())
+				Ω(path.Join(destDir, "version")).ShouldNot(BeAnExistingFile())
+			})
+		})
+
+		Context("which has a nil tag", func() {
+			BeforeEach(func() {
+				githubClient.GetReleaseReturns(buildNilTagRelease(1), nil)
+
+				inRequest.Version = &resource.Version{ID: "1"}
+				inResponse, inErr = command.Run(destDir, inRequest)
+			})
+
+			It("succeeds", func() {
+				Ω(inErr).ShouldNot(HaveOccurred())
+			})
+
+			It("returns the fetched version", func() {
+				Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1"}))
+			})
+
+			It("has some sweet metadata", func() {
+				Ω(inResponse.Metadata).Should(ConsistOf(
+					resource.MetadataPair{Name: "url", Value: "http://google.com"},
+					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+					resource.MetadataPair{Name: "draft", Value: "true"},
 				))
 			})
 
