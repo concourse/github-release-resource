@@ -41,7 +41,6 @@ type OutParams struct {
 	BodyPath      string `json:"body"`
 	TagPath       string `json:"tag"`
 	CommitishPath string `json:"commitish"`
-	Draft         bool   `json:"draft"`
 
 	Globs []string `json:"globs"`
 }

@@ -52,7 +52,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		}
 	}
 
-	draft := request.Params.Draft
+	draft := request.Source.Drafts
 
 	release := &github.RepositoryRelease{
 		Name:            github.String(name),

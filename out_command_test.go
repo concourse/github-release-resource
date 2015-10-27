@@ -221,7 +221,7 @@ var _ = Describe("Out Command", func() {
 			BeforeEach(func() {
 				bodyPath := filepath.Join(sourcesDir, "body")
 				file(bodyPath, "this is a great release")
-				request.Params.Draft = true
+				request.Source.Drafts = true
 			})
 
 			It("creates a release on GitHub in draft mode", func() {
