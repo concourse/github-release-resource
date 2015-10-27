@@ -131,6 +131,21 @@ var _ = Describe("Check Command", func() {
 						{Tag: "0.4.0"},
 					}))
 				})
+
+				It("returns the latest version if the current version is not found", func() {
+					command := resource.NewCheckCommand(githubClient)
+
+					response, err := command.Run(resource.CheckRequest{
+						Version: resource.Version{
+							Tag: "v3.4.5",
+						},
+					})
+					Ω(err).ShouldNot(HaveOccurred())
+
+					Ω(response).Should(Equal([]resource.Version{
+						{Tag: "0.4.0"},
+					}))
+				})
 			})
 
 			Context("and one of the releases is a draft", func() {
@@ -163,6 +178,7 @@ var _ = Describe("Check Command", func() {
 					BeforeEach(func() {
 						returnedReleases = []github.RepositoryRelease{
 							newDraftRepositoryRelease(1, "v0.1.4"),
+							newDraftRepositoryRelease(2, "v0.1.3"),
 							newDraftRepositoryRelease(3, "v0.1.1"),
 							newRepositoryRelease(2, "0.4.0"),
 						}
@@ -173,6 +189,21 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: resource.Version{ID: "3"},
+							Source:  resource.Source{Drafts: true},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{ID: "2"},
+							{ID: "1"},
+						}))
+					})
+
+					It("returns the latest draft version if the current version is not found", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{ID: "5"},
 							Source:  resource.Source{Drafts: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())

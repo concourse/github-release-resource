@@ -78,6 +78,14 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		}
 	}
 
+	if !upToLatest {
+		// current version was removed; start over from latest
+		reversedVersions = append(
+			reversedVersions,
+			versionFromDraft(&filteredReleases[len(filteredReleases)-1]),
+		)
+	}
+
 	return reversedVersions, nil
 }
 
