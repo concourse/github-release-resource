@@ -79,6 +79,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		existingRelease.Name = github.String(name)
 		existingRelease.Body = github.String(body)
 		existingRelease.TargetCommitish = github.String(targetCommitish)
+		existingRelease.Draft = github.Bool(draft)
 
 		for _, asset := range existingRelease.Assets {
 			fmt.Fprintf(c.writer, "clearing existing asset: %s\n", *asset.Name)

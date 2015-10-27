@@ -112,6 +112,34 @@ var _ = Describe("Out Command", func() {
 			Ω(githubClient.DeleteReleaseAssetArgsForCall(1)).Should(Equal(existingAssets[1]))
 		})
 
+		Context("when not set as a draft release", func() {
+			BeforeEach(func() {
+				request.Source.Drafts = false
+			})
+
+			It("updates the existing release to a non-draft", func() {
+				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
+
+				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
+				Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
+				Ω(*updatedRelease.Draft).Should(Equal(false))
+			})
+		})
+
+		Context("when set as a draft release", func() {
+			BeforeEach(func() {
+				request.Source.Drafts = true
+			})
+
+			It("updates the existing release to a draft", func() {
+				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
+
+				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
+				Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
+				Ω(*updatedRelease.Draft).Should(Equal(true))
+			})
+		})
+
 		Context("when a commitish is not supplied", func() {
 			It("updates the existing release", func() {
 				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
