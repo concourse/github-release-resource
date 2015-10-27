@@ -137,7 +137,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 	}
 
 	return OutResponse{
-		Version:  versionFromDraft(release),
+		Version:  versionFromRelease(release),
 		Metadata: metadataFromRelease(release),
 	}, nil
 }

@@ -18,7 +18,7 @@ func determineVersionFromTag(tag string) string {
 	}
 }
 
-func versionFromDraft(release *github.RepositoryRelease) Version {
+func versionFromRelease(release *github.RepositoryRelease) Version {
 	if *release.Draft {
 		return Version{ID: strconv.Itoa(*release.ID)}
 	} else {

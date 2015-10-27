@@ -53,7 +53,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 
 	if (request.Version == Version{}) {
 		return []Version{
-			versionFromDraft(&latestRelease),
+			versionFromRelease(&latestRelease),
 		}, nil
 	}
 
@@ -66,7 +66,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	for _, release := range filteredReleases {
 
 		if upToLatest {
-			reversedVersions = append(reversedVersions, versionFromDraft(&release))
+			reversedVersions = append(reversedVersions, versionFromRelease(&release))
 		} else {
 			if *release.Draft {
 				id := *release.ID
@@ -82,7 +82,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		// current version was removed; start over from latest
 		reversedVersions = append(
 			reversedVersions,
-			versionFromDraft(&filteredReleases[len(filteredReleases)-1]),
+			versionFromRelease(&filteredReleases[len(filteredReleases)-1]),
 		)
 	}
 

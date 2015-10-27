@@ -122,7 +122,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	}
 
 	return InResponse{
-		Version:  versionFromDraft(foundRelease),
+		Version:  versionFromRelease(foundRelease),
 		Metadata: metadataFromRelease(foundRelease),
 	}, nil
 }
