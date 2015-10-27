@@ -19,9 +19,10 @@ Fetches and creates versioned GitHub resources.
 * `github_api_url`: *Optional.* If you use a non-public GitHub deployment then
   you can set your API URL here.
 
-* `drafts`: *Optional.* When set to `true` only returns draft releases with
-  semver compliant tags. Defaults to `false` returning only final releases
-  with semver compliant tags.
+* `drafts`: *Optional. Default `false`.* When set to `true`, `put` produces
+  drafts and `check` only detects drafts. If `false`, only non-draft releases
+  will be detected and published. Note that releases must have semver compliant
+  tags to be detected, even if they're drafts.
 
 ### Example
 
@@ -97,5 +98,3 @@ matching the patterns in `globs` to the release.
 
 * `globs`: *Optional.* A list of globs for files that will be uploaded alongside
   the created release.
-
-* `draft`: *Optional.* A boolean to set the release in draft mode or not.
