@@ -140,6 +140,20 @@ var _ = Describe("Out Command", func() {
 			})
 		})
 
+		Context("when a body is not supplied", func() {
+			BeforeEach(func() {
+				request.Params.BodyPath = ""
+			})
+
+			It("does not blow away the body", func() {
+				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
+
+				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
+				Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
+				Ω(updatedRelease.Body).Should(BeNil())
+			})
+		})
+
 		Context("when a commitish is not supplied", func() {
 			It("updates the existing release", func() {
 				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))

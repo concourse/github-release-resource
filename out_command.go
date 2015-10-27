@@ -36,8 +36,11 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		return OutResponse{}, err
 	}
 
-	body := ""
+	var body string
+	bodySpecified := false
 	if request.Params.BodyPath != "" {
+		bodySpecified = true
+
 		body, err = c.fileContents(filepath.Join(sourceDir, request.Params.BodyPath))
 		if err != nil {
 			return OutResponse{}, err
@@ -77,9 +80,12 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 
 	if existingRelease != nil {
 		existingRelease.Name = github.String(name)
-		existingRelease.Body = github.String(body)
 		existingRelease.TargetCommitish = github.String(targetCommitish)
 		existingRelease.Draft = github.Bool(draft)
+
+		if bodySpecified {
+			existingRelease.Body = github.String(body)
+		}
 
 		for _, asset := range existingRelease.Assets {
 			fmt.Fprintf(c.writer, "clearing existing asset: %s\n", *asset.Name)
