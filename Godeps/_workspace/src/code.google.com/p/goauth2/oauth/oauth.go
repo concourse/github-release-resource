@@ -4,6 +4,10 @@
 
 // Package oauth supports making OAuth2-authenticated HTTP requests.
 //
+//  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//  !!! DEPRECATED. Use golang.org/x/oauth2 instead. !!!
+//  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
 // Example usage:
 //
 //	// Specify your configuration. (typically as a global variable)

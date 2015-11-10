@@ -37,6 +37,7 @@ package proto
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"sort"
@@ -809,3 +810,29 @@ func RegisterEnum(typeName string, unusedNameMap map[int32]string, valueMap map[
 func EnumValueMap(enumType string) map[string]int32 {
 	return enumValueMaps[enumType]
 }
+
+// A registry of all linked message types.
+// The string is a fully-qualified proto name ("pkg.Message").
+var (
+	protoTypes    = make(map[string]reflect.Type)
+	revProtoTypes = make(map[reflect.Type]string)
+)
+
+// RegisterType is called from generated code and maps from the fully qualified
+// proto name to the type (pointer to struct) of the protocol buffer.
+func RegisterType(x Message, name string) {
+	if _, ok := protoTypes[name]; ok {
+		// TODO: Some day, make this a panic.
+		log.Printf("proto: duplicate proto type registered: %s", name)
+		return
+	}
+	t := reflect.TypeOf(x)
+	protoTypes[name] = t
+	revProtoTypes[t] = name
+}
+
+// MessageName returns the fully-qualified proto name for the given message type.
+func MessageName(x Message) string { return revProtoTypes[reflect.TypeOf(x)] }
+
+// MessageType returns the message type (pointer to struct) for a named message.
+func MessageType(name string) reflect.Type { return protoTypes[name] }
