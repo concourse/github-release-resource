@@ -4,8 +4,9 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/blang/semver"
 	"github.com/zachgersh/go-github/github"
+
+	"github.com/cppforlife/go-semi-semantic/version"
 )
 
 type CheckCommand struct {
@@ -37,7 +38,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		if release.TagName == nil {
 			continue
 		}
-		if _, err := semver.New(determineVersionFromTag(*release.TagName)); err != nil {
+		if _, err := version.NewVersionFromString(determineVersionFromTag(*release.TagName)); err != nil {
 			continue
 		}
 
@@ -100,15 +101,15 @@ func (r byVersion) Swap(i, j int) {
 }
 
 func (r byVersion) Less(i, j int) bool {
-	first, err := semver.New(determineVersionFromTag(*r[i].TagName))
+	first, err := version.NewVersionFromString(determineVersionFromTag(*r[i].TagName))
 	if err != nil {
 		return true
 	}
 
-	second, err := semver.New(determineVersionFromTag(*r[j].TagName))
+	second, err := version.NewVersionFromString(determineVersionFromTag(*r[j].TagName))
 	if err != nil {
 		return false
 	}
 
-	return first.LT(*second)
+	return first.IsLt(second)
 }

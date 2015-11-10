@@ -146,6 +146,30 @@ var _ = Describe("Check Command", func() {
 						{Tag: "0.4.0"},
 					}))
 				})
+
+				Context("when there are not-quite-semver versions", func() {
+					BeforeEach(func() {
+						returnedReleases = append(returnedReleases, newRepositoryRelease(5, "v1"))
+						returnedReleases = append(returnedReleases, newRepositoryRelease(6, "v0"))
+					})
+
+					It("combines them with the semver versions in a reasonable order", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{
+								Tag: "v0.1.3",
+							},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{Tag: "v0.1.4"},
+							{Tag: "0.4.0"},
+							{Tag: "v1"},
+						}))
+					})
+				})
 			})
 
 			Context("and one of the releases is a draft", func() {
@@ -217,8 +241,8 @@ var _ = Describe("Check Command", func() {
 				Context("and non-of them are semver", func() {
 					BeforeEach(func() {
 						returnedReleases = []github.RepositoryRelease{
-							newDraftRepositoryRelease(1, "abc"),
-							newDraftRepositoryRelease(2, "123"),
+							newDraftRepositoryRelease(1, "abc/d"),
+							newDraftRepositoryRelease(2, "123*4"),
 						}
 					})
 
@@ -241,7 +265,7 @@ var _ = Describe("Check Command", func() {
 							newDraftRepositoryRelease(1, "v0.1.4"),
 							newDraftRepositoryRelease(2, ""),
 							newDraftWithNilTagRepositoryRelease(3),
-							newDraftRepositoryRelease(4, "asdf123"),
+							newDraftRepositoryRelease(4, "asdf@example.com"),
 						}
 					})
 
