@@ -91,6 +91,9 @@ matching the patterns in `globs` to the release.
 * `tag`: *Required.* A path to a file containing the name of the Git tag to use
   for the release.
 
+* `tag_prefix`: *Optional.*  If specified, the tag read from the file will be
+prepended with this string. This is useful for adding v in front of version numbers.
+
 * `commitish`: *Optional.* A path to a file containing the commitish (SHA, tag,
   branch name) that the release should be associated with.
 
