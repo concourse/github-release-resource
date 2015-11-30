@@ -347,5 +347,31 @@ var _ = Describe("Out Command", func() {
 				Ω(err).Should(MatchError("could not find file that matches glob '*.gif'"))
 			})
 		})
+
+		Context("when the tag_prefix is set", func() {
+			BeforeEach(func() {
+				namePath := filepath.Join(sourcesDir, "name")
+				tagPath := filepath.Join(sourcesDir, "tag")
+
+				file(namePath, "v0.3.12")
+				file(tagPath, "0.3.12")
+
+				request = resource.OutRequest{
+					Params: resource.OutParams{
+						NamePath:  "name",
+						TagPath:   "tag",
+						TagPrefix: "version-",
+					},
+				}
+			})
+
+			It("appends the TagPrefix onto the TagName", func() {
+				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
+				release := githubClient.CreateReleaseArgsForCall(0)
+
+				Ω(*release.Name).Should(Equal("v0.3.12"))
+				Ω(*release.TagName).Should(Equal("version-0.3.12"))
+			})
+		})
 	})
 })

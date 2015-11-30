@@ -36,6 +36,8 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		return OutResponse{}, err
 	}
 
+	tag = request.Params.TagPrefix + tag
+
 	var body string
 	bodySpecified := false
 	if request.Params.BodyPath != "" {
