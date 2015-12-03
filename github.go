@@ -83,7 +83,7 @@ func (g *GitHubClient) ListReleases() ([]github.RepositoryRelease, error) {
 func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, error) {
 	release, res, err := g.client.Repositories.GetReleaseByTag(g.user, g.repository, tag)
 	if err != nil {
-		return &github.RepositoryRelease{}, nil
+		return &github.RepositoryRelease{}, err
 	}
 
 	err = res.Body.Close()
@@ -97,7 +97,7 @@ func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, e
 func (g *GitHubClient) GetRelease(id int) (*github.RepositoryRelease, error) {
 	release, res, err := g.client.Repositories.GetRelease(g.user, g.repository, id)
 	if err != nil {
-		return &github.RepositoryRelease{}, nil
+		return &github.RepositoryRelease{}, err
 	}
 
 	err = res.Body.Close()
@@ -143,7 +143,7 @@ func (g *GitHubClient) UpdateRelease(release github.RepositoryRelease) (*github.
 func (g *GitHubClient) ListReleaseAssets(release github.RepositoryRelease) ([]github.ReleaseAsset, error) {
 	assets, res, err := g.client.Repositories.ListReleaseAssets(g.user, g.repository, *release.ID, nil)
 	if err != nil {
-		return []github.ReleaseAsset{}, nil
+		return []github.ReleaseAsset{}, err
 	}
 
 	err = res.Body.Close()
