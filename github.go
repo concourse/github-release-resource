@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"os"
 
-	"code.google.com/p/goauth2/oauth"
+	"golang.org/x/oauth2"
 
 	"github.com/google/go-github/github"
 )
@@ -37,18 +37,16 @@ type GitHubClient struct {
 }
 
 func NewGitHubClient(source Source) (*GitHubClient, error) {
-	transport := &oauth.Transport{
-		Token: &oauth.Token{
-			AccessToken: source.AccessToken,
-		},
-	}
-
 	var client *github.Client
 
-	if transport.Token.AccessToken == "" {
+	if source.AccessToken == "" {
 		client = github.NewClient(nil)
 	} else {
-		client = github.NewClient(transport.Client())
+		ts := oauth2.StaticTokenSource(&oauth2.Token{
+			AccessToken: source.AccessToken,
+		})
+
+		client = github.NewClient(oauth2.NewClient(oauth2.NoContext, ts))
 	}
 
 	if source.GitHubAPIURL != "" {
