@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/zachgersh/go-github/github"
+	"github.com/google/go-github/github"
 )
 
 // determineVersionFromTag converts git tags v1.2.3 into semver 1.2.3 values

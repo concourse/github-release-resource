@@ -8,7 +8,7 @@ import (
 
 	"code.google.com/p/goauth2/oauth"
 
-	"github.com/zachgersh/go-github/github"
+	"github.com/google/go-github/github"
 )
 
 //go:generate counterfeiter . GitHub

@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/zachgersh/go-github/github"
+	"github.com/google/go-github/github"
 
 	"github.com/cppforlife/go-semi-semantic/version"
 )

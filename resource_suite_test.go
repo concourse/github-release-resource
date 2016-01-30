@@ -5,7 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/zachgersh/go-github/github"
+	"github.com/google/go-github/github"
 )
 
 func TestGithubReleaseResource(t *testing.T) {
