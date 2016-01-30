@@ -1,22 +1,21 @@
 {
 	"ImportPath": "github.com/concourse/github-release-resource",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.5",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
-		{
-			"ImportPath": "code.google.com/p/goauth2/oauth",
-			"Comment": "weekly-57",
-			"Rev": "'222e66a2882ef45c3153c86c0aa82fe65fc29a78'"
-		},
 		{
 			"ImportPath": "github.com/cppforlife/go-semi-semantic/version",
 			"Rev": "a7ba07c61e58e6df7693d49a13d24f533182518a"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "d3d78384b82d449651d2435ed329d70f7c48aa56"
+			"Rev": "45bba206dd5270d96bac4942dcfe515726613249"
+		},
+		{
+			"ImportPath": "github.com/google/go-github/github",
+			"Rev": "b8b4ac742977310ff6e75140a403a38dab109977"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
@@ -28,17 +27,21 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.2.0-22-g39d2c24",
-			"Rev": "39d2c24f8a92c88f7e7f4d8ec6c80d3cc8f5ac65"
+			"Comment": "v1.2.0-36-g3341026",
+			"Rev": "33410268c3881642c746ada23c04eeb331212596"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0-71-g2152b45",
-			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
+			"Comment": "v1.0-77-g28f13bc",
+			"Rev": "28f13bc54cf0f72e3fa395ba9d3added0b3b849c"
 		},
 		{
-			"ImportPath": "github.com/zachgersh/go-github/github",
-			"Rev": "f47a8b33261f10482dfede3cc839c4fcf34da04f"
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "04b9de9b512f58addf28c9853d50ebef61c3953e"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "8a57ed94ffd43444c0879fe75701732a38afc985"
 		}
 	]
 }
