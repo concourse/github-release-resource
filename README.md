@@ -19,6 +19,10 @@ Fetches and creates versioned GitHub resources.
 * `github_api_url`: *Optional.* If you use a non-public GitHub deployment then
   you can set your API URL here.
 
+* `github_uploads_url`: *Optional.* Some GitHub instances have a separate URL
+  for uploading. If `github_api_url` is set, this value defaults to the same
+  value, but if you have your own endpoint, this field will override it.
+
 * `drafts`: *Optional. Default `false`.* When set to `true`, `put` produces
   drafts and `check` only detects drafts. If `false`, only non-draft releases
   will be detected and published. Note that releases must have semver compliant

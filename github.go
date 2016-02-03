@@ -55,6 +55,19 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		client.UploadURL, err = url.Parse(source.GitHubAPIURL)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if source.GitHubUploadsURL != "" {
+		var err error
+		client.UploadURL, err = url.Parse(source.GitHubUploadsURL)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &GitHubClient{

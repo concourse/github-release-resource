@@ -4,9 +4,10 @@ type Source struct {
 	User       string `json:"user"`
 	Repository string `json:"repository"`
 
-	GitHubAPIURL string `json:"github_api_url"`
-	AccessToken  string `json:"access_token"`
-	Drafts       bool   `json:"drafts"`
+	GitHubAPIURL     string `json:"github_api_url"`
+	GitHubUploadsURL string `json:"github_uploads_url"`
+	AccessToken      string `json:"access_token"`
+	Drafts           bool   `json:"drafts"`
 }
 
 type CheckRequest struct {
