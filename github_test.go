@@ -32,6 +32,26 @@ var _ = Describe("GitHub Client", func() {
 		server.Close()
 	})
 
+	Context("with bad URLs", func() {
+		BeforeEach(func() {
+			source.AccessToken = "hello?"
+		})
+
+		It("returns an error if the API URL is bad", func() {
+			source.GitHubAPIURL = ":"
+
+			_, err := NewGitHubClient(source)
+			Ω(err).Should(HaveOccurred())
+		})
+
+		It("returns an error if the API URL is bad", func() {
+			source.GitHubUploadsURL = ":"
+
+			_, err := NewGitHubClient(source)
+			Ω(err).Should(HaveOccurred())
+		})
+	})
+
 	Context("with an OAuth Token", func() {
 		BeforeEach(func() {
 			source = Source{
@@ -92,9 +112,9 @@ var _ = Describe("GitHub Client", func() {
         }`
 
 				rateLimitHeaders := http.Header(map[string][]string{
-					"X-RateLimit-Limit": {"60"},
+					"X-RateLimit-Limit":     {"60"},
 					"X-RateLimit-Remaining": {"0"},
-					"X-RateLimit-Reset": {"1377013266"},
+					"X-RateLimit-Reset":     {"1377013266"},
 				})
 
 				server.AppendHandlers(
@@ -128,9 +148,9 @@ var _ = Describe("GitHub Client", func() {
         }`
 
 				rateLimitHeaders := http.Header(map[string][]string{
-					"X-RateLimit-Limit": {"60"},
+					"X-RateLimit-Limit":     {"60"},
 					"X-RateLimit-Remaining": {"0"},
-					"X-RateLimit-Reset": {"1377013266"},
+					"X-RateLimit-Reset":     {"1377013266"},
 				})
 
 				server.AppendHandlers(

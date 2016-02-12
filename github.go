@@ -3,12 +3,14 @@ package resource
 import (
 	"errors"
 	"io"
+	"net/http"
 	"net/url"
 	"os"
 
 	"golang.org/x/oauth2"
 
 	"github.com/google/go-github/github"
+	"github.com/xoebus/statham"
 )
 
 //go:generate counterfeiter . GitHub
@@ -42,11 +44,11 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 	if source.AccessToken == "" {
 		client = github.NewClient(nil)
 	} else {
-		ts := oauth2.StaticTokenSource(&oauth2.Token{
-			AccessToken: source.AccessToken,
-		})
-
-		client = github.NewClient(oauth2.NewClient(oauth2.NoContext, ts))
+		var err error
+		client, err = oauthClient(source)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if source.GitHubAPIURL != "" {
@@ -218,4 +220,46 @@ func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 	}
 	res.Body.Close()
 	return u, nil
+}
+
+func oauthClient(source Source) (*github.Client, error) {
+	ts := oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: source.AccessToken,
+	})
+	oauthClient := oauth2.NewClient(oauth2.NoContext, ts)
+
+	apiHost := "api.github.com"
+	if source.GitHubAPIURL != "" {
+		uri, err := url.Parse(source.GitHubAPIURL)
+		if err != nil {
+			return nil, err
+		}
+
+		apiHost = uri.Host
+	}
+
+	uploadHost := "uploads.github.com"
+	if source.GitHubUploadsURL != "" {
+		uri, err := url.Parse(source.GitHubUploadsURL)
+		if err != nil {
+			return nil, err
+		}
+
+		uploadHost = uri.Host
+	}
+
+	// The google/go-github library uses the same http.Client to perform
+	// requests to both github.com and the S3 download API (for downloading
+	// release assets). We don't want it to user the same OAuth transport for
+	// both.
+	transport := statham.NewTransport(http.DefaultTransport, statham.Mapping{
+		apiHost:    oauthClient.Transport,
+		uploadHost: oauthClient.Transport,
+	})
+
+	httpClient := &http.Client{
+		Transport: transport,
+	}
+
+	return github.NewClient(httpClient), nil
 }
