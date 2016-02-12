@@ -11,11 +11,11 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "45bba206dd5270d96bac4942dcfe515726613249"
+			"Rev": "0dfe8f37844c14cb32c7247925270e0f7ba90973"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "b8b4ac742977310ff6e75140a403a38dab109977"
+			"Rev": "39d75606a4cbec14d6f9f9d4e295dad4e3711682"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
@@ -27,17 +27,21 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.2.0-36-g3341026",
-			"Rev": "33410268c3881642c746ada23c04eeb331212596"
+			"Comment": "v1.2.0-42-g07d85e6",
+			"Rev": "07d85e6b10c4289c7d612f9b13f45ba36f66d55b"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0-77-g28f13bc",
-			"Rev": "28f13bc54cf0f72e3fa395ba9d3added0b3b849c"
+			"Comment": "v1.0-83-gc72df92",
+			"Rev": "c72df929b80ef4930aaa75d5e486887ff2f3e06a"
+		},
+		{
+			"ImportPath": "github.com/xoebus/statham",
+			"Rev": "7b5896306a82ba5c78d2b0c8df4d29e36ba9ac2f"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "04b9de9b512f58addf28c9853d50ebef61c3953e"
+			"Rev": "8968c61983e8f51a91b8c0ef25bf739278c89634"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
