@@ -196,12 +196,12 @@ func (g *GitHubClient) DeleteReleaseAsset(asset github.ReleaseAsset) error {
 }
 
 func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error) {
-	reader, _, err := g.client.Repositories.DownloadReleaseAsset(g.user, g.repository, *asset.ID)
+	res, err := g.client.Repositories.DownloadReleaseAsset(g.user, g.repository, *asset.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return reader, err
+	return res, err
 }
 
 func (g *GitHubClient) GetTarballLink(tag string) (*url.URL, error) {
