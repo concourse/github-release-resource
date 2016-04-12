@@ -42,7 +42,9 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 	var client *github.Client
 
 	if source.AccessToken == "" {
-		client = github.NewClient(nil)
+		proxyTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
+		httpClient := &http.Client{Transport: proxyTransport}
+		client = github.NewClient(httpClient)
 	} else {
 		var err error
 		client, err = oauthClient(source)
@@ -194,12 +196,12 @@ func (g *GitHubClient) DeleteReleaseAsset(asset github.ReleaseAsset) error {
 }
 
 func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error) {
-	res, err := g.client.Repositories.DownloadReleaseAsset(g.user, g.repository, *asset.ID)
+	reader, _, err := g.client.Repositories.DownloadReleaseAsset(g.user, g.repository, *asset.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return res, err
+	return reader, err
 }
 
 func (g *GitHubClient) GetTarballLink(tag string) (*url.URL, error) {
@@ -252,7 +254,7 @@ func oauthClient(source Source) (*github.Client, error) {
 	// requests to both github.com and the S3 download API (for downloading
 	// release assets). We don't want it to user the same OAuth transport for
 	// both.
-	transport := statham.NewTransport(http.DefaultTransport, statham.Mapping{
+	transport := statham.NewTransport(&http.Transport{Proxy: http.ProxyFromEnvironment}, statham.Mapping{
 		apiHost:    oauthClient.Transport,
 		uploadHost: oauthClient.Transport,
 	})
