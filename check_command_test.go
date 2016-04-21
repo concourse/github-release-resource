@@ -127,6 +127,7 @@ var _ = Describe("Check Command", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 
 					Ω(response).Should(Equal([]resource.Version{
+						{Tag: "v0.1.3"},
 						{Tag: "v0.1.4"},
 						{Tag: "0.4.0"},
 					}))
@@ -164,6 +165,7 @@ var _ = Describe("Check Command", func() {
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
+							{Tag: "v0.1.3"},
 							{Tag: "v0.1.4"},
 							{Tag: "0.4.0"},
 							{Tag: "v1"},
@@ -192,6 +194,7 @@ var _ = Describe("Check Command", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 
 					Ω(response).Should(Equal([]resource.Version{
+						{Tag: "v0.1.3"},
 						{Tag: "0.4.0"},
 					}))
 				})
@@ -212,7 +215,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "3"},
+							Version: resource.Version{ID: "2"},
 							Source:  resource.Source{Drafts: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())

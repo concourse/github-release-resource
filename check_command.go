@@ -64,11 +64,9 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 
 	upToLatest := false
 	reversedVersions := []Version{}
-	for _, release := range filteredReleases {
 
-		if upToLatest {
-			reversedVersions = append(reversedVersions, versionFromRelease(&release))
-		} else {
+	for _, release := range filteredReleases {
+		if !upToLatest {
 			if *release.Draft {
 				id := *release.ID
 				upToLatest = request.Version.ID == strconv.Itoa(id)
@@ -76,6 +74,10 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 				version := *release.TagName
 				upToLatest = request.Version.Tag == version
 			}
+		}
+
+		if upToLatest {
+			reversedVersions = append(reversedVersions, versionFromRelease(&release))
 		}
 	}
 
