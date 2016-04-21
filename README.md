@@ -58,7 +58,7 @@ Fetches and creates versioned GitHub resources.
 ### `check`: Check for released versions.
 
 Releases are listed and sorted by their tag, using
-[semver](http://semver.org) semantics if possible.
+[semver](http://semver.org) semantics if possible. If `version` is specified, `check` returns releases from the specified version on. Otherwise, `check` returns the latest release.
 
 ### `in`: Fetch assets from a release.
 
