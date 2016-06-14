@@ -1,6 +1,7 @@
 package resource_test
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,8 +26,7 @@ var _ = Describe("Out Command", func() {
 
 		sourcesDir string
 
-		request  resource.OutRequest
-		response resource.OutResponse
+		request resource.OutRequest
 	)
 
 	BeforeEach(func() {
@@ -50,12 +50,6 @@ var _ = Describe("Out Command", func() {
 		githubClient.UpdateReleaseStub = func(gh github.RepositoryRelease) (*github.RepositoryRelease, error) {
 			return &gh, nil
 		}
-	})
-
-	JustBeforeEach(func() {
-		var err error
-		response, err = command.Run(sourcesDir, request)
-		Ω(err).ShouldNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -111,6 +105,9 @@ var _ = Describe("Out Command", func() {
 		})
 
 		It("deletes the existing assets", func() {
+			_, err := command.Run(sourcesDir, request)
+			Ω(err).ShouldNot(HaveOccurred())
+
 			Ω(githubClient.ListReleaseAssetsCallCount()).Should(Equal(1))
 			Ω(githubClient.ListReleaseAssetsArgsForCall(0)).Should(Equal(existingReleases[1]))
 
@@ -126,6 +123,9 @@ var _ = Describe("Out Command", func() {
 			})
 
 			It("updates the existing release to a non-draft", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
 
 				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
@@ -140,6 +140,9 @@ var _ = Describe("Out Command", func() {
 			})
 
 			It("updates the existing release to a draft", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
 
 				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
@@ -154,6 +157,9 @@ var _ = Describe("Out Command", func() {
 			})
 
 			It("does not blow away the body", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
 
 				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
@@ -164,6 +170,9 @@ var _ = Describe("Out Command", func() {
 
 		Context("when a commitish is not supplied", func() {
 			It("updates the existing release", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
 
 				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
@@ -181,6 +190,9 @@ var _ = Describe("Out Command", func() {
 			})
 
 			It("updates the existing release", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.UpdateReleaseCallCount()).Should(Equal(1))
 
 				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
@@ -215,6 +227,9 @@ var _ = Describe("Out Command", func() {
 			})
 
 			It("creates a release on GitHub with the commitish", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
 				release := githubClient.CreateReleaseArgsForCall(0)
 
@@ -224,6 +239,9 @@ var _ = Describe("Out Command", func() {
 
 		Context("without a commitish", func() {
 			It("creates a release on GitHub without the commitish", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
 				release := githubClient.CreateReleaseArgsForCall(0)
 
@@ -240,6 +258,9 @@ var _ = Describe("Out Command", func() {
 			})
 
 			It("creates a release on GitHub", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
 				release := githubClient.CreateReleaseArgsForCall(0)
 
@@ -251,6 +272,9 @@ var _ = Describe("Out Command", func() {
 
 		Context("without a body", func() {
 			It("works", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
 				release := githubClient.CreateReleaseArgsForCall(0)
 
@@ -261,6 +285,9 @@ var _ = Describe("Out Command", func() {
 		})
 
 		It("always defaults to non-draft mode", func() {
+			_, err := command.Run(sourcesDir, request)
+			Ω(err).ShouldNot(HaveOccurred())
+
 			Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
 			release := githubClient.CreateReleaseArgsForCall(0)
 
@@ -275,6 +302,9 @@ var _ = Describe("Out Command", func() {
 			})
 
 			It("creates a release on GitHub in draft mode", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
 				release := githubClient.CreateReleaseArgsForCall(0)
 
@@ -324,6 +354,9 @@ var _ = Describe("Out Command", func() {
 			})
 
 			It("uploads matching file globs", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.UploadReleaseAssetCallCount()).Should(Equal(1))
 				release, name, file := githubClient.UploadReleaseAssetArgsForCall(0)
 
@@ -354,6 +387,51 @@ var _ = Describe("Out Command", func() {
 				Ω(err).Should(HaveOccurred())
 				Ω(err).Should(MatchError("could not find file that matches glob '*.gif'"))
 			})
+
+			Context("when upload release asset fails", func() {
+				BeforeEach(func() {
+					existingAsset := false
+					githubClient.DeleteReleaseAssetStub = func(github.ReleaseAsset) error {
+						existingAsset = false
+						return nil
+					}
+
+					githubClient.ListReleaseAssetsReturns([]github.ReleaseAsset{
+						{
+							ID:   github.Int(456789),
+							Name: github.String("great-file.tgz"),
+						},
+						{
+							ID:   github.Int(3450798),
+							Name: github.String("whatever.tgz"),
+						},
+					}, nil)
+
+					githubClient.UploadReleaseAssetStub = func(github.RepositoryRelease, string, *os.File) error {
+						Expect(existingAsset).To(BeFalse())
+						existingAsset = true
+						return errors.New("some-error")
+					}
+				})
+
+				It("retries 10 times", func() {
+					_, err := command.Run(sourcesDir, request)
+					Expect(err).To(Equal(errors.New("some-error")))
+
+					Ω(githubClient.UploadReleaseAssetCallCount()).Should(Equal(10))
+					Ω(githubClient.ListReleaseAssetsCallCount()).Should(Equal(9))
+					Ω(*githubClient.ListReleaseAssetsArgsForCall(8).ID).Should(Equal(112))
+
+					actualRelease, actualName, actualFile := githubClient.UploadReleaseAssetArgsForCall(9)
+					Ω(*actualRelease.ID).Should(Equal(112))
+					Ω(actualName).Should(Equal("great-file.tgz"))
+					Ω(ioutil.ReadAll(actualFile)).Should(Equal([]byte("matching")))
+
+					Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(9))
+					actualAsset := githubClient.DeleteReleaseAssetArgsForCall(8)
+					Expect(*actualAsset.ID).To(Equal(456789))
+				})
+			})
 		})
 
 		Context("when the tag_prefix is set", func() {
@@ -374,6 +452,9 @@ var _ = Describe("Out Command", func() {
 			})
 
 			It("appends the TagPrefix onto the TagName", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
 				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
 				release := githubClient.CreateReleaseArgsForCall(0)
 

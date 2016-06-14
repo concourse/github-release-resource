@@ -134,7 +134,27 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 			fmt.Fprintf(c.writer, "uploading %s\n", filePath)
 
 			name := filepath.Base(filePath)
+
 			err = c.github.UploadReleaseAsset(*release, name, file)
+			for i := 0; i < 9 && err != nil; i++ {
+				assets, err := c.github.ListReleaseAssets(*release)
+				if err != nil {
+					return OutResponse{}, err
+				}
+
+				for _, asset := range assets {
+					if asset.Name != nil && *asset.Name == name {
+						err = c.github.DeleteReleaseAsset(asset)
+						if err != nil {
+							return OutResponse{}, err
+						}
+						break
+					}
+				}
+
+				err = c.github.UploadReleaseAsset(*release, name, file)
+			}
+
 			if err != nil {
 				return OutResponse{}, err
 			}
