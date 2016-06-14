@@ -81,6 +81,11 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 	}
 
 	if existingRelease != nil {
+		releaseAssets, err := c.github.ListReleaseAssets(*existingRelease)
+		if err != nil {
+			return OutResponse{}, err
+		}
+
 		existingRelease.Name = github.String(name)
 		existingRelease.TargetCommitish = github.String(targetCommitish)
 		existingRelease.Draft = github.Bool(draft)
@@ -89,7 +94,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 			existingRelease.Body = github.String(body)
 		}
 
-		for _, asset := range existingRelease.Assets {
+		for _, asset := range releaseAssets {
 			fmt.Fprintf(c.writer, "clearing existing asset: %s\n", *asset.Name)
 
 			err := c.github.DeleteReleaseAsset(asset)

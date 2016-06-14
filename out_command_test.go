@@ -69,24 +69,29 @@ var _ = Describe("Out Command", func() {
 				Name: github.String("unicorns.txt"),
 			},
 			{
-				ID:   github.Int(3450798),
-				Name: github.String("rainbows.txt"),
+				ID:    github.Int(3450798),
+				Name:  github.String("rainbows.txt"),
+				State: github.String("new"),
+			},
+		}
+
+		existingReleases := []github.RepositoryRelease{
+			{
+				ID:    github.Int(1),
+				Draft: github.Bool(true),
+			},
+			{
+				ID:      github.Int(112),
+				TagName: github.String("some-tag-name"),
+				Assets:  []github.ReleaseAsset{existingAssets[0]},
+				Draft:   github.Bool(false),
 			},
 		}
 
 		BeforeEach(func() {
-			githubClient.ListReleasesReturns([]github.RepositoryRelease{
-				{
-					ID:    github.Int(1),
-					Draft: github.Bool(true),
-				},
-				{
-					ID:      github.Int(112),
-					TagName: github.String("some-tag-name"),
-					Assets:  existingAssets,
-					Draft:   github.Bool(false),
-				},
-			}, nil)
+			githubClient.ListReleasesReturns(existingReleases, nil)
+
+			githubClient.ListReleaseAssetsReturns(existingAssets, nil)
 
 			namePath := filepath.Join(sourcesDir, "name")
 			bodyPath := filepath.Join(sourcesDir, "body")
@@ -106,6 +111,9 @@ var _ = Describe("Out Command", func() {
 		})
 
 		It("deletes the existing assets", func() {
+			Ω(githubClient.ListReleaseAssetsCallCount()).Should(Equal(1))
+			Ω(githubClient.ListReleaseAssetsArgsForCall(0)).Should(Equal(existingReleases[1]))
+
 			Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(2))
 
 			Ω(githubClient.DeleteReleaseAssetArgsForCall(0)).Should(Equal(existingAssets[0]))
