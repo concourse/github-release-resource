@@ -1,6 +1,7 @@
 {
 	"ImportPath": "github.com/concourse/github-release-resource",
 	"GoVersion": "go1.5",
+	"GodepVersion": "v74",
 	"Packages": [
 		"./..."
 	],
@@ -15,7 +16,7 @@
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "39d75606a4cbec14d6f9f9d4e295dad4e3711682"
+			"Rev": "07995e49c22dcb1e372c88ff12793b0194433e1c"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",

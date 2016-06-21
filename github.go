@@ -79,10 +79,10 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 	}, nil
 }
 
-func (g *GitHubClient) ListReleases() ([]github.RepositoryRelease, error) {
+func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
 	releases, res, err := g.client.Repositories.ListReleases(g.user, g.repository, nil)
 	if err != nil {
-		return []github.RepositoryRelease{}, err
+		return []*github.RepositoryRelease{}, err
 	}
 
 	err = res.Body.Close()
@@ -153,10 +153,10 @@ func (g *GitHubClient) UpdateRelease(release github.RepositoryRelease) (*github.
 	return updatedRelease, nil
 }
 
-func (g *GitHubClient) ListReleaseAssets(release github.RepositoryRelease) ([]github.ReleaseAsset, error) {
+func (g *GitHubClient) ListReleaseAssets(release github.RepositoryRelease) ([]*github.ReleaseAsset, error) {
 	assets, res, err := g.client.Repositories.ListReleaseAssets(g.user, g.repository, *release.ID, nil)
 	if err != nil {
-		return []github.ReleaseAsset{}, err
+		return []*github.ReleaseAsset{}, err
 	}
 
 	err = res.Body.Close()
@@ -194,7 +194,7 @@ func (g *GitHubClient) DeleteReleaseAsset(asset github.ReleaseAsset) error {
 }
 
 func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error) {
-	res, err := g.client.Repositories.DownloadReleaseAsset(g.user, g.repository, *asset.ID)
+	res, _, err := g.client.Repositories.DownloadReleaseAsset(g.user, g.repository, *asset.ID)
 	if err != nil {
 		return nil, err
 	}

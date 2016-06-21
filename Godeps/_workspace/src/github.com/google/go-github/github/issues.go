@@ -35,6 +35,9 @@ type Issue struct {
 	HTMLURL          *string           `json:"html_url,omitempty"`
 	Milestone        *Milestone        `json:"milestone,omitempty"`
 	PullRequestLinks *PullRequestLinks `json:"pull_request,omitempty"`
+	Repository       *Repository       `json:"repository,omitempty"`
+	Reactions        *Reactions        `json:"reactions,omitempty"`
+	Assignees        []*User           `json:"assignees,omitempty"`
 
 	// TextMatches is only populated from search results that request text matches
 	// See: search.go and https://developer.github.com/v3/search/#text-match-metadata
@@ -55,6 +58,7 @@ type IssueRequest struct {
 	Assignee  *string   `json:"assignee,omitempty"`
 	State     *string   `json:"state,omitempty"`
 	Milestone *int      `json:"milestone,omitempty"`
+	Assignees *[]string `json:"assignees,omitempty"`
 }
 
 // IssueListOptions specifies the optional parameters to the IssuesService.List
@@ -100,7 +104,7 @@ type PullRequestLinks struct {
 // repositories.
 //
 // GitHub API docs: http://developer.github.com/v3/issues/#list-issues
-func (s *IssuesService) List(all bool, opt *IssueListOptions) ([]Issue, *Response, error) {
+func (s *IssuesService) List(all bool, opt *IssueListOptions) ([]*Issue, *Response, error) {
 	var u string
 	if all {
 		u = "issues"
@@ -114,12 +118,12 @@ func (s *IssuesService) List(all bool, opt *IssueListOptions) ([]Issue, *Respons
 // authenticated user.
 //
 // GitHub API docs: http://developer.github.com/v3/issues/#list-issues
-func (s *IssuesService) ListByOrg(org string, opt *IssueListOptions) ([]Issue, *Response, error) {
+func (s *IssuesService) ListByOrg(org string, opt *IssueListOptions) ([]*Issue, *Response, error) {
 	u := fmt.Sprintf("orgs/%v/issues", org)
 	return s.listIssues(u, opt)
 }
 
-func (s *IssuesService) listIssues(u string, opt *IssueListOptions) ([]Issue, *Response, error) {
+func (s *IssuesService) listIssues(u string, opt *IssueListOptions) ([]*Issue, *Response, error) {
 	u, err := addOptions(u, opt)
 	if err != nil {
 		return nil, nil, err
@@ -130,7 +134,10 @@ func (s *IssuesService) listIssues(u string, opt *IssueListOptions) ([]Issue, *R
 		return nil, nil, err
 	}
 
-	issues := new([]Issue)
+	// TODO: remove custom Accept header when this API fully launches.
+	req.Header.Set("Accept", mediaTypeReactionsPreview)
+
+	issues := new([]*Issue)
 	resp, err := s.client.Do(req, issues)
 	if err != nil {
 		return nil, resp, err
@@ -182,7 +189,7 @@ type IssueListByRepoOptions struct {
 // ListByRepo lists the issues for the specified repository.
 //
 // GitHub API docs: http://developer.github.com/v3/issues/#list-issues-for-a-repository
-func (s *IssuesService) ListByRepo(owner string, repo string, opt *IssueListByRepoOptions) ([]Issue, *Response, error) {
+func (s *IssuesService) ListByRepo(owner string, repo string, opt *IssueListByRepoOptions) ([]*Issue, *Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/issues", owner, repo)
 	u, err := addOptions(u, opt)
 	if err != nil {
@@ -194,7 +201,10 @@ func (s *IssuesService) ListByRepo(owner string, repo string, opt *IssueListByRe
 		return nil, nil, err
 	}
 
-	issues := new([]Issue)
+	// TODO: remove custom Accept header when this API fully launches.
+	req.Header.Set("Accept", mediaTypeReactionsPreview)
+
+	issues := new([]*Issue)
 	resp, err := s.client.Do(req, issues)
 	if err != nil {
 		return nil, resp, err
@@ -212,6 +222,9 @@ func (s *IssuesService) Get(owner string, repo string, number int) (*Issue, *Res
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// TODO: remove custom Accept header when this API fully launches.
+	req.Header.Set("Accept", mediaTypeReactionsPreview)
 
 	issue := new(Issue)
 	resp, err := s.client.Do(req, issue)
@@ -232,6 +245,9 @@ func (s *IssuesService) Create(owner string, repo string, issue *IssueRequest) (
 		return nil, nil, err
 	}
 
+	// TODO: remove custom Accept header when this API fully launches.
+	req.Header.Set("Accept", mediaTypeMultipleAssigneesPreview)
+
 	i := new(Issue)
 	resp, err := s.client.Do(req, i)
 	if err != nil {
@@ -251,6 +267,9 @@ func (s *IssuesService) Edit(owner string, repo string, number int, issue *Issue
 		return nil, nil, err
 	}
 
+	// TODO: remove custom Accept header when this API fully launches.
+	req.Header.Set("Accept", mediaTypeMultipleAssigneesPreview)
+
 	i := new(Issue)
 	resp, err := s.client.Do(req, i)
 	if err != nil {
@@ -258,4 +277,36 @@ func (s *IssuesService) Edit(owner string, repo string, number int, issue *Issue
 	}
 
 	return i, resp, err
+}
+
+// Lock an issue's conversation.
+//
+// GitHub API docs: https://developer.github.com/v3/issues/#lock-an-issue
+func (s *IssuesService) Lock(owner string, repo string, number int) (*Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/issues/%d/lock", owner, repo, number)
+	req, err := s.client.NewRequest("PUT", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: remove custom Accept header when this API fully launches.
+	req.Header.Set("Accept", mediaTypeIssueLockingPreview)
+
+	return s.client.Do(req, nil)
+}
+
+// Unlock an issue's conversation.
+//
+// GitHub API docs: https://developer.github.com/v3/issues/#unlock-an-issue
+func (s *IssuesService) Unlock(owner string, repo string, number int) (*Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/issues/%d/lock", owner, repo, number)
+	req, err := s.client.NewRequest("DELETE", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: remove custom Accept header when this API fully launches.
+	req.Header.Set("Accept", mediaTypeIssueLockingPreview)
+
+	return s.client.Do(req, nil)
 }
