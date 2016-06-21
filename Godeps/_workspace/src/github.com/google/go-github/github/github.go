@@ -29,7 +29,7 @@ const (
 )
 
 const (
-	libraryVersion = "0.1"
+	libraryVersion = "2"
 	defaultBaseURL = "https://api.github.com/"
 	uploadBaseURL  = "https://uploads.github.com/"
 	userAgent      = "go-github/" + libraryVersion
@@ -39,8 +39,10 @@ const (
 	headerRateReset     = "X-RateLimit-Reset"
 	headerOTP           = "X-GitHub-OTP"
 
-	mediaTypeV3      = "application/vnd.github.v3+json"
-	defaultMediaType = "application/octet-stream"
+	mediaTypeV3                = "application/vnd.github.v3+json"
+	defaultMediaType           = "application/octet-stream"
+	mediaTypeV3SHA             = "application/vnd.github.v3.sha"
+	mediaTypeOrgPermissionRepo = "application/vnd.github.v3.repository+json"
 
 	// Media Type values to access preview APIs
 
@@ -50,18 +52,46 @@ const (
 	// https://developer.github.com/changes/2014-12-09-new-attributes-for-stars-api/
 	mediaTypeStarringPreview = "application/vnd.github.v3.star+json"
 
-	// https://developer.github.com/changes/2015-06-24-api-enhancements-for-working-with-organization-permissions/
-	mediaTypeOrgPermissionPreview     = "application/vnd.github.ironman-preview+json"
-	mediaTypeOrgPermissionRepoPreview = "application/vnd.github.ironman-preview.repository+json"
-
 	// https://developer.github.com/changes/2015-11-11-protected-branches-api/
 	mediaTypeProtectedBranchesPreview = "application/vnd.github.loki-preview+json"
+
+	// https://developer.github.com/changes/2016-02-11-issue-locking-api/
+	mediaTypeIssueLockingPreview = "application/vnd.github.the-key-preview+json"
+
+	// https://help.github.com/enterprise/2.4/admin/guides/migrations/exporting-the-github-com-organization-s-repositories/
+	mediaTypeMigrationsPreview = "application/vnd.github.wyandotte-preview+json"
+
+	// https://developer.github.com/changes/2016-04-06-deployment-and-deployment-status-enhancements/
+	mediaTypeDeploymentStatusPreview = "application/vnd.github.ant-man-preview+json"
+
+	// https://developer.github.com/changes/2016-02-19-source-import-preview-api/
+	mediaTypeImportPreview = "application/vnd.github.barred-rock-preview"
+
+	// https://developer.github.com/changes/2016-05-12-reactions-api-preview/
+	mediaTypeReactionsPreview = "application/vnd.github.squirrel-girl-preview"
+
+	// https://developer.github.com/changes/2016-04-01-squash-api-preview/
+	mediaTypeSquashPreview = "application/vnd.github.polaris-preview+json"
+
+	// https://developer.github.com/changes/2016-04-04-git-signing-api-preview/
+	mediaTypeGitSigningPreview = "application/vnd.github.cryptographer-preview+json"
+
+	// https://developer.github.com/changes/2016-5-27-multiple-assignees/
+	mediaTypeMultipleAssigneesPreview = "application/vnd.github.cerberus-preview+json"
+
+	// https://developer.github.com/changes/2016-05-23-timeline-preview-api/
+	mediaTypeTimelinePreview = "application/vnd.github.mockingbird-preview+json"
+
+	// https://developer.github.com/changes/2016-06-14-repository-invitations/
+	mediaTypeRepositoryInvitationsPreview = "application/vnd.github.swamp-thing-preview+json"
 )
 
 // A Client manages communication with the GitHub API.
 type Client struct {
 	// HTTP client used to communicate with the API.
 	client *http.Client
+	// clientMu protects the client during calls that modify the CheckRedirect func.
+	clientMu sync.Mutex
 
 	// Base URL for API requests.  Defaults to the public GitHub API, but can be
 	// set to a domain endpoint to use with GitHub Enterprise.  BaseURL should
@@ -74,21 +104,25 @@ type Client struct {
 	// User agent used when communicating with the GitHub API.
 	UserAgent string
 
-	rateMu sync.Mutex
-	rate   Rate // Rate limit for the client as determined by the most recent API call.
+	rateMu     sync.Mutex
+	rateLimits [categories]Rate // Rate limits for the client as determined by the most recent API calls.
+	mostRecent rateLimitCategory
 
 	// Services used for talking to different parts of the GitHub API.
-	Activity      *ActivityService
-	Gists         *GistsService
-	Git           *GitService
-	Gitignores    *GitignoresService
-	Issues        *IssuesService
-	Organizations *OrganizationsService
-	PullRequests  *PullRequestsService
-	Repositories  *RepositoriesService
-	Search        *SearchService
-	Users         *UsersService
-	Licenses      *LicensesService
+	Activity       *ActivityService
+	Authorizations *AuthorizationsService
+	Gists          *GistsService
+	Git            *GitService
+	Gitignores     *GitignoresService
+	Issues         *IssuesService
+	Organizations  *OrganizationsService
+	PullRequests   *PullRequestsService
+	Repositories   *RepositoriesService
+	Search         *SearchService
+	Users          *UsersService
+	Licenses       *LicensesService
+	Migrations     *MigrationService
+	Reactions      *ReactionsService
 }
 
 // ListOptions specifies the optional parameters to various List methods that
@@ -141,6 +175,7 @@ func NewClient(httpClient *http.Client) *Client {
 
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent, UploadURL: uploadURL}
 	c.Activity = &ActivityService{client: c}
+	c.Authorizations = &AuthorizationsService{client: c}
 	c.Gists = &GistsService{client: c}
 	c.Git = &GitService{client: c}
 	c.Gitignores = &GitignoresService{client: c}
@@ -151,6 +186,8 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Search = &SearchService{client: c}
 	c.Users = &UsersService{client: c}
 	c.Licenses = &LicensesService{client: c}
+	c.Migrations = &MigrationService{client: c}
+	c.Reactions = &ReactionsService{client: c}
 	return c
 }
 
@@ -303,11 +340,13 @@ func parseRate(r *http.Response) Rate {
 
 // Rate specifies the current rate limit for the client as determined by the
 // most recent API call.  If the client is used in a multi-user application,
-// this rate may not always be up-to-date.  Call RateLimits() to check the
-// current rate.
+// this rate may not always be up-to-date.
+//
+// Deprecated: Use the Response.Rate returned from most recent API call instead.
+// Call RateLimits() to check the current rate.
 func (c *Client) Rate() Rate {
 	c.rateMu.Lock()
-	rate := c.rate
+	rate := c.rateLimits[c.mostRecent]
 	c.rateMu.Unlock()
 	return rate
 }
@@ -316,19 +355,32 @@ func (c *Client) Rate() Rate {
 // JSON decoded and stored in the value pointed to by v, or returned as an
 // error if an API error has occurred.  If v implements the io.Writer
 // interface, the raw response body will be written to v, without attempting to
-// first decode it.
+// first decode it.  If rate limit is exceeded and reset time is in the future,
+// Do returns *RateLimitError immediately without making a network API call.
 func (c *Client) Do(req *http.Request, v interface{}) (*Response, error) {
+	rateLimitCategory := category(req.URL.Path)
+
+	// If we've hit rate limit, don't make further requests before Reset time.
+	if err := c.checkRateLimitBeforeDo(req, rateLimitCategory); err != nil {
+		return nil, err
+	}
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		// Drain up to 512 bytes and close the body to let the Transport reuse the connection
+		io.CopyN(ioutil.Discard, resp.Body, 512)
+		resp.Body.Close()
+	}()
 
 	response := newResponse(resp)
 
 	c.rateMu.Lock()
-	c.rate = response.Rate
+	c.rateLimits[rateLimitCategory] = response.Rate
+	c.mostRecent = rateLimitCategory
 	c.rateMu.Unlock()
 
 	err = CheckResponse(resp)
@@ -348,7 +400,35 @@ func (c *Client) Do(req *http.Request, v interface{}) (*Response, error) {
 			}
 		}
 	}
+
 	return response, err
+}
+
+// checkRateLimitBeforeDo does not make any network calls, but uses existing knowledge from
+// current client state in order to quickly check if *RateLimitError can be immediately returned
+// from Client.Do, and if so, returns it so that Client.Do can skip making a network API call unneccessarily.
+// Otherwise it returns nil, and Client.Do should proceed normally.
+func (c *Client) checkRateLimitBeforeDo(req *http.Request, rateLimitCategory rateLimitCategory) error {
+	c.rateMu.Lock()
+	rate := c.rateLimits[rateLimitCategory]
+	c.rateMu.Unlock()
+	if !rate.Reset.Time.IsZero() && rate.Remaining == 0 && time.Now().Before(rate.Reset.Time) {
+		// Create a fake response.
+		resp := &http.Response{
+			Status:     http.StatusText(http.StatusForbidden),
+			StatusCode: http.StatusForbidden,
+			Request:    req,
+			Header:     make(http.Header),
+			Body:       ioutil.NopCloser(strings.NewReader("")),
+		}
+		return &RateLimitError{
+			Rate:     rate,
+			Response: resp,
+			Message:  fmt.Sprintf("API rate limit of %v still exceeded until %v, not making remote request.", rate.Limit, rate.Reset.Time),
+		}
+	}
+
+	return nil
 }
 
 /*
@@ -360,6 +440,17 @@ type ErrorResponse struct {
 	Response *http.Response // HTTP response that caused this error
 	Message  string         `json:"message"` // error message
 	Errors   []Error        `json:"errors"`  // more detail on individual errors
+	// Block is only populated on certain types of errors such as code 451.
+	// See https://developer.github.com/changes/2016-03-17-the-451-status-code-is-now-supported/
+	// for more information.
+	Block *struct {
+		Reason    string     `json:"reason,omitempty"`
+		CreatedAt *Timestamp `json:"created_at,omitempty"`
+	} `json:"block,omitempty"`
+	// Most errors will also include a documentation_url field pointing
+	// to some content that might help you resolve the error, see
+	// https://developer.github.com/v3/#client-errors
+	DocumentationURL string `json:"documentation_url,omitempty"`
 }
 
 func (r *ErrorResponse) Error() string {
@@ -415,6 +506,9 @@ These are the possible validation error codes:
         the formatting of a field is invalid
     already_exists:
         another resource has the same valid as this field
+    custom:
+        some resources return this (e.g. github.User.CreateKey()), additional
+        information is set in the Message field of the Error
 
 GitHub API docs: http://developer.github.com/v3/#client-errors
 */
@@ -422,6 +516,7 @@ type Error struct {
 	Resource string `json:"resource"` // resource on which the error occurred
 	Field    string `json:"field"`    // field on which the error occurred
 	Code     string `json:"code"`     // validation error code
+	Message  string `json:"message"`  // Message describing the error. Errors with Code == "custom" will always have this set.
 }
 
 func (e *Error) Error() string {
@@ -500,6 +595,8 @@ type RateLimits struct {
 	// The rate limit for non-search API requests.  Unauthenticated
 	// requests are limited to 60 per hour.  Authenticated requests are
 	// limited to 5,000 per hour.
+	//
+	// GitHub API docs: https://developer.github.com/v3/#rate-limiting
 	Core *Rate `json:"core"`
 
 	// The rate limit for search API requests.  Unauthenticated requests
@@ -512,6 +609,25 @@ type RateLimits struct {
 
 func (r RateLimits) String() string {
 	return Stringify(r)
+}
+
+type rateLimitCategory uint8
+
+const (
+	coreCategory rateLimitCategory = iota
+	searchCategory
+
+	categories // An array of this length will be able to contain all rate limit categories.
+)
+
+// category returns the rate limit category of the endpoint, determined by Request.URL.Path.
+func category(path string) rateLimitCategory {
+	switch {
+	default:
+		return coreCategory
+	case strings.HasPrefix(path, "/search/"):
+		return searchCategory
+	}
 }
 
 // Deprecated: RateLimit is deprecated, use RateLimits instead.
@@ -537,6 +653,17 @@ func (c *Client) RateLimits() (*RateLimits, *Response, error) {
 	resp, err := c.Do(req, response)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if response.Resources != nil {
+		c.rateMu.Lock()
+		if response.Resources.Core != nil {
+			c.rateLimits[coreCategory] = *response.Resources.Core
+		}
+		if response.Resources.Search != nil {
+			c.rateLimits[searchCategory] = *response.Resources.Search
+		}
+		c.rateMu.Unlock()
 	}
 
 	return response.Resources, resp, err
@@ -661,25 +788,12 @@ func cloneRequest(r *http.Request) *http.Request {
 
 // Bool is a helper routine that allocates a new bool value
 // to store v and returns a pointer to it.
-func Bool(v bool) *bool {
-	p := new(bool)
-	*p = v
-	return p
-}
+func Bool(v bool) *bool { return &v }
 
-// Int is a helper routine that allocates a new int32 value
-// to store v and returns a pointer to it, but unlike Int32
-// its argument value is an int.
-func Int(v int) *int {
-	p := new(int)
-	*p = v
-	return p
-}
+// Int is a helper routine that allocates a new int value
+// to store v and returns a pointer to it.
+func Int(v int) *int { return &v }
 
 // String is a helper routine that allocates a new string value
 // to store v and returns a pointer to it.
-func String(v string) *string {
-	p := new(string)
-	*p = v
-	return p
-}
+func String(v string) *string { return &v }
