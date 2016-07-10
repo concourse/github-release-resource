@@ -3,7 +3,8 @@
 	"GoVersion": "go1.6",
 	"GodepVersion": "v74",
 	"Packages": [
-		"./..."
+		"./...",
+		"github.com/onsi/ginkgo/ginkgo"
 	],
 	"Deps": [
 		{
@@ -33,6 +34,41 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo/config",
+			"Comment": "v1.2.0-55-g5437a97",
+			"Rev": "5437a97bf824dec14e58d68c56ee36e772670c2e"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo/ginkgo",
+			"Comment": "v1.2.0-55-g5437a97",
+			"Rev": "5437a97bf824dec14e58d68c56ee36e772670c2e"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo/ginkgo/convert",
+			"Comment": "v1.2.0-55-g5437a97",
+			"Rev": "5437a97bf824dec14e58d68c56ee36e772670c2e"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo/ginkgo/interrupthandler",
+			"Comment": "v1.2.0-55-g5437a97",
+			"Rev": "5437a97bf824dec14e58d68c56ee36e772670c2e"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo/ginkgo/nodot",
+			"Comment": "v1.2.0-55-g5437a97",
+			"Rev": "5437a97bf824dec14e58d68c56ee36e772670c2e"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo/ginkgo/testrunner",
+			"Comment": "v1.2.0-55-g5437a97",
+			"Rev": "5437a97bf824dec14e58d68c56ee36e772670c2e"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo/ginkgo/testsuite",
+			"Comment": "v1.2.0-55-g5437a97",
+			"Rev": "5437a97bf824dec14e58d68c56ee36e772670c2e"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo/ginkgo/watch",
 			"Comment": "v1.2.0-55-g5437a97",
 			"Rev": "5437a97bf824dec14e58d68c56ee36e772670c2e"
 		},

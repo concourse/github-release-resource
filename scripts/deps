@@ -1,0 +1,2 @@
+#!/bin/bash
+godep save ./... github.com/onsi/ginkgo/ginkgo
