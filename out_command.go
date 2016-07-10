@@ -75,7 +75,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 	var existingRelease *github.RepositoryRelease
 	for _, e := range existingReleases {
 		if e.TagName != nil && *e.TagName == tag {
-			existingRelease = &e
+			existingRelease = e
 			break
 		}
 	}
@@ -92,12 +92,14 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 
 		if bodySpecified {
 			existingRelease.Body = github.String(body)
+		} else {
+			existingRelease.Body = nil
 		}
 
 		for _, asset := range releaseAssets {
 			fmt.Fprintf(c.writer, "clearing existing asset: %s\n", *asset.Name)
 
-			err := c.github.DeleteReleaseAsset(asset)
+			err := c.github.DeleteReleaseAsset(*asset)
 			if err != nil {
 				return OutResponse{}, err
 			}
@@ -106,13 +108,15 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		fmt.Fprintf(c.writer, "updating release %s\n", name)
 
 		release, err = c.github.UpdateRelease(*existingRelease)
+		if err != nil {
+			return OutResponse{}, err
+		}
 	} else {
 		fmt.Fprintf(c.writer, "creating release %s\n", name)
 		release, err = c.github.CreateRelease(*release)
-	}
-
-	if err != nil {
-		return OutResponse{}, err
+		if err != nil {
+			return OutResponse{}, err
+		}
 	}
 
 	for _, fileGlob := range params.Globs {
@@ -144,7 +148,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 
 				for _, asset := range assets {
 					if asset.Name != nil && *asset.Name == name {
-						err = c.github.DeleteReleaseAsset(asset)
+						err = c.github.DeleteReleaseAsset(*asset)
 						if err != nil {
 							return OutResponse{}, err
 						}

@@ -15,14 +15,14 @@ var _ = Describe("Check Command", func() {
 		githubClient *fakes.FakeGitHub
 		command      *resource.CheckCommand
 
-		returnedReleases []github.RepositoryRelease
+		returnedReleases []*github.RepositoryRelease
 	)
 
 	BeforeEach(func() {
 		githubClient = &fakes.FakeGitHub{}
 		command = resource.NewCheckCommand(githubClient)
 
-		returnedReleases = []github.RepositoryRelease{}
+		returnedReleases = []*github.RepositoryRelease{}
 	})
 
 	JustBeforeEach(func() {
@@ -32,7 +32,7 @@ var _ = Describe("Check Command", func() {
 	Context("when this is the first time that the resource has been run", func() {
 		Context("when there are no releases", func() {
 			BeforeEach(func() {
-				returnedReleases = []github.RepositoryRelease{}
+				returnedReleases = []*github.RepositoryRelease{}
 			})
 
 			It("returns no versions", func() {
@@ -44,7 +44,7 @@ var _ = Describe("Check Command", func() {
 
 		Context("when there are releases that get filtered out", func() {
 			BeforeEach(func() {
-				returnedReleases = []github.RepositoryRelease{
+				returnedReleases = []*github.RepositoryRelease{
 					newDraftRepositoryRelease(1, "v0.1.4"),
 				}
 			})
@@ -58,7 +58,7 @@ var _ = Describe("Check Command", func() {
 
 		Context("when there are releases", func() {
 			BeforeEach(func() {
-				returnedReleases = []github.RepositoryRelease{
+				returnedReleases = []*github.RepositoryRelease{
 					newRepositoryRelease(1, "v0.4.0"),
 					newRepositoryRelease(2, "0.1.3"),
 					newRepositoryRelease(3, "v0.1.2"),
@@ -82,7 +82,7 @@ var _ = Describe("Check Command", func() {
 	Context("when there are prior versions", func() {
 		Context("when there are no releases", func() {
 			BeforeEach(func() {
-				returnedReleases = []github.RepositoryRelease{}
+				returnedReleases = []*github.RepositoryRelease{}
 			})
 
 			It("returns no versions", func() {
@@ -95,7 +95,7 @@ var _ = Describe("Check Command", func() {
 		Context("when there are releases", func() {
 			Context("and the releases do not contain a draft release", func() {
 				BeforeEach(func() {
-					returnedReleases = []github.RepositoryRelease{
+					returnedReleases = []*github.RepositoryRelease{
 						newRepositoryRelease(1, "v0.1.4"),
 						newRepositoryRelease(2, "0.4.0"),
 						newRepositoryRelease(3, "v0.1.3"),
@@ -176,7 +176,7 @@ var _ = Describe("Check Command", func() {
 
 			Context("and one of the releases is a draft", func() {
 				BeforeEach(func() {
-					returnedReleases = []github.RepositoryRelease{
+					returnedReleases = []*github.RepositoryRelease{
 						newDraftRepositoryRelease(1, "v0.1.4"),
 						newRepositoryRelease(2, "0.4.0"),
 						newRepositoryRelease(3, "v0.1.3"),
@@ -203,7 +203,7 @@ var _ = Describe("Check Command", func() {
 			Context("when draft releases are allowed", func() {
 				Context("and one of the releases is a final release", func() {
 					BeforeEach(func() {
-						returnedReleases = []github.RepositoryRelease{
+						returnedReleases = []*github.RepositoryRelease{
 							newDraftRepositoryRelease(1, "v0.1.4"),
 							newDraftRepositoryRelease(2, "v0.1.3"),
 							newDraftRepositoryRelease(3, "v0.1.1"),
@@ -243,7 +243,7 @@ var _ = Describe("Check Command", func() {
 
 				Context("and non-of them are semver", func() {
 					BeforeEach(func() {
-						returnedReleases = []github.RepositoryRelease{
+						returnedReleases = []*github.RepositoryRelease{
 							newDraftRepositoryRelease(1, "abc/d"),
 							newDraftRepositoryRelease(2, "123*4"),
 						}
@@ -264,7 +264,7 @@ var _ = Describe("Check Command", func() {
 
 				Context("and one of the releases is not a versioned draft release", func() {
 					BeforeEach(func() {
-						returnedReleases = []github.RepositoryRelease{
+						returnedReleases = []*github.RepositoryRelease{
 							newDraftRepositoryRelease(1, "v0.1.4"),
 							newDraftRepositoryRelease(2, ""),
 							newDraftWithNilTagRepositoryRelease(3),

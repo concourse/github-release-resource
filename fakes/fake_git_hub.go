@@ -12,11 +12,11 @@ import (
 )
 
 type FakeGitHub struct {
-	ListReleasesStub        func() ([]github.RepositoryRelease, error)
+	ListReleasesStub        func() ([]*github.RepositoryRelease, error)
 	listReleasesMutex       sync.RWMutex
 	listReleasesArgsForCall []struct{}
-	listReleasesReturns struct {
-		result1 []github.RepositoryRelease
+	listReleasesReturns     struct {
+		result1 []*github.RepositoryRelease
 		result2 error
 	}
 	GetReleaseByTagStub        func(tag string) (*github.RepositoryRelease, error)
@@ -55,13 +55,13 @@ type FakeGitHub struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
-	ListReleaseAssetsStub        func(release github.RepositoryRelease) ([]github.ReleaseAsset, error)
+	ListReleaseAssetsStub        func(release github.RepositoryRelease) ([]*github.ReleaseAsset, error)
 	listReleaseAssetsMutex       sync.RWMutex
 	listReleaseAssetsArgsForCall []struct {
 		release github.RepositoryRelease
 	}
 	listReleaseAssetsReturns struct {
-		result1 []github.ReleaseAsset
+		result1 []*github.ReleaseAsset
 		result2 error
 	}
 	UploadReleaseAssetStub        func(release github.RepositoryRelease, name string, file *os.File) error
@@ -111,7 +111,7 @@ type FakeGitHub struct {
 	}
 }
 
-func (fake *FakeGitHub) ListReleases() ([]github.RepositoryRelease, error) {
+func (fake *FakeGitHub) ListReleases() ([]*github.RepositoryRelease, error) {
 	fake.listReleasesMutex.Lock()
 	fake.listReleasesArgsForCall = append(fake.listReleasesArgsForCall, struct{}{})
 	fake.listReleasesMutex.Unlock()
@@ -128,10 +128,10 @@ func (fake *FakeGitHub) ListReleasesCallCount() int {
 	return len(fake.listReleasesArgsForCall)
 }
 
-func (fake *FakeGitHub) ListReleasesReturns(result1 []github.RepositoryRelease, result2 error) {
+func (fake *FakeGitHub) ListReleasesReturns(result1 []*github.RepositoryRelease, result2 error) {
 	fake.ListReleasesStub = nil
 	fake.listReleasesReturns = struct {
-		result1 []github.RepositoryRelease
+		result1 []*github.RepositoryRelease
 		result2 error
 	}{result1, result2}
 }
@@ -268,7 +268,7 @@ func (fake *FakeGitHub) UpdateReleaseReturns(result1 *github.RepositoryRelease, 
 	}{result1, result2}
 }
 
-func (fake *FakeGitHub) ListReleaseAssets(release github.RepositoryRelease) ([]github.ReleaseAsset, error) {
+func (fake *FakeGitHub) ListReleaseAssets(release github.RepositoryRelease) ([]*github.ReleaseAsset, error) {
 	fake.listReleaseAssetsMutex.Lock()
 	fake.listReleaseAssetsArgsForCall = append(fake.listReleaseAssetsArgsForCall, struct {
 		release github.RepositoryRelease
@@ -293,10 +293,10 @@ func (fake *FakeGitHub) ListReleaseAssetsArgsForCall(i int) github.RepositoryRel
 	return fake.listReleaseAssetsArgsForCall[i].release
 }
 
-func (fake *FakeGitHub) ListReleaseAssetsReturns(result1 []github.ReleaseAsset, result2 error) {
+func (fake *FakeGitHub) ListReleaseAssetsReturns(result1 []*github.ReleaseAsset, result2 error) {
 	fake.ListReleaseAssetsStub = nil
 	fake.listReleaseAssetsReturns = struct {
-		result1 []github.ReleaseAsset
+		result1 []*github.ReleaseAsset
 		result2 error
 	}{result1, result2}
 }

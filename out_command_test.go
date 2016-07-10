@@ -83,9 +83,25 @@ var _ = Describe("Out Command", func() {
 		}
 
 		BeforeEach(func() {
-			githubClient.ListReleasesReturns(existingReleases, nil)
+			githubClient.ListReleasesStub = func() ([]*github.RepositoryRelease, error) {
+				rels := []*github.RepositoryRelease{}
+				for _, r := range existingReleases {
+					c := r
+					rels = append(rels, &c)
+				}
 
-			githubClient.ListReleaseAssetsReturns(existingAssets, nil)
+				return rels, nil
+			}
+
+			githubClient.ListReleaseAssetsStub = func(github.RepositoryRelease) ([]*github.ReleaseAsset, error) {
+				assets := []*github.ReleaseAsset{}
+				for _, a := range existingAssets {
+					c := a
+					assets = append(assets, &c)
+				}
+
+				return assets, nil
+			}
 
 			namePath := filepath.Join(sourcesDir, "name")
 			bodyPath := filepath.Join(sourcesDir, "body")
@@ -396,7 +412,7 @@ var _ = Describe("Out Command", func() {
 						return nil
 					}
 
-					githubClient.ListReleaseAssetsReturns([]github.ReleaseAsset{
+					githubClient.ListReleaseAssetsReturns([]*github.ReleaseAsset{
 						{
 							ID:   github.Int(456789),
 							Name: github.String("great-file.tgz"),

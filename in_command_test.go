@@ -77,8 +77,8 @@ var _ = Describe("In Command", func() {
 		}
 	}
 
-	buildAsset := func(id int, name string) github.ReleaseAsset {
-		return github.ReleaseAsset{
+	buildAsset := func(id int, name string) *github.ReleaseAsset {
+		return &github.ReleaseAsset{
 			ID:   github.Int(id),
 			Name: &name,
 		}
@@ -89,7 +89,7 @@ var _ = Describe("In Command", func() {
 			BeforeEach(func() {
 				githubClient.GetReleaseByTagReturns(buildRelease(1, "v0.35.0", false), nil)
 
-				githubClient.ListReleaseAssetsReturns([]github.ReleaseAsset{
+				githubClient.ListReleaseAssetsReturns([]*github.ReleaseAsset{
 					buildAsset(0, "example.txt"),
 					buildAsset(1, "example.rtf"),
 					buildAsset(2, "example.wtf"),
@@ -140,8 +140,8 @@ var _ = Describe("In Command", func() {
 					inResponse, inErr = command.Run(destDir, inRequest)
 
 					Expect(githubClient.DownloadReleaseAssetCallCount()).To(Equal(2))
-					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
-					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(*buildAsset(0, "example.txt")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(*buildAsset(1, "example.rtf")))
 				})
 
 				It("does create the tag and version files", func() {
@@ -341,9 +341,9 @@ var _ = Describe("In Command", func() {
 				})
 
 				It("downloads all of the files", func() {
-					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(buildAsset(0, "example.txt")))
-					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(buildAsset(1, "example.rtf")))
-					Ω(githubClient.DownloadReleaseAssetArgsForCall(2)).Should(Equal(buildAsset(2, "example.wtf")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(*buildAsset(0, "example.txt")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(*buildAsset(1, "example.rtf")))
+					Ω(githubClient.DownloadReleaseAssetArgsForCall(2)).Should(Equal(*buildAsset(2, "example.wtf")))
 				})
 			})
 

@@ -3,9 +3,9 @@ package resource_test
 import (
 	"testing"
 
+	"github.com/google/go-github/github"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/google/go-github/github"
 )
 
 func TestGithubReleaseResource(t *testing.T) {
@@ -13,24 +13,24 @@ func TestGithubReleaseResource(t *testing.T) {
 	RunSpecs(t, "Github Release Resource Suite")
 }
 
-func newRepositoryRelease(id int, version string) github.RepositoryRelease {
-	return github.RepositoryRelease{
+func newRepositoryRelease(id int, version string) *github.RepositoryRelease {
+	return &github.RepositoryRelease{
 		TagName: github.String(version),
 		Draft:   github.Bool(false),
 		ID:      github.Int(id),
 	}
 }
 
-func newDraftRepositoryRelease(id int, version string) github.RepositoryRelease {
-	return github.RepositoryRelease{
+func newDraftRepositoryRelease(id int, version string) *github.RepositoryRelease {
+	return &github.RepositoryRelease{
 		TagName: github.String(version),
 		Draft:   github.Bool(true),
 		ID:      github.Int(id),
 	}
 }
 
-func newDraftWithNilTagRepositoryRelease(id int) github.RepositoryRelease {
-	return github.RepositoryRelease{
+func newDraftWithNilTagRepositoryRelease(id int) *github.RepositoryRelease {
+	return &github.RepositoryRelease{
 		Draft: github.Bool(true),
 		ID:    github.Int(id),
 	}

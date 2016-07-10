@@ -46,4 +46,6 @@ func (i VerSegCompInt) Compare(other VerSegComp) int {
 	panic("unreachable")
 }
 
+func (i VerSegCompInt) String() string { return i.AsString() }
+
 func (i VerSegCompInt) AsString() string { return strconv.Itoa(i.I) }

@@ -10,19 +10,18 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/google/go-github/github"
-	"github.com/xoebus/statham"
 )
 
 //go:generate counterfeiter . GitHub
 
 type GitHub interface {
-	ListReleases() ([]github.RepositoryRelease, error)
+	ListReleases() ([]*github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)
 	GetRelease(id int) (*github.RepositoryRelease, error)
 	CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
 	UpdateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
 
-	ListReleaseAssets(release github.RepositoryRelease) ([]github.ReleaseAsset, error)
+	ListReleaseAssets(release github.RepositoryRelease) ([]*github.ReleaseAsset, error)
 	UploadReleaseAsset(release github.RepositoryRelease, name string, file *os.File) error
 	DeleteReleaseAsset(asset github.ReleaseAsset) error
 	DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error)
@@ -156,7 +155,7 @@ func (g *GitHubClient) UpdateRelease(release github.RepositoryRelease) (*github.
 func (g *GitHubClient) ListReleaseAssets(release github.RepositoryRelease) ([]*github.ReleaseAsset, error) {
 	assets, res, err := g.client.Repositories.ListReleaseAssets(g.user, g.repository, *release.ID, nil)
 	if err != nil {
-		return []*github.ReleaseAsset{}, err
+		return nil, err
 	}
 
 	err = res.Body.Close()
@@ -194,9 +193,18 @@ func (g *GitHubClient) DeleteReleaseAsset(asset github.ReleaseAsset) error {
 }
 
 func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error) {
-	res, _, err := g.client.Repositories.DownloadReleaseAsset(g.user, g.repository, *asset.ID)
+	res, redir, err := g.client.Repositories.DownloadReleaseAsset(g.user, g.repository, *asset.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	if redir != "" {
+		resp, err := http.Get(redir)
+		if err != nil {
+			return nil, err
+		}
+
+		return resp.Body, nil
 	}
 
 	return res, err
@@ -226,40 +234,12 @@ func oauthClient(source Source) (*github.Client, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: source.AccessToken,
 	})
+
 	oauthClient := oauth2.NewClient(oauth2.NoContext, ts)
 
-	apiHost := "api.github.com"
-	if source.GitHubAPIURL != "" {
-		uri, err := url.Parse(source.GitHubAPIURL)
-		if err != nil {
-			return nil, err
-		}
-
-		apiHost = uri.Host
+	githubHTTPClient := &http.Client{
+		Transport: oauthClient.Transport,
 	}
 
-	uploadHost := "uploads.github.com"
-	if source.GitHubUploadsURL != "" {
-		uri, err := url.Parse(source.GitHubUploadsURL)
-		if err != nil {
-			return nil, err
-		}
-
-		uploadHost = uri.Host
-	}
-
-	// The google/go-github library uses the same http.Client to perform
-	// requests to both github.com and the S3 download API (for downloading
-	// release assets). We don't want it to user the same OAuth transport for
-	// both.
-	transport := statham.NewTransport(http.DefaultTransport, statham.Mapping{
-		apiHost:    oauthClient.Transport,
-		uploadHost: oauthClient.Transport,
-	})
-
-	httpClient := &http.Client{
-		Transport: transport,
-	}
-
-	return github.NewClient(httpClient), nil
+	return github.NewClient(githubHTTPClient), nil
 }

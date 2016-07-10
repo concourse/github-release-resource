@@ -29,7 +29,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		return []Version{}, nil
 	}
 
-	var filteredReleases []github.RepositoryRelease
+	var filteredReleases []*github.RepositoryRelease
 
 	for _, release := range releases {
 		if request.Source.Drafts != *release.Draft {
@@ -54,7 +54,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 
 	if (request.Version == Version{}) {
 		return []Version{
-			versionFromRelease(&latestRelease),
+			versionFromRelease(latestRelease),
 		}, nil
 	}
 
@@ -77,7 +77,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		}
 
 		if upToLatest {
-			reversedVersions = append(reversedVersions, versionFromRelease(&release))
+			reversedVersions = append(reversedVersions, versionFromRelease(release))
 		}
 	}
 
@@ -85,14 +85,14 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		// current version was removed; start over from latest
 		reversedVersions = append(
 			reversedVersions,
-			versionFromRelease(&filteredReleases[len(filteredReleases)-1]),
+			versionFromRelease(filteredReleases[len(filteredReleases)-1]),
 		)
 	}
 
 	return reversedVersions, nil
 }
 
-type byVersion []github.RepositoryRelease
+type byVersion []*github.RepositoryRelease
 
 func (r byVersion) Len() int {
 	return len(r)

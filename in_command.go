@@ -127,14 +127,14 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	}, nil
 }
 
-func (c *InCommand) downloadAsset(asset github.ReleaseAsset, destPath string) error {
+func (c *InCommand) downloadAsset(asset *github.ReleaseAsset, destPath string) error {
 	out, err := os.Create(destPath)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	content, err := c.github.DownloadReleaseAsset(asset)
+	content, err := c.github.DownloadReleaseAsset(*asset)
 	if err != nil {
 		return err
 	}
