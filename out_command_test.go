@@ -423,7 +423,8 @@ var _ = Describe("Out Command", func() {
 						},
 					}, nil)
 
-					githubClient.UploadReleaseAssetStub = func(github.RepositoryRelease, string, *os.File) error {
+					githubClient.UploadReleaseAssetStub = func(rel github.RepositoryRelease, name string, file *os.File) error {
+						Expect(ioutil.ReadAll(file)).To(Equal([]byte("matching")))
 						Expect(existingAsset).To(BeFalse())
 						existingAsset = true
 						return errors.New("some-error")
@@ -435,15 +436,15 @@ var _ = Describe("Out Command", func() {
 					Expect(err).To(Equal(errors.New("some-error")))
 
 					Ω(githubClient.UploadReleaseAssetCallCount()).Should(Equal(10))
-					Ω(githubClient.ListReleaseAssetsCallCount()).Should(Equal(9))
-					Ω(*githubClient.ListReleaseAssetsArgsForCall(8).ID).Should(Equal(112))
+					Ω(githubClient.ListReleaseAssetsCallCount()).Should(Equal(10))
+					Ω(*githubClient.ListReleaseAssetsArgsForCall(9).ID).Should(Equal(112))
 
 					actualRelease, actualName, actualFile := githubClient.UploadReleaseAssetArgsForCall(9)
 					Ω(*actualRelease.ID).Should(Equal(112))
 					Ω(actualName).Should(Equal("great-file.tgz"))
 					Ω(actualFile.Name()).Should(Equal(filepath.Join(sourcesDir, "great-file.tgz")))
 
-					Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(9))
+					Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(10))
 					actualAsset := githubClient.DeleteReleaseAssetArgsForCall(8)
 					Expect(*actualAsset.ID).To(Equal(456789))
 				})

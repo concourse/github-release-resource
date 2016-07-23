@@ -164,8 +164,20 @@ func (c *OutCommand) upload(release *github.RepositoryRelease, filePath string) 
 
 	name := filepath.Base(filePath)
 
-	retryErr := c.github.UploadReleaseAsset(*release, name, file)
-	for i := 0; i < 9 && retryErr != nil; i++ {
+	var retryErr error
+	for i := 0; i < 10; i++ {
+		file, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+
+		defer file.Close()
+
+		retryErr = c.github.UploadReleaseAsset(*release, name, file)
+		if retryErr == nil {
+			break
+		}
+
 		assets, err := c.github.ListReleaseAssets(*release)
 		if err != nil {
 			return err
@@ -180,8 +192,6 @@ func (c *OutCommand) upload(release *github.RepositoryRelease, filePath string) 
 				break
 			}
 		}
-
-		retryErr = c.github.UploadReleaseAsset(*release, name, file)
 	}
 
 	if retryErr != nil {
