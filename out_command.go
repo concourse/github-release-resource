@@ -130,40 +130,10 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		}
 
 		for _, filePath := range matches {
-			file, err := os.Open(filePath)
+			err := c.upload(release, filePath)
 			if err != nil {
 				return OutResponse{}, err
 			}
-
-			fmt.Fprintf(c.writer, "uploading %s\n", filePath)
-
-			name := filepath.Base(filePath)
-
-			err = c.github.UploadReleaseAsset(*release, name, file)
-			for i := 0; i < 9 && err != nil; i++ {
-				assets, err := c.github.ListReleaseAssets(*release)
-				if err != nil {
-					return OutResponse{}, err
-				}
-
-				for _, asset := range assets {
-					if asset.Name != nil && *asset.Name == name {
-						err = c.github.DeleteReleaseAsset(*asset)
-						if err != nil {
-							return OutResponse{}, err
-						}
-						break
-					}
-				}
-
-				err = c.github.UploadReleaseAsset(*release, name, file)
-			}
-
-			if err != nil {
-				return OutResponse{}, err
-			}
-
-			file.Close()
 		}
 	}
 
@@ -180,4 +150,43 @@ func (c *OutCommand) fileContents(path string) (string, error) {
 	}
 
 	return strings.TrimSpace(string(contents)), nil
+}
+
+func (c *OutCommand) upload(release *github.RepositoryRelease, filePath string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	fmt.Fprintf(c.writer, "uploading %s\n", filePath)
+
+	name := filepath.Base(filePath)
+
+	retryErr := c.github.UploadReleaseAsset(*release, name, file)
+	for i := 0; i < 9 && retryErr != nil; i++ {
+		assets, err := c.github.ListReleaseAssets(*release)
+		if err != nil {
+			return err
+		}
+
+		for _, asset := range assets {
+			if asset.Name != nil && *asset.Name == name {
+				err = c.github.DeleteReleaseAsset(*asset)
+				if err != nil {
+					return err
+				}
+				break
+			}
+		}
+
+		retryErr = c.github.UploadReleaseAsset(*release, name, file)
+	}
+
+	if retryErr != nil {
+		return retryErr
+	}
+
+	return nil
 }

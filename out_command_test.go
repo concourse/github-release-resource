@@ -441,11 +441,45 @@ var _ = Describe("Out Command", func() {
 					actualRelease, actualName, actualFile := githubClient.UploadReleaseAssetArgsForCall(9)
 					Ω(*actualRelease.ID).Should(Equal(112))
 					Ω(actualName).Should(Equal("great-file.tgz"))
-					Ω(ioutil.ReadAll(actualFile)).Should(Equal([]byte("matching")))
+					Ω(actualFile.Name()).Should(Equal(filepath.Join(sourcesDir, "great-file.tgz")))
 
 					Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(9))
 					actualAsset := githubClient.DeleteReleaseAssetArgsForCall(8)
 					Expect(*actualAsset.ID).To(Equal(456789))
+				})
+
+				Context("when uploading succeeds on the 5th attempt", func() {
+					BeforeEach(func() {
+						results := make(chan error, 6)
+						results <- errors.New("1")
+						results <- errors.New("2")
+						results <- errors.New("3")
+						results <- errors.New("4")
+						results <- nil
+						results <- errors.New("6")
+
+						githubClient.UploadReleaseAssetStub = func(github.RepositoryRelease, string, *os.File) error {
+							return <-results
+						}
+					})
+
+					It("succeeds", func() {
+						_, err := command.Run(sourcesDir, request)
+						Expect(err).ToNot(HaveOccurred())
+
+						Ω(githubClient.UploadReleaseAssetCallCount()).Should(Equal(5))
+						Ω(githubClient.ListReleaseAssetsCallCount()).Should(Equal(4))
+						Ω(*githubClient.ListReleaseAssetsArgsForCall(3).ID).Should(Equal(112))
+
+						actualRelease, actualName, actualFile := githubClient.UploadReleaseAssetArgsForCall(4)
+						Ω(*actualRelease.ID).Should(Equal(112))
+						Ω(actualName).Should(Equal("great-file.tgz"))
+						Ω(actualFile.Name()).Should(Equal(filepath.Join(sourcesDir, "great-file.tgz")))
+
+						Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(4))
+						actualAsset := githubClient.DeleteReleaseAssetArgsForCall(3)
+						Expect(*actualAsset.ID).To(Equal(456789))
+					})
 				})
 			})
 		})
