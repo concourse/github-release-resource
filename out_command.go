@@ -153,13 +153,6 @@ func (c *OutCommand) fileContents(path string) (string, error) {
 }
 
 func (c *OutCommand) upload(release *github.RepositoryRelease, filePath string) error {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-
 	fmt.Fprintf(c.writer, "uploading %s\n", filePath)
 
 	name := filepath.Base(filePath)
