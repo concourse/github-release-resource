@@ -60,6 +60,16 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		if err != nil {
 			return InResponse{}, err
 		}
+
+		if foundRelease.Body != nil && *foundRelease.Body != "" {
+			body := *foundRelease.Body
+			bodyPath := filepath.Join(destDir, "body")
+			err = ioutil.WriteFile(bodyPath, []byte(body), 0644)
+			if err != nil {
+				return InResponse{}, err
+			}
+		}
+
 	}
 
 	assets, err := c.github.ListReleaseAssets(*foundRelease)
