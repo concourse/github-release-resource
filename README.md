@@ -28,6 +28,11 @@ Fetches and creates versioned GitHub resources.
   will be detected and published. Note that releases must have semver compliant
   tags to be detected, even if they're drafts.
 
+* `pre_release`: *Optional. Default `false`.* When set to `true`, `put` produces
+  pre-release and `check` only detects prereleases. If `false`, only non-prerelease releases
+  will be detected and published. Note that releases must have semver compliant
+  tags to be detected.
+
 ### Example
 
 ``` yaml

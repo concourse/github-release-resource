@@ -35,6 +35,10 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		if request.Source.Drafts != *release.Draft {
 			continue
 		}
+		if request.Source.PreRelease != *release.Prerelease {
+			continue
+		}
+
 		if release.TagName == nil {
 			continue
 		}
@@ -67,7 +71,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 
 	for _, release := range filteredReleases {
 		if !upToLatest {
-			if *release.Draft {
+			if *release.Draft || *release.Prerelease {
 				id := *release.ID
 				upToLatest = request.Version.ID == strconv.Itoa(id)
 			} else {

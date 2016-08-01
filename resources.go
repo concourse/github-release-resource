@@ -8,6 +8,7 @@ type Source struct {
 	GitHubUploadsURL string `json:"github_uploads_url"`
 	AccessToken      string `json:"access_token"`
 	Drafts           bool   `json:"drafts"`
+	PreRelease       bool   `json:"pre_release"`
 }
 
 type CheckRequest struct {
