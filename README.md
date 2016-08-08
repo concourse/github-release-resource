@@ -70,7 +70,7 @@ Also creates the following files:
 
 * `tag` containing the git tag name of the release being fetched.
 * `version` containing the version determined by the git tag of the release being fetched.
-* `body` containing the body text of the release determined by the git tag of the release being fetched.
+* `body` containing the body text of the release.
 
 #### Parameters
 
