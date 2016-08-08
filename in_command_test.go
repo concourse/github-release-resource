@@ -144,7 +144,7 @@ var _ = Describe("In Command", func() {
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(*buildAsset(1, "example.rtf")))
 				})
 
-				It("does create the tag and version files", func() {
+				It("does create the body, tag and version files", func() {
 					inResponse, inErr = command.Run(destDir, inRequest)
 
 					contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
@@ -154,6 +154,10 @@ var _ = Describe("In Command", func() {
 					contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("0.35.0"))
+
+					contents, err = ioutil.ReadFile(path.Join(destDir, "body"))
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(string(contents)).Should(Equal("*markdown*"))
 				})
 
 				Context("when include_source_tarball is true", func() {
