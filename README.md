@@ -53,6 +53,13 @@ Fetches and creates versioned GitHub resources.
     - paths/to/files/to/upload-*.tgz
 ```
 
+To get a specific version of a release:
+
+``` yaml
+- get: gh-release
+  version: { tag: 'v0.0.1' }
+```
+
 ## Behavior
 
 ### `check`: Check for released versions.
