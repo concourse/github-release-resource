@@ -58,7 +58,10 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 	}
 
 	draft := request.Source.Drafts
-	prerelease := request.Source.PreRelease
+	prerelease := false
+	if request.Source.PreRelease == true && request.Source.Release == false {
+		prerelease = request.Source.PreRelease
+	}
 
 	release := &github.RepositoryRelease{
 		Name:            github.String(name),

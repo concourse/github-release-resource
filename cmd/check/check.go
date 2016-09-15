@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	var request resource.CheckRequest
+	request := resource.NewCheckRequest()
 	inputRequest(&request)
 
 	github, err := resource.NewGitHubClient(request.Source)

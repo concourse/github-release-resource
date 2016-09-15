@@ -35,7 +35,11 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		if request.Source.Drafts != *release.Draft {
 			continue
 		}
-		if request.Source.PreRelease != *release.Prerelease {
+
+		// Should we skip this release
+		//   a- prerelease condition dont match our source config
+		//   b- release condition match  prerealse in github since github has true/false to describe release/prerelase
+		if request.Source.PreRelease != *release.Prerelease && request.Source.Release == *release.Prerelease {
 			continue
 		}
 

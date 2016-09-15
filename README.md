@@ -23,15 +23,21 @@ Fetches and creates versioned GitHub resources.
   for uploading. If `github_api_url` is set, this value defaults to the same
   value, but if you have your own endpoint, this field will override it.
 
+* `release`: *Optional. Default `true`.* When set to `true`, `put` produces
+  release and `check` will detects releases.  If `false`, `put` and `check` will ignore releases.
+  Note that releases must have semver compliant tags to be detected.
+
+* `pre_release`: *Optional. Default `false`.* When set to `true`, `put` produces
+  pre-release and `check` detects prereleases. If `false`, only non-prerelease releases
+  will be detected and published. Note that releases must have semver compliant
+  tags to be detected.
+  If `release` and `pre_release` are set to `true` `put` produces
+  release and `check` will detects prereleases and releases.
+
 * `drafts`: *Optional. Default `false`.* When set to `true`, `put` produces
   drafts and `check` only detects drafts. If `false`, only non-draft releases
   will be detected and published. Note that releases must have semver compliant
   tags to be detected, even if they're drafts.
-
-* `pre_release`: *Optional. Default `false`.* When set to `true`, `put` produces
-  pre-release and `check` only detects prereleases. If `false`, only non-prerelease releases
-  will be detected and published. Note that releases must have semver compliant
-  tags to be detected.
 
 ### Example
 
