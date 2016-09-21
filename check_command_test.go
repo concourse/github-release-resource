@@ -277,7 +277,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: resource.Version{},
-							Source:  resource.Source{Drafts: true},
+							Source:  resource.Source{Drafts: true, PreRelease: false},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 

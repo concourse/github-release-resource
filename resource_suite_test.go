@@ -17,6 +17,7 @@ func newRepositoryRelease(id int, version string) *github.RepositoryRelease {
 	return &github.RepositoryRelease{
 		TagName: github.String(version),
 		Draft:   github.Bool(false),
+		Prerelease:   github.Bool(false),
 		ID:      github.Int(id),
 	}
 }
@@ -25,6 +26,7 @@ func newDraftRepositoryRelease(id int, version string) *github.RepositoryRelease
 	return &github.RepositoryRelease{
 		TagName: github.String(version),
 		Draft:   github.Bool(true),
+		Prerelease:   github.Bool(false),
 		ID:      github.Int(id),
 	}
 }
@@ -32,6 +34,7 @@ func newDraftRepositoryRelease(id int, version string) *github.RepositoryRelease
 func newDraftWithNilTagRepositoryRelease(id int) *github.RepositoryRelease {
 	return &github.RepositoryRelease{
 		Draft: github.Bool(true),
+		Prerelease:   github.Bool(false),
 		ID:    github.Int(id),
 	}
 }
