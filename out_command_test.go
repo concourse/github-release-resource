@@ -310,6 +310,77 @@ var _ = Describe("Out Command", func() {
 			Ω(*release.Draft).Should(Equal(false))
 		})
 
+		Context("when prerelease are set and realses are not", func() {
+			BeforeEach(func() {
+				bodyPath := filepath.Join(sourcesDir, "body")
+				file(bodyPath, "this is a great release")
+				request.Source.Release = false
+				request.Source.PreRelease = true
+			})
+
+			It("creates a release on GitHub in draft mode", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
+				release := githubClient.CreateReleaseArgsForCall(0)
+
+				Ω(*release.Name).Should(Equal("v0.3.12"))
+				Ω(*release.TagName).Should(Equal("0.3.12"))
+				Ω(*release.Body).Should(Equal(""))
+				Ω(*release.Draft).Should(Equal(false))
+				Ω(*release.Prerelease).Should(Equal(true))
+			})
+
+			It("has some sweet metadata", func() {
+				outResponse, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				Ω(outResponse.Metadata).Should(ConsistOf(
+					resource.MetadataPair{Name: "url", Value: "http://google.com"},
+					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+					resource.MetadataPair{Name: "tag", Value: "0.3.12"},
+					resource.MetadataPair{Name: "pre-release", Value: "true"},
+				))
+			})
+		})
+
+		Context("when release and prerelease are set", func() {
+			BeforeEach(func() {
+				bodyPath := filepath.Join(sourcesDir, "body")
+				file(bodyPath, "this is a great release")
+				request.Source.Release = true
+				request.Source.PreRelease = true
+			})
+
+			It("creates a release on GitHub in draft mode", func() {
+				_, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				Ω(githubClient.CreateReleaseCallCount()).Should(Equal(1))
+				release := githubClient.CreateReleaseArgsForCall(0)
+
+				Ω(*release.Name).Should(Equal("v0.3.12"))
+				Ω(*release.TagName).Should(Equal("0.3.12"))
+				Ω(*release.Body).Should(Equal(""))
+				Ω(*release.Draft).Should(Equal(false))
+				Ω(*release.Prerelease).Should(Equal(false))
+			})
+
+			It("has some sweet metadata", func() {
+				outResponse, err := command.Run(sourcesDir, request)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				Ω(outResponse.Metadata).Should(ConsistOf(
+					resource.MetadataPair{Name: "url", Value: "http://google.com"},
+					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+					resource.MetadataPair{Name: "tag", Value: "0.3.12"},
+				))
+			})
+		})
+
 		Context("when set as a draft release", func() {
 			BeforeEach(func() {
 				bodyPath := filepath.Join(sourcesDir, "body")
@@ -328,6 +399,7 @@ var _ = Describe("Out Command", func() {
 				Ω(*release.TagName).Should(Equal("0.3.12"))
 				Ω(*release.Body).Should(Equal(""))
 				Ω(*release.Draft).Should(Equal(true))
+				Ω(*release.Prerelease).Should(Equal(false))
 			})
 
 			It("has some sweet metadata", func() {
