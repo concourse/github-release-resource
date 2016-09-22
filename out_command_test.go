@@ -310,7 +310,7 @@ var _ = Describe("Out Command", func() {
 			Ω(*release.Draft).Should(Equal(false))
 		})
 
-		Context("when prerelease are set and realses are not", func() {
+		Context("creates a non-draft pre-release in Github", func() {
 			BeforeEach(func() {
 				bodyPath := filepath.Join(sourcesDir, "body")
 				file(bodyPath, "this is a great release")
@@ -346,7 +346,7 @@ var _ = Describe("Out Command", func() {
 			})
 		})
 
-		Context("when release and prerelease are set", func() {
+		Context("creates a final release in Github", func() {
 			BeforeEach(func() {
 				bodyPath := filepath.Join(sourcesDir, "body")
 				file(bodyPath, "this is a great release")

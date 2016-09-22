@@ -209,7 +209,6 @@ var _ = Describe("Check Command", func() {
 							newPreReleaseRepositoryRelease(1, "v0.4.1-rc.10"),
 							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
 							newPreReleaseRepositoryRelease(3, "v0.4.1-rc.8"),
-
 						}
 
 					})
@@ -219,9 +218,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: resource.Version{ID: "2"},
-							Source:  resource.Source{Drafts: false,
-										PreRelease: true,
-										Release: false},
+							Source:  resource.Source{Drafts: false, PreRelease: true, Release: false},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -236,9 +233,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: resource.Version{ID: "5"},
-							Source:  resource.Source{Drafts: false,
-										PreRelease: true,
-										Release: false},
+							Source:  resource.Source{Drafts: false, PreRelease: true, Release: false},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -249,7 +244,6 @@ var _ = Describe("Check Command", func() {
 				})
 
 			})
-
 
 			Context("when releases and pre releases are allowed", func() {
 				Context("and final release is newer", func() {
@@ -271,9 +265,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: resource.Version{Tag: "0.4.0"},
-							Source:  resource.Source{Drafts: false,
-										PreRelease: true,
-										Release: true},
+							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -291,9 +283,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: resource.Version{ID: "5"},
-							Source:  resource.Source{Drafts: false,
-										PreRelease: true,
-										Release: true},
+							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -314,7 +304,6 @@ var _ = Describe("Check Command", func() {
 							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
 							newPreReleaseRepositoryRelease(3, "v0.4.2-rc.1"),
 							newPreReleaseRepositoryRelease(4, "v0.4.3-rc.1"),
-
 						}
 
 					})
@@ -324,9 +313,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: resource.Version{Tag: "0.4.0"},
-							Source:  resource.Source{Drafts: false,
-										PreRelease: true,
-										Release: true},
+							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -345,9 +332,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: resource.Version{ID: "5"},
-							Source:  resource.Source{Drafts: false,
-										PreRelease: true,
-										Release: true},
+							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -358,7 +343,7 @@ var _ = Describe("Check Command", func() {
 				})
 
 			})
-			
+
 			Context("when draft releases are allowed", func() {
 				Context("and one of the releases is a final release", func() {
 					BeforeEach(func() {
