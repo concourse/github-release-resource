@@ -200,6 +200,165 @@ var _ = Describe("Check Command", func() {
 				})
 			})
 
+			Context("when pre releases are allowed and releases are not", func() {
+				Context("and one of the releases is a final and another is a draft", func() {
+					BeforeEach(func() {
+						returnedReleases = []*github.RepositoryRelease{
+							newDraftRepositoryRelease(1, "v0.1.4"),
+							newRepositoryRelease(2, "0.4.0"),
+							newPreReleaseRepositoryRelease(1, "v0.4.1-rc.10"),
+							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
+							newPreReleaseRepositoryRelease(3, "v0.4.1-rc.8"),
+
+						}
+
+					})
+
+					It("returns all of the versions that are newer, and only pre relases", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{ID: "2"},
+							Source:  resource.Source{Drafts: false,
+										PreRelease: true,
+										Release: false},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{Tag: "0.4.1-rc.9"},
+							{Tag: "v0.4.1-rc.10"},
+						}))
+					})
+
+					It("returns the latest prerelease version if the current version is not found", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{ID: "5"},
+							Source:  resource.Source{Drafts: false,
+										PreRelease: true,
+										Release: false},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{Tag: "v0.4.1-rc.10"},
+						}))
+					})
+				})
+
+			})
+
+
+			Context("when releases and pre releases are allowed", func() {
+				Context("and final release is newer", func() {
+					BeforeEach(func() {
+						returnedReleases = []*github.RepositoryRelease{
+							newDraftRepositoryRelease(1, "v0.1.4"),
+							newRepositoryRelease(1, "0.3.9"),
+							newRepositoryRelease(2, "0.4.0"),
+							newRepositoryRelease(3, "v0.4.2"),
+							newPreReleaseRepositoryRelease(1, "v0.4.1-rc.10"),
+							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
+							newPreReleaseRepositoryRelease(3, "v0.4.2-rc.1"),
+						}
+
+					})
+
+					It("returns all of the versions that are newer, and are release and prerealse", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{Tag: "0.4.0"},
+							Source:  resource.Source{Drafts: false,
+										PreRelease: true,
+										Release: true},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{Tag: "0.4.0"},
+							{Tag: "0.4.1-rc.9"},
+							{Tag: "v0.4.1-rc.10"},
+							{Tag: "v0.4.2-rc.1"},
+							{Tag: "v0.4.2"},
+						}))
+					})
+
+					It("returns the latest release version if the current version is not found", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{ID: "5"},
+							Source:  resource.Source{Drafts: false,
+										PreRelease: true,
+										Release: true},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{Tag: "v0.4.2"},
+						}))
+					})
+				})
+
+				Context("and prerelease is newer", func() {
+					BeforeEach(func() {
+						returnedReleases = []*github.RepositoryRelease{
+							newDraftRepositoryRelease(1, "v0.1.4"),
+							newRepositoryRelease(1, "0.3.9"),
+							newRepositoryRelease(2, "0.4.0"),
+							newRepositoryRelease(3, "v0.4.2"),
+							newPreReleaseRepositoryRelease(1, "v0.4.1-rc.10"),
+							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
+							newPreReleaseRepositoryRelease(3, "v0.4.2-rc.1"),
+							newPreReleaseRepositoryRelease(4, "v0.4.3-rc.1"),
+
+						}
+
+					})
+
+					It("returns all of the versions that are newer, and are release and prerealse", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{Tag: "0.4.0"},
+							Source:  resource.Source{Drafts: false,
+										PreRelease: true,
+										Release: true},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{Tag: "0.4.0"},
+							{Tag: "0.4.1-rc.9"},
+							{Tag: "v0.4.1-rc.10"},
+							{Tag: "v0.4.2-rc.1"},
+							{Tag: "v0.4.2"},
+							{Tag: "v0.4.3-rc.1"},
+						}))
+					})
+
+					It("returns the latest prerelease version if the current version is not found", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{ID: "5"},
+							Source:  resource.Source{Drafts: false,
+										PreRelease: true,
+										Release: true},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							{Tag: "v0.4.3-rc.1"},
+						}))
+					})
+				})
+
+			})
+			
 			Context("when draft releases are allowed", func() {
 				Context("and one of the releases is a final release", func() {
 					BeforeEach(func() {
