@@ -23,6 +23,18 @@ func NewCheckRequest() CheckRequest {
 	return res
 }
 
+func NewOutRequest() OutRequest {
+	res := OutRequest{}
+	res.Source.Release = true
+	return res
+}
+
+func NewInRequest() InRequest {
+	res := InRequest{}
+	res.Source.Release = true
+	return res
+}
+
 type InRequest struct {
 	Source  Source   `json:"source"`
 	Version *Version `json:"version"`

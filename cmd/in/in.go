@@ -13,7 +13,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var request resource.InRequest
+	request := resource.NewInRequest()
 	inputRequest(&request)
 
 	destDir := os.Args[1]
