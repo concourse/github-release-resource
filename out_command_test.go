@@ -310,7 +310,7 @@ var _ = Describe("Out Command", func() {
 			Ω(*release.Draft).Should(Equal(false))
 		})
 
-		Context("creates a non-draft pre-release in Github", func() {
+		Context("when pre-release are set and release are not", func() {
 			BeforeEach(func() {
 				bodyPath := filepath.Join(sourcesDir, "body")
 				file(bodyPath, "this is a great release")
@@ -318,7 +318,7 @@ var _ = Describe("Out Command", func() {
 				request.Source.PreRelease = true
 			})
 
-			It("creates a release on GitHub in draft mode", func() {
+			It("creates a non-draft pre-release in Github", func() {
 				_, err := command.Run(sourcesDir, request)
 				Ω(err).ShouldNot(HaveOccurred())
 
@@ -346,7 +346,7 @@ var _ = Describe("Out Command", func() {
 			})
 		})
 
-		Context("creates a final release in Github", func() {
+		Context("when release and pre-release are set", func() {
 			BeforeEach(func() {
 				bodyPath := filepath.Join(sourcesDir, "body")
 				file(bodyPath, "this is a great release")
@@ -354,7 +354,7 @@ var _ = Describe("Out Command", func() {
 				request.Source.PreRelease = true
 			})
 
-			It("creates a release on GitHub in draft mode", func() {
+			It("creates a final release in Github", func() {
 				_, err := command.Run(sourcesDir, request)
 				Ω(err).ShouldNot(HaveOccurred())
 
