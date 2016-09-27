@@ -58,12 +58,17 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 	}
 
 	draft := request.Source.Drafts
+	prerelease := false
+	if request.Source.PreRelease == true && request.Source.Release == false {
+		prerelease = request.Source.PreRelease
+	}
 
 	release := &github.RepositoryRelease{
 		Name:            github.String(name),
 		TagName:         github.String(tag),
 		Body:            github.String(body),
 		Draft:           github.Bool(draft),
+		Prerelease:      github.Bool(prerelease),
 		TargetCommitish: github.String(targetCommitish),
 	}
 
@@ -89,6 +94,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		existingRelease.Name = github.String(name)
 		existingRelease.TargetCommitish = github.String(targetCommitish)
 		existingRelease.Draft = github.Bool(draft)
+		existingRelease.Prerelease = github.Bool(prerelease)
 
 		if bodySpecified {
 			existingRelease.Body = github.String(body)

@@ -47,5 +47,11 @@ func metadataFromRelease(release *github.RepositoryRelease) []MetadataPair {
 		})
 	}
 
+	if *release.Prerelease {
+		metadata = append(metadata, MetadataPair{
+			Name:  "pre-release",
+			Value: "true",
+		})
+	}
 	return metadata
 }

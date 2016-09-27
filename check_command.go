@@ -35,6 +35,14 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		if request.Source.Drafts != *release.Draft {
 			continue
 		}
+
+		// Should we skip this release
+		//   a- prerelease condition dont match our source config
+		//   b- release condition match  prerealse in github since github has true/false to describe release/prerelase
+		if request.Source.PreRelease != *release.Prerelease && request.Source.Release == *release.Prerelease {
+			continue
+		}
+
 		if release.TagName == nil {
 			continue
 		}
@@ -67,7 +75,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 
 	for _, release := range filteredReleases {
 		if !upToLatest {
-			if *release.Draft {
+			if *release.Draft || *release.Prerelease {
 				id := *release.ID
 				upToLatest = request.Version.ID == strconv.Itoa(id)
 			} else {

@@ -58,22 +58,24 @@ var _ = Describe("In Command", func() {
 
 	buildRelease := func(id int, tag string, draft bool) *github.RepositoryRelease {
 		return &github.RepositoryRelease{
-			ID:      github.Int(id),
-			TagName: github.String(tag),
-			HTMLURL: github.String("http://google.com"),
-			Name:    github.String("release-name"),
-			Body:    github.String("*markdown*"),
-			Draft:   github.Bool(draft),
+			ID:         github.Int(id),
+			TagName:    github.String(tag),
+			HTMLURL:    github.String("http://google.com"),
+			Name:       github.String("release-name"),
+			Body:       github.String("*markdown*"),
+			Draft:      github.Bool(draft),
+			Prerelease: github.Bool(false),
 		}
 	}
 
 	buildNilTagRelease := func(id int) *github.RepositoryRelease {
 		return &github.RepositoryRelease{
-			ID:      github.Int(id),
-			HTMLURL: github.String("http://google.com"),
-			Name:    github.String("release-name"),
-			Body:    github.String("*markdown*"),
-			Draft:   github.Bool(true),
+			ID:         github.Int(id),
+			HTMLURL:    github.String("http://google.com"),
+			Name:       github.String("release-name"),
+			Body:       github.String("*markdown*"),
+			Draft:      github.Bool(true),
+			Prerelease: github.Bool(false),
 		}
 	}
 

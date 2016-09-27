@@ -8,11 +8,19 @@ type Source struct {
 	GitHubUploadsURL string `json:"github_uploads_url"`
 	AccessToken      string `json:"access_token"`
 	Drafts           bool   `json:"drafts"`
+	PreRelease       bool   `json:"pre_release"`
+	Release          bool   `json:"release"`
 }
 
 type CheckRequest struct {
 	Source  Source  `json:"source"`
 	Version Version `json:"version"`
+}
+
+func NewCheckRequest() CheckRequest {
+	res := CheckRequest{}
+	res.Source.Release = true
+	return res
 }
 
 type InRequest struct {
