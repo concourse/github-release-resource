@@ -60,13 +60,13 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	}
 	latestRelease := filteredReleases[len(filteredReleases)-1]
 
-	if (request.Version == Version{}) {
+	if (request.Source.Version == Version{}) {
 		return []Version{
 			versionFromRelease(latestRelease),
 		}, nil
 	}
 
-	if *latestRelease.TagName == request.Version.Tag {
+	if *latestRelease.TagName == request.Source.Version.Tag {
 		return []Version{}, nil
 	}
 
@@ -77,10 +77,10 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		if !upToLatest {
 			if *release.Draft || *release.Prerelease {
 				id := *release.ID
-				upToLatest = request.Version.ID == strconv.Itoa(id)
+				upToLatest = request.Source.Version.ID == strconv.Itoa(id)
 			} else {
 				version := *release.TagName
-				upToLatest = request.Version.Tag == version
+				upToLatest = request.Source.Version.Tag == version
 			}
 		}
 

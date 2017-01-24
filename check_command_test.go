@@ -107,8 +107,10 @@ var _ = Describe("Check Command", func() {
 					command := resource.NewCheckCommand(githubClient)
 
 					response, err := command.Run(resource.CheckRequest{
-						Version: resource.Version{
-							Tag: "0.4.0",
+						Source: resource.Source{
+							Version: resource.Version{
+								Tag: "0.4.0",
+							},
 						},
 					})
 					Ω(err).ShouldNot(HaveOccurred())
@@ -120,8 +122,10 @@ var _ = Describe("Check Command", func() {
 					command := resource.NewCheckCommand(githubClient)
 
 					response, err := command.Run(resource.CheckRequest{
-						Version: resource.Version{
-							Tag: "v0.1.3",
+						Source: resource.Source{
+							Version: resource.Version{
+								Tag: "v0.1.3",
+							},
 						},
 					})
 					Ω(err).ShouldNot(HaveOccurred())
@@ -137,8 +141,10 @@ var _ = Describe("Check Command", func() {
 					command := resource.NewCheckCommand(githubClient)
 
 					response, err := command.Run(resource.CheckRequest{
-						Version: resource.Version{
-							Tag: "v3.4.5",
+						Source: resource.Source{
+							Version: resource.Version{
+								Tag: "v3.4.5",
+							},
 						},
 					})
 					Ω(err).ShouldNot(HaveOccurred())
@@ -158,8 +164,10 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{
-								Tag: "v0.1.3",
+							Source: resource.Source{
+								Version: resource.Version{
+									Tag: "v0.1.3",
+								},
 							},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
@@ -187,8 +195,10 @@ var _ = Describe("Check Command", func() {
 					command := resource.NewCheckCommand(githubClient)
 
 					response, err := command.Run(resource.CheckRequest{
-						Version: resource.Version{
-							Tag: "v0.1.3",
+						Source: resource.Source{
+							Version: resource.Version{
+								Tag: "v0.1.3",
+							},
 						},
 					})
 					Ω(err).ShouldNot(HaveOccurred())
@@ -217,8 +227,12 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "2"},
-							Source:  resource.Source{Drafts: false, PreRelease: true, Release: false},
+							Source: resource.Source{
+								Drafts:     false,
+								PreRelease: true,
+								Release:    false,
+								Version:    resource.Version{ID: "2"},
+							},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -232,8 +246,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "5"},
-							Source:  resource.Source{Drafts: false, PreRelease: true, Release: false},
+							Source: resource.Source{Drafts: false, PreRelease: true, Release: false, Version: resource.Version{ID: "5"}},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -264,8 +277,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{Tag: "0.4.0"},
-							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
+							Source: resource.Source{Drafts: false, PreRelease: true, Release: true, Version: resource.Version{Tag: "0.4.0"}},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -282,8 +294,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "5"},
-							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
+							Source: resource.Source{Drafts: false, PreRelease: true, Release: true, Version: resource.Version{ID: "5"}},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -312,8 +323,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{Tag: "0.4.0"},
-							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
+							Source: resource.Source{Drafts: false, PreRelease: true, Version: resource.Version{Tag: "0.4.0"}, Release: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -331,8 +341,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "5"},
-							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
+							Source: resource.Source{Drafts: false, PreRelease: true, Version: resource.Version{ID: "5"}, Release: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -359,8 +368,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "2"},
-							Source:  resource.Source{Drafts: true},
+							Source: resource.Source{Version: resource.Version{ID: "2"}, Drafts: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -374,8 +382,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "5"},
-							Source:  resource.Source{Drafts: true},
+							Source: resource.Source{Version: resource.Version{ID: "5"}, Drafts: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -397,8 +404,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{},
-							Source:  resource.Source{Drafts: true},
+							Source: resource.Source{Version: resource.Version{}, Drafts: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -420,8 +426,7 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{},
-							Source:  resource.Source{Drafts: true, PreRelease: false},
+							Source: resource.Source{Version: resource.Version{}, Drafts: true, PreRelease: false},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 

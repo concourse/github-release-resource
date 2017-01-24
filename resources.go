@@ -4,17 +4,17 @@ type Source struct {
 	User       string `json:"user"`
 	Repository string `json:"repository"`
 
-	GitHubAPIURL     string `json:"github_api_url"`
-	GitHubUploadsURL string `json:"github_uploads_url"`
-	AccessToken      string `json:"access_token"`
-	Drafts           bool   `json:"drafts"`
-	PreRelease       bool   `json:"pre_release"`
-	Release          bool   `json:"release"`
+	GitHubAPIURL     string  `json:"github_api_url"`
+	GitHubUploadsURL string  `json:"github_uploads_url"`
+	AccessToken      string  `json:"access_token"`
+	Drafts           bool    `json:"drafts"`
+	PreRelease       bool    `json:"pre_release"`
+	Release          bool    `json:"release"`
+	Version          Version `json:"version"`
 }
 
 type CheckRequest struct {
-	Source  Source  `json:"source"`
-	Version Version `json:"version"`
+	Source Source `json:"source"`
 }
 
 func NewCheckRequest() CheckRequest {

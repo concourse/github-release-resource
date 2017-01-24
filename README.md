@@ -39,6 +39,8 @@ Fetches and creates versioned GitHub resources.
   will be detected and published. Note that releases must have semver compliant
   tags to be detected, even if they're drafts.
 
+* `version`: *Optional* If specified, will check all releases from the specified version to latest. Otherwise, will check only the latest release.
+
 ### Example
 
 ``` yaml
@@ -48,6 +50,16 @@ Fetches and creates versioned GitHub resources.
     user: concourse
     repository: concourse
     access_token: abcdef1234567890
+```
+
+``` yaml
+- name: gh-release
+  type: github-release
+  source:
+    user: concourse
+    repository: concourse
+    access_token: abcdef1234567890
+    version: { tag: 'v0.0.1' }
 ```
 
 ``` yaml
