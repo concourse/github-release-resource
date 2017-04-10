@@ -1,8 +1,11 @@
 package resource
 
 type Source struct {
-	User       string `json:"user"`
+	Owner      string `json:"owner"`
 	Repository string `json:"repository"`
+
+	// Deprecated; use Owner instead
+	User string `json:"user"`
 
 	GitHubAPIURL     string `json:"github_api_url"`
 	GitHubUploadsURL string `json:"github_uploads_url"`
