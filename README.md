@@ -7,8 +7,8 @@ Fetches and creates versioned GitHub resources.
 
 ## Source Configuration
 
-* `user`: *Required.* The GitHub username or organization name for the
-  repository that the releases are in.
+* `owner`: *Required.* The GitHub user or organization name for the repository
+  that the releases are in.
 
 * `repository`: *Required.* The repository name that contains the releases.
 
@@ -45,7 +45,7 @@ Fetches and creates versioned GitHub resources.
 - name: gh-release
   type: github-release
   source:
-    user: concourse
+    owner: concourse
     repository: concourse
     access_token: abcdef1234567890
 ```

@@ -55,7 +55,7 @@ var _ = Describe("GitHub Client", func() {
 	Context("with an OAuth Token", func() {
 		BeforeEach(func() {
 			source = Source{
-				User:        "concourse",
+				Owner:       "concourse",
 				Repository:  "concourse",
 				AccessToken: "abc123",
 			}
@@ -78,7 +78,7 @@ var _ = Describe("GitHub Client", func() {
 	Context("without an OAuth Token", func() {
 		BeforeEach(func() {
 			source = Source{
-				User:       "concourse",
+				Owner:      "concourse",
 				Repository: "concourse",
 			}
 
@@ -97,10 +97,31 @@ var _ = Describe("GitHub Client", func() {
 		})
 	})
 
+	Describe("when the source is configured with the deprecated user field", func() {
+		BeforeEach(func() {
+			source = Source{
+				User:       "some-owner",
+				Repository: "some-repo",
+			}
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/repos/some-owner/some-repo/releases"),
+					ghttp.RespondWith(200, "[]"),
+				),
+			)
+		})
+
+		It("uses the provided user as the owner", func() {
+			_, err := client.ListReleases()
+			Ω(err).ShouldNot(HaveOccurred())
+		})
+	})
+
 	Describe("GetRelease", func() {
 		BeforeEach(func() {
 			source = Source{
-				User:       "concourse",
+				Owner:      "concourse",
 				Repository: "concourse",
 			}
 		})
@@ -136,7 +157,7 @@ var _ = Describe("GitHub Client", func() {
 	Describe("GetReleaseByTag", func() {
 		BeforeEach(func() {
 			source = Source{
-				User:       "concourse",
+				Owner:      "concourse",
 				Repository: "concourse",
 			}
 		})
