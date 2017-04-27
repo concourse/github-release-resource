@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 
 	"golang.org/x/oauth2"
 
@@ -17,7 +18,7 @@ import (
 //go:generate counterfeiter -o fakes/fake_git_hub.go . GitHub
 
 type GitHub interface {
-	ListReleases() ([]*github.RepositoryRelease, error)
+	ListReleases(tagNameRegex string) ([]*github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)
 	GetRelease(id int) (*github.RepositoryRelease, error)
 	CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
@@ -96,7 +97,22 @@ func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
 		return nil, err
 	}
 
-	return releases, nil
+	if tagNameRegex == "" {
+		return releases, nil
+	}
+
+	var matchedReleases []*github.RepositoryRelease
+	for _, release := range releases {
+		if matched, err := regexp.MatchString(tagNameRegex, *release.TagName); err == nil {
+			if matched {
+				matchedReleases = append(matchedReleases, release)
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	return matchedReleases, nil
 }
 
 func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, error) {

@@ -72,7 +72,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		TargetCommitish: github.String(targetCommitish),
 	}
 
-	existingReleases, err := c.github.ListReleases()
+	existingReleases, err := c.github.ListReleases(request.Source.TagNameRegex)
 	if err != nil {
 		return OutResponse{}, err
 	}

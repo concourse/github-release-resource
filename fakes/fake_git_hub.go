@@ -155,7 +155,7 @@ type FakeGitHub struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeGitHub) ListReleases() ([]*github.RepositoryRelease, error) {
+func (fake *FakeGitHub) ListReleases(tagNameRegex string) ([]*github.RepositoryRelease, error) {
 	fake.listReleasesMutex.Lock()
 	ret, specificReturn := fake.listReleasesReturnsOnCall[len(fake.listReleasesArgsForCall)]
 	fake.listReleasesArgsForCall = append(fake.listReleasesArgsForCall, struct{}{})

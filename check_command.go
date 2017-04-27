@@ -20,7 +20,7 @@ func NewCheckCommand(github GitHub) *CheckCommand {
 }
 
 func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
-	releases, err := c.github.ListReleases()
+	releases, err := c.github.ListReleases(request.Source.TagNameRegex)
 	if err != nil {
 		return []Version{}, err
 	}

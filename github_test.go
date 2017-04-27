@@ -70,7 +70,7 @@ var _ = Describe("GitHub Client", func() {
 		})
 
 		It("sends one", func() {
-			_, err := client.ListReleases()
+			_, err := client.ListReleases(source.TagNameRegex)
 			Ω(err).ShouldNot(HaveOccurred())
 		})
 	})
@@ -92,7 +92,7 @@ var _ = Describe("GitHub Client", func() {
 		})
 
 		It("sends one", func() {
-			_, err := client.ListReleases()
+			_, err := client.ListReleases(source.TagNameRegex)
 			Ω(err).ShouldNot(HaveOccurred())
 		})
 	})
@@ -113,7 +113,7 @@ var _ = Describe("GitHub Client", func() {
 		})
 
 		It("uses the provided user as the owner", func() {
-			_, err := client.ListReleases()
+			_, err := client.ListReleases(source.TagNameRegex)
 			Ω(err).ShouldNot(HaveOccurred())
 		})
 	})
