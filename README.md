@@ -39,6 +39,10 @@ Fetches and creates versioned GitHub resources.
   will be detected and published. Note that releases must have semver compliant
   tags to be detected, even if they're drafts.
 
+* `tag_name_regex`: *Optional.* You may only want to detect/ use releases that match specifc
+  tag names. When this is used it will only detect releases that match the defined regular
+  expression.
+
 ### Example
 
 ``` yaml
