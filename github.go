@@ -101,18 +101,7 @@ func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
 		return releases, nil
 	}
 
-	var matchedReleases []*github.RepositoryRelease
-	for _, release := range releases {
-		if matched, err := regexp.MatchString(tagNameRegex, *release.TagName); err == nil {
-			if matched {
-				matchedReleases = append(matchedReleases, release)
-			}
-		} else {
-			return nil, err
-		}
-	}
-
-	return matchedReleases, nil
+	return FilterReleasesByTagName(releases, tagNameRegex)
 }
 
 func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, error) {
@@ -252,6 +241,23 @@ func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 	}
 	res.Body.Close()
 	return u, nil
+}
+
+func FilterReleasesByTagName(releases []*github.RepositoryRelease, tagNameRegex string) ([]*github.RepositoryRelease, error) {
+	var matchedReleases []*github.RepositoryRelease
+	for _, release := range releases {
+		if release.TagName == nil || *release.TagName == "" {
+			continue
+		}
+		if matched, err := regexp.MatchString(tagNameRegex, *release.TagName); err == nil {
+			if matched {
+				matchedReleases = append(matchedReleases, release)
+			}
+		} else {
+			return nil, err
+		}
+	}
+	return matchedReleases, nil
 }
 
 func oauthClient(source Source) (*github.Client, error) {
