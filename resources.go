@@ -13,6 +13,7 @@ type Source struct {
 	Drafts           bool   `json:"drafts"`
 	PreRelease       bool   `json:"pre_release"`
 	Release          bool   `json:"release"`
+	SkipSSLValidation bool  `json:"skip_ssl_verification"`
 }
 
 type CheckRequest struct {

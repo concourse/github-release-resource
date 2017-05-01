@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"crypto/tls"
 
 	"github.com/google/go-github/github"
 )
@@ -115,7 +116,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			return InResponse{}, err
 		}
 		fmt.Fprintln(c.writer, "downloading source tarball to source.tar.gz")
-		if err := c.downloadFile(u.String(), filepath.Join(destDir, "source.tar.gz")); err != nil {
+		if err := c.downloadFile(u.String(), filepath.Join(destDir, "source.tar.gz"), request.Source.SkipSSLValidation); err != nil {
 			return InResponse{}, err
 		}
 	}
@@ -126,7 +127,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			return InResponse{}, err
 		}
 		fmt.Fprintln(c.writer, "downloading source zip to source.zip")
-		if err := c.downloadFile(u.String(), filepath.Join(destDir, "source.zip")); err != nil {
+		if err := c.downloadFile(u.String(), filepath.Join(destDir, "source.zip"), request.Source.SkipSSLValidation); err != nil {
 			return InResponse{}, err
 		}
 	}
@@ -158,14 +159,18 @@ func (c *InCommand) downloadAsset(asset *github.ReleaseAsset, destPath string) e
 	return nil
 }
 
-func (c *InCommand) downloadFile(url, destPath string) error {
+func (c *InCommand) downloadFile(url, destPath string, skipSsl bool) error {
 	out, err := os.Create(destPath)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: skipSsl},
+	}
+	httpClient := &http.Client{Transport: tr}
 
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		return err
 	}

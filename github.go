@@ -7,6 +7,9 @@ import (
 	"net/url"
 	"os"
 
+	"context"
+	"crypto/tls"
+
 	"golang.org/x/oauth2"
 
 	"github.com/google/go-github/github"
@@ -39,9 +42,13 @@ type GitHubClient struct {
 
 func NewGitHubClient(source Source) (*GitHubClient, error) {
 	var client *github.Client
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: source.SkipSSLValidation},
+	}
+	httpClient := &http.Client{Transport: tr}
 
 	if source.AccessToken == "" {
-		client = github.NewClient(nil)
+		client = github.NewClient(httpClient)
 	} else {
 		var err error
 		client, err = oauthClient(source)
@@ -236,11 +243,18 @@ func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 }
 
 func oauthClient(source Source) (*github.Client, error) {
+	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: source.AccessToken,
 	})
 
-	oauthClient := oauth2.NewClient(oauth2.NoContext, ts)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: source.SkipSSLValidation},
+	}
+        sslcli := &http.Client{Transport: tr}
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, sslcli)
+
+	oauthClient := oauth2.NewClient(ctx, ts)
 
 	githubHTTPClient := &http.Client{
 		Transport: oauthClient.Transport,
