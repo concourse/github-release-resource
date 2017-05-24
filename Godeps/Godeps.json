@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/concourse/github-release-resource",
-	"GoVersion": "go1.6",
-	"GodepVersion": "v74",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
 	"Packages": [
 		"./...",
 		"github.com/onsi/ginkgo/ginkgo"
@@ -17,7 +17,7 @@
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "f6f75a742a52df1fd2f2ba9346dc59a864a9166d"
+			"Rev": "ebfec748347a9af6793c723f8859afcd906860fb"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
