@@ -3,10 +3,10 @@
 set -e
 
 not_installed() {
-  ! command -v $1 > /dev/null 2>&1
+  ! command -v "${1}" > /dev/null 2>&1
 }
 
-github_release_resource_dir=$(cd $(dirname $0)/.. && pwd)
+github_release_resource_dir=$(cd "$(dirname "${0}")/.." && pwd)
 
 if not_installed ginkgo; then
   echo "# ginkgo is not installed! run the following command:"
@@ -14,5 +14,5 @@ if not_installed ginkgo; then
   exit 1
 fi
 
-cd $github_release_resource_dir
-ginkgo -r -p
+cd "${github_release_resource_dir}"
+ginkgo -r -p -cover
