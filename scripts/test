@@ -15,4 +15,4 @@ if not_installed ginkgo; then
 fi
 
 cd "${github_release_resource_dir}"
-ginkgo -r -p -cover
+ginkgo -r -p
