@@ -12,12 +12,10 @@ import (
 )
 
 type FakeGitHub struct {
-	ListReleasesStub        func(tagNameRegex string) ([]*github.RepositoryRelease, error)
+	ListReleasesStub        func() ([]*github.RepositoryRelease, error)
 	listReleasesMutex       sync.RWMutex
-	listReleasesArgsForCall []struct {
-		tagNameRegex string
-	}
-	listReleasesReturns struct {
+	listReleasesArgsForCall []struct{}
+	listReleasesReturns     struct {
 		result1 []*github.RepositoryRelease
 		result2 error
 	}
@@ -157,16 +155,14 @@ type FakeGitHub struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeGitHub) ListReleases(tagNameRegex string) ([]*github.RepositoryRelease, error) {
+func (fake *FakeGitHub) ListReleases() ([]*github.RepositoryRelease, error) {
 	fake.listReleasesMutex.Lock()
 	ret, specificReturn := fake.listReleasesReturnsOnCall[len(fake.listReleasesArgsForCall)]
-	fake.listReleasesArgsForCall = append(fake.listReleasesArgsForCall, struct {
-		tagNameRegex string
-	}{tagNameRegex})
-	fake.recordInvocation("ListReleases", []interface{}{tagNameRegex})
+	fake.listReleasesArgsForCall = append(fake.listReleasesArgsForCall, struct{}{})
+	fake.recordInvocation("ListReleases", []interface{}{})
 	fake.listReleasesMutex.Unlock()
 	if fake.ListReleasesStub != nil {
-		return fake.ListReleasesStub(tagNameRegex)
+		return fake.ListReleasesStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -178,12 +174,6 @@ func (fake *FakeGitHub) ListReleasesCallCount() int {
 	fake.listReleasesMutex.RLock()
 	defer fake.listReleasesMutex.RUnlock()
 	return len(fake.listReleasesArgsForCall)
-}
-
-func (fake *FakeGitHub) ListReleasesArgsForCall(i int) string {
-	fake.listReleasesMutex.RLock()
-	defer fake.listReleasesMutex.RUnlock()
-	return fake.listReleasesArgsForCall[i].tagNameRegex
 }
 
 func (fake *FakeGitHub) ListReleasesReturns(result1 []*github.RepositoryRelease, result2 error) {

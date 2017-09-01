@@ -18,7 +18,7 @@ import (
 //go:generate counterfeiter -o fakes/fake_git_hub.go . GitHub
 
 type GitHub interface {
-	ListReleases(tagNameRegex string) ([]*github.RepositoryRelease, error)
+	ListReleases() ([]*github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)
 	GetRelease(id int) (*github.RepositoryRelease, error)
 	CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
@@ -97,11 +97,7 @@ func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
 		return nil, err
 	}
 
-	if tagNameRegex == "" {
-		return releases, nil
-	}
-
-	return FilterReleasesByTagName(releases, tagNameRegex)
+	return releases, nil
 }
 
 func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, error) {
@@ -243,7 +239,7 @@ func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 	return u, nil
 }
 
-func FilterReleasesByTagName(releases []*github.RepositoryRelease, tagNameRegex string) ([]*github.RepositoryRelease, error) {
+func filterReleasesByTagName(releases []*github.RepositoryRelease, tagNameRegex string) ([]*github.RepositoryRelease, error) {
 	var matchedReleases []*github.RepositoryRelease
 	for _, release := range releases {
 		if release.TagName == nil || *release.TagName == "" {
