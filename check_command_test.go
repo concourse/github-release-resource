@@ -76,6 +76,30 @@ var _ = Describe("Check Command", func() {
 					Tag: "v0.4.0",
 				}))
 			})
+
+			Context("when they are filtered by a tag name regex", func() {
+				BeforeEach(func() {
+					returnedReleases = []*github.RepositoryRelease{
+						newRepositoryRelease(1, "v0.4.0"),
+						newRepositoryRelease(2, "v0.1.3"),
+						newRepositoryRelease(3, "v0.1.2"),
+					}
+				})
+				It("outputs the most recent matching version", func() {
+					command := resource.NewCheckCommand(githubClient)
+
+					checkReq := resource.CheckRequest{}
+					checkReq.Source.TagNameRegex = "^v0.1.+"
+					response, err := command.Run(checkReq)
+
+					Ω(err).ShouldNot(HaveOccurred())
+
+					Ω(response).Should(HaveLen(1))
+					Ω(response[0]).Should(Equal(resource.Version{
+						Tag: "v0.1.3",
+					}))
+				})
+			})
 		})
 	})
 
@@ -253,6 +277,9 @@ var _ = Describe("Check Command", func() {
 							newRepositoryRelease(1, "0.3.9"),
 							newRepositoryRelease(2, "0.4.0"),
 							newRepositoryRelease(3, "v0.4.2"),
+							newRepositoryRelease(4, "stable-0.4"),
+							newRepositoryRelease(5, "stable-0.2.6"),
+							newRepositoryRelease(6, "stable-4.2"),
 							newPreReleaseRepositoryRelease(1, "v0.4.1-rc.10"),
 							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
 							newPreReleaseRepositoryRelease(3, "v0.4.2-rc.1"),

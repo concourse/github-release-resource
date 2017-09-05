@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 
 	"golang.org/x/oauth2"
 
@@ -14,7 +15,7 @@ import (
 	"github.com/google/go-github/github"
 )
 
-//go:generate counterfeiter . GitHub
+//go:generate counterfeiter -o fakes/fake_git_hub.go . GitHub
 
 type GitHub interface {
 	ListReleases() ([]*github.RepositoryRelease, error)
@@ -236,6 +237,23 @@ func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 	}
 	res.Body.Close()
 	return u, nil
+}
+
+func filterReleasesByTagName(releases []*github.RepositoryRelease, tagNameRegex string) ([]*github.RepositoryRelease, error) {
+	var matchedReleases []*github.RepositoryRelease
+	for _, release := range releases {
+		if release.TagName == nil || *release.TagName == "" {
+			continue
+		}
+		if matched, err := regexp.MatchString(tagNameRegex, *release.TagName); err == nil {
+			if matched {
+				matchedReleases = append(matchedReleases, release)
+			}
+		} else {
+			return nil, err
+		}
+	}
+	return matchedReleases, nil
 }
 
 func oauthClient(source Source) (*github.Client, error) {
