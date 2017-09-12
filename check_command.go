@@ -46,14 +46,33 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		if release.TagName == nil {
 			continue
 		}
-		if _, err := version.NewVersionFromString(determineVersionFromTag(*release.TagName)); err != nil {
-			continue
+
+		if request.Source.TagFilterRegex == "" {
+			if _, err := version.NewVersionFromString(determineVersionFromTag(*release.TagName)); err != nil {
+				continue
+			}
+		} else {
+			if !tagMatchesFilter(request.Source, *release.TagName) {
+				continue
+			}
 		}
 
 		filteredReleases = append(filteredReleases, release)
 	}
 
-	sort.Sort(byVersion(filteredReleases))
+	if request.Source.TagFilterRegex == "" {
+		if request.Source.DateOrdered {
+			sort.Sort(byDate(filteredReleases))
+		} else {
+			sort.Sort(byVersion(filteredReleases))
+		}
+	} else {
+		if request.Source.Semver {
+			sort.Sort(byVersion(filteredReleases))
+		} else {
+			sort.Sort(byDate(filteredReleases))
+		}
+	}
 
 	if len(filteredReleases) == 0 {
 		return []Version{}, nil
@@ -122,4 +141,18 @@ func (r byVersion) Less(i, j int) bool {
 	}
 
 	return first.IsLt(second)
+}
+
+type byDate []*github.RepositoryRelease
+
+func (r byDate) Len() int {
+	return len(r)
+}
+
+func (r byDate) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r byDate) Less(i, j int) bool {
+	return r[i].PublishedAt.Before(r[j].PublishedAt.Add(0))
 }
