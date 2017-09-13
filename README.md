@@ -39,6 +39,20 @@ Fetches and creates versioned GitHub resources.
   will be detected and published. Note that releases must have semver compliant
   tags to be detected, even if they're drafts.
 
+* `tag_filter_regex`: *Optional.* If you want to match tags that are not semver compliant
+  you can use this setting to filter by any regex that you like. You may also wish to match
+  minor semver versions only via a regex of `^v3.2.\d+$` or something similar. By default
+  versions will be sorted based on published date unless the `semver` flag is also set, in which
+  case versions will be sorted by number.
+
+* `semver`: *Optional. Default `false`.* This is only used when `tag_filter_regex` is present, semver
+  versions are used by default if `tag_filter_regex` is not defined. When set to `true` resource ordering
+  will be based on semver version numbers.
+
+* `date_ordered`: *Optional. Default `false`.* When set to true the github release published at date
+  will be used to find the newest version of a resource. If `tag_filter_regex` is set this is the default
+  ordering mechanism.
+
 ### Example
 
 ``` yaml

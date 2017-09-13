@@ -1,6 +1,8 @@
 package resource_test
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -103,7 +105,7 @@ var _ = Describe("Check Command", func() {
 					}
 				})
 
-				It("returns an empty list if the lastet version has been checked", func() {
+				It("returns an empty list if the latest version has been checked", func() {
 					command := resource.NewCheckCommand(githubClient)
 
 					response, err := command.Run(resource.CheckRequest{
@@ -228,7 +230,7 @@ var _ = Describe("Check Command", func() {
 						}))
 					})
 
-					It("returns the latest prerelease version if the current version is not found", func() {
+					It("returns the latest pre-release version if the current version is not found", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
@@ -242,7 +244,6 @@ var _ = Describe("Check Command", func() {
 						}))
 					})
 				})
-
 			})
 
 			Context("when releases and pre releases are allowed", func() {
@@ -253,47 +254,155 @@ var _ = Describe("Check Command", func() {
 							newRepositoryRelease(1, "0.3.9"),
 							newRepositoryRelease(2, "0.4.0"),
 							newRepositoryRelease(3, "v0.4.2"),
+							newRepositoryReleaseWithTimestamp(4, "stable-0.4", time.Now().Add(-4*time.Hour)),
+							newRepositoryReleaseWithTimestamp(5, "stable-0.2.6", time.Now().Add(-1*time.Hour)),
+							newRepositoryReleaseWithTimestamp(6, "stable-4.2", time.Now().Add(-2*time.Hour)),
 							newPreReleaseRepositoryRelease(1, "v0.4.1-rc.10"),
 							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
 							newPreReleaseRepositoryRelease(3, "v0.4.2-rc.1"),
 						}
-
 					})
 
-					It("returns all of the versions that are newer, and are release and prerealse", func() {
-						command := resource.NewCheckCommand(githubClient)
+					Context("and a tag_filter_regex has been defined", func() {
+						Context("and semver is true", func() {
+							It("returns all of the versions that are newer, and are release and pre-release based on semver versions", func() {
+								command := resource.NewCheckCommand(githubClient)
 
-						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{Tag: "0.4.0"},
-							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
+								response, err := command.Run(resource.CheckRequest{
+									Version: resource.Version{Tag: "0.4.1-rc.9", ID: "2"},
+									Source:  resource.Source{Drafts: false, PreRelease: true, Release: true, TagFilterRegex: `v?0\.4\..*`, Semver: true},
+								})
+
+								Ω(err).ShouldNot(HaveOccurred())
+
+								Ω(response).Should(Equal([]resource.Version{
+									{Tag: "0.4.1-rc.9", ID: ""},
+									{Tag: "v0.4.1-rc.10", ID: ""},
+									{Tag: "v0.4.2-rc.1", ID: ""},
+									{Tag: "v0.4.2", ID: ""},
+								}))
+							})
+
+							It("returns the latest release version if the current version is not found based on semver versions", func() {
+								command := resource.NewCheckCommand(githubClient)
+
+								response, err := command.Run(resource.CheckRequest{
+									Version: resource.Version{ID: "5"},
+									Source:  resource.Source{Drafts: false, PreRelease: true, Release: true, TagFilterRegex: `v?0\.4\..*`, Semver: true},
+								})
+								Ω(err).ShouldNot(HaveOccurred())
+
+								Ω(response).Should(Equal([]resource.Version{
+									{Tag: "v0.4.2", ID: ""},
+								}))
+							})
 						})
-						Ω(err).ShouldNot(HaveOccurred())
-
-						Ω(response).Should(Equal([]resource.Version{
-							{Tag: "0.4.0"},
-							{Tag: "0.4.1-rc.9"},
-							{Tag: "v0.4.1-rc.10"},
-							{Tag: "v0.4.2-rc.1"},
-							{Tag: "v0.4.2"},
-						}))
 					})
 
-					It("returns the latest release version if the current version is not found", func() {
-						command := resource.NewCheckCommand(githubClient)
+					Context("and semver is false", func() {
+						It("returns all of the versions that are newer, and are release and pre-release based on publish date", func() {
+							command := resource.NewCheckCommand(githubClient)
 
-						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "5"},
-							Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
+							response, err := command.Run(resource.CheckRequest{
+								Version: resource.Version{Tag: "stable-4.2"},
+								Source:  resource.Source{Drafts: false, PreRelease: true, Release: true, TagFilterRegex: `^stable.*`},
+							})
+
+							Ω(err).ShouldNot(HaveOccurred())
+
+							Ω(response).Should(Equal([]resource.Version{
+								{Tag: "stable-4.2"},
+								{Tag: "stable-0.2.6"},
+							}))
 						})
-						Ω(err).ShouldNot(HaveOccurred())
 
-						Ω(response).Should(Equal([]resource.Version{
-							{Tag: "v0.4.2"},
-						}))
+						It("returns the latest release version if the current version is not found based on publish date", func() {
+							command := resource.NewCheckCommand(githubClient)
+
+							response, err := command.Run(resource.CheckRequest{
+								Version: resource.Version{ID: "5"},
+								Source:  resource.Source{Drafts: false, PreRelease: true, Release: true, TagFilterRegex: `^stable.*`},
+							})
+							Ω(err).ShouldNot(HaveOccurred())
+
+							Ω(response).Should(Equal([]resource.Version{
+								{Tag: "stable-0.2.6"},
+							}))
+						})
+					})
+
+					Context("and a tag_filter_regex has not been defined", func() {
+						Context("and date ordered is not defined", func() {
+							It("returns all of the versions that are newer, and are release and pre-release based on semver versions", func() {
+								command := resource.NewCheckCommand(githubClient)
+
+								response, err := command.Run(resource.CheckRequest{
+									Version: resource.Version{Tag: "0.4.0"},
+									Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
+								})
+								Ω(err).ShouldNot(HaveOccurred())
+
+								Ω(response).Should(Equal([]resource.Version{
+									{Tag: "0.4.0"},
+									{Tag: "0.4.1-rc.9"},
+									{Tag: "v0.4.1-rc.10"},
+									{Tag: "v0.4.2-rc.1"},
+									{Tag: "v0.4.2"},
+								}))
+							})
+
+							It("returns the latest release version if the current version is not found based on semver versions", func() {
+								command := resource.NewCheckCommand(githubClient)
+
+								response, err := command.Run(resource.CheckRequest{
+									Version: resource.Version{ID: "5"},
+									Source:  resource.Source{Drafts: false, PreRelease: true, Release: true},
+								})
+								Ω(err).ShouldNot(HaveOccurred())
+
+								Ω(response).Should(Equal([]resource.Version{
+									{Tag: "v0.4.2"},
+								}))
+							})
+						})
+
+						Context("and date ordered is defined", func() {
+							It("returns all of the versions that are newer, and are release and pre-release based on published date", func() {
+								command := resource.NewCheckCommand(githubClient)
+
+								response, err := command.Run(resource.CheckRequest{
+									Version: resource.Version{Tag: "0.4.0"},
+									Source:  resource.Source{Drafts: false, PreRelease: true, Release: true, DateOrdered: true},
+								})
+								Ω(err).ShouldNot(HaveOccurred())
+
+								Ω(response).Should(Equal([]resource.Version{
+									{Tag: "0.4.0", ID: ""},
+									{Tag: "v0.4.2", ID: ""},
+									{Tag: "v0.4.1-rc.10", ID: ""},
+									{Tag: "0.4.1-rc.9", ID: ""},
+									{Tag: "v0.4.2-rc.1", ID: ""},
+								}))
+							})
+
+							It("returns the latest release version if the current version is not found on published date", func() {
+								command := resource.NewCheckCommand(githubClient)
+
+								response, err := command.Run(resource.CheckRequest{
+									Version: resource.Version{ID: "5"},
+									Source:  resource.Source{Drafts: false, PreRelease: true, Release: true, DateOrdered: true},
+								})
+								Ω(err).ShouldNot(HaveOccurred())
+
+								Ω(response).Should(Equal([]resource.Version{
+									{Tag: "v0.4.2-rc.1"},
+								}))
+							})
+						})
 					})
 				})
 
-				Context("and prerelease is newer", func() {
+				Context("and pre-release is newer", func() {
 					BeforeEach(func() {
 						returnedReleases = []*github.RepositoryRelease{
 							newDraftRepositoryRelease(1, "v0.1.4"),
@@ -305,10 +414,9 @@ var _ = Describe("Check Command", func() {
 							newPreReleaseRepositoryRelease(3, "v0.4.2-rc.1"),
 							newPreReleaseRepositoryRelease(4, "v0.4.3-rc.1"),
 						}
-
 					})
 
-					It("returns all of the versions that are newer, and are release and prerealse", func() {
+					It("returns all of the versions that are newer, and are release and pre-release", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
@@ -327,7 +435,7 @@ var _ = Describe("Check Command", func() {
 						}))
 					})
 
-					It("returns the latest prerelease version if the current version is not found", func() {
+					It("returns the latest pre-release version if the current version is not found", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{

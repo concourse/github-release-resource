@@ -13,6 +13,9 @@ type Source struct {
 	Drafts           bool   `json:"drafts"`
 	PreRelease       bool   `json:"pre_release"`
 	Release          bool   `json:"release"`
+	TagFilterRegex   string `json:"tag_filter_regex"`
+	Semver           bool   `json:"semver"`
+	DateOrdered      bool   `json:"date_ordered"`
 }
 
 type CheckRequest struct {

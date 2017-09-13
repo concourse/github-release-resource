@@ -14,7 +14,7 @@ import (
 	"github.com/google/go-github/github"
 )
 
-//go:generate counterfeiter . GitHub
+//go:generate counterfeiter -o fakes/fake_git_hub.go . GitHub
 
 type GitHub interface {
 	ListReleases() ([]*github.RepositoryRelease, error)
