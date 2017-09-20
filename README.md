@@ -124,3 +124,31 @@ prepended with this string. This is useful for adding v in front of version numb
 
 * `globs`: *Optional.* A list of globs for files that will be uploaded alongside
   the created release.
+
+## Development
+
+### Prerequisites
+
+* golang is *required* - version 1.9.x is tested; earlier versions may also
+  work.
+* docker is *required* - version 17.06.x is tested; earlier versions may also
+  work.
+* godep is used for dependency management of the golang packages.
+
+### Running the tests
+
+The tests have been embedded with the `Dockerfile`; ensuring that the testing
+environment is consistent across any `docker` enabled platform. When the docker
+image builds, the test are run inside the docker container, on failure they
+will stop the build.
+
+Run the tests with the following command:
+
+```sh
+docker build -t github-release-resource .
+```
+
+### Contributing
+
+Please make all pull requests to the `master` branch and ensure tests pass
+locally.
