@@ -11,7 +11,7 @@ RUN set -e; for pkg in $(go list ./...); do \
 	done
 
 FROM alpine:edge AS resource
-RUN apk add --update bash tzdata
+RUN apk add --update bash tzdata ca-certificates
 COPY --from=builder /assets /opt/resource
 
 FROM resource AS tests
