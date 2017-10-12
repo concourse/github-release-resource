@@ -86,10 +86,23 @@ var _ = Describe("In Command", func() {
 		}
 	}
 
+	buildTagRef := func(tagRef, commitSHA string) *github.Reference {
+		return &github.Reference{
+			Ref: github.String(tagRef),
+			URL: github.String("https://example.com"),
+			Object: &github.GitObject{
+				Type: github.String("commit"),
+				SHA:  github.String(commitSHA),
+				URL:  github.String("https://example.com"),
+			},
+		}
+	}
+
 	Context("when there is a tagged release", func() {
 		Context("when a present version is specified", func() {
 			BeforeEach(func() {
 				githubClient.GetReleaseByTagReturns(buildRelease(1, "v0.35.0", false), nil)
+				githubClient.GetRefReturns(buildTagRef("v0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
 
 				githubClient.ListReleaseAssetsReturns([]*github.ReleaseAsset{
 					buildAsset(0, "example.txt"),
@@ -129,6 +142,7 @@ var _ = Describe("In Command", func() {
 						resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 						resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
 						resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
+						resource.MetadataPair{Name: "commit_sha", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
 					))
 				})
 
@@ -156,6 +170,10 @@ var _ = Describe("In Command", func() {
 					contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("0.35.0"))
+
+					contents, err = ioutil.ReadFile(path.Join(destDir, "commit_sha"))
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(string(contents)).Should(Equal("f28085a4a8f744da83411f5e09fd7b1709149eee"))
 
 					contents, err = ioutil.ReadFile(path.Join(destDir, "body"))
 					Ω(err).ShouldNot(HaveOccurred())
@@ -343,6 +361,7 @@ var _ = Describe("In Command", func() {
 						resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 						resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
 						resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
+						resource.MetadataPair{Name: "commit_sha", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
 					))
 				})
 
@@ -416,6 +435,7 @@ var _ = Describe("In Command", func() {
 		Context("which has a tag", func() {
 			BeforeEach(func() {
 				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", true), nil)
+				githubClient.GetRefReturns(buildTagRef("v0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
 
 				inRequest.Version = &resource.Version{ID: "1"}
 				inResponse, inErr = command.Run(destDir, inRequest)
@@ -435,6 +455,7 @@ var _ = Describe("In Command", func() {
 					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
 					resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
+					resource.MetadataPair{Name: "commit_sha", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
 					resource.MetadataPair{Name: "draft", Value: "true"},
 				))
 			})
@@ -479,6 +500,7 @@ var _ = Describe("In Command", func() {
 			It("does not create the tag and version files", func() {
 				Ω(path.Join(destDir, "tag")).ShouldNot(BeAnExistingFile())
 				Ω(path.Join(destDir, "version")).ShouldNot(BeAnExistingFile())
+				Ω(path.Join(destDir, "commit_sha")).ShouldNot(BeAnExistingFile())
 			})
 		})
 

@@ -31,6 +31,7 @@ type GitHub interface {
 
 	GetTarballLink(tag string) (*url.URL, error)
 	GetZipballLink(tag string) (*url.URL, error)
+	GetRef(tag string) (*github.Reference, error)
 }
 
 type GitHubClient struct {
@@ -245,6 +246,15 @@ func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 	}
 	res.Body.Close()
 	return u, nil
+}
+
+func (g *GitHubClient) GetRef(tag string) (*github.Reference, error) {
+	ref, res, err := g.client.Git.GetRef(context.TODO(), g.owner, g.repository, "tags/"+tag)
+	if err != nil {
+		return nil, err
+	}
+	res.Body.Close()
+	return ref, nil
 }
 
 func oauthClient(ctx context.Context, source Source) (*http.Client, error) {
