@@ -142,7 +142,7 @@ var _ = Describe("In Command", func() {
 						resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 						resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
 						resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
-						resource.MetadataPair{Name: "commit_sha", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
+						resource.MetadataPair{Name: "target_commit", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
 					))
 				})
 
@@ -171,7 +171,7 @@ var _ = Describe("In Command", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("0.35.0"))
 
-					contents, err = ioutil.ReadFile(path.Join(destDir, "commit_sha"))
+					contents, err = ioutil.ReadFile(path.Join(destDir, "target_commit"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("f28085a4a8f744da83411f5e09fd7b1709149eee"))
 
@@ -361,7 +361,7 @@ var _ = Describe("In Command", func() {
 						resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 						resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
 						resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
-						resource.MetadataPair{Name: "commit_sha", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
+						resource.MetadataPair{Name: "target_commit", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
 					))
 				})
 
@@ -455,7 +455,7 @@ var _ = Describe("In Command", func() {
 					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
 					resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
-					resource.MetadataPair{Name: "commit_sha", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
+					resource.MetadataPair{Name: "target_commit", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
 					resource.MetadataPair{Name: "draft", Value: "true"},
 				))
 			})
@@ -500,7 +500,7 @@ var _ = Describe("In Command", func() {
 			It("does not create the tag and version files", func() {
 				Ω(path.Join(destDir, "tag")).ShouldNot(BeAnExistingFile())
 				Ω(path.Join(destDir, "version")).ShouldNot(BeAnExistingFile())
-				Ω(path.Join(destDir, "commit_sha")).ShouldNot(BeAnExistingFile())
+				Ω(path.Join(destDir, "target_commit")).ShouldNot(BeAnExistingFile())
 			})
 		})
 

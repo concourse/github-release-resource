@@ -32,6 +32,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	}
 
 	var foundRelease *github.RepositoryRelease
+	var commitSHA string
 
 	if request.Version.Tag != "" {
 		foundRelease, err = c.github.GetReleaseByTag(request.Version.Tag)
@@ -57,6 +58,13 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		version := determineVersionFromTag(*foundRelease.TagName)
 		versionPath := filepath.Join(destDir, "version")
 		err = ioutil.WriteFile(versionPath, []byte(version), 0644)
+		if err != nil {
+			return InResponse{}, err
+		}
+
+		commitPath := filepath.Join(destDir, "target_commit")
+		commitSHA = c.resolveTagToCommitSHA(*foundRelease.TagName)
+		err = ioutil.WriteFile(commitPath, []byte(commitSHA), 0644)
 		if err != nil {
 			return InResponse{}, err
 		}
@@ -133,7 +141,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 	return InResponse{
 		Version:  versionFromRelease(foundRelease),
-		Metadata: metadataFromRelease(foundRelease),
+		Metadata: metadataFromRelease(foundRelease, commitSHA),
 	}, nil
 }
 
@@ -181,4 +189,20 @@ func (c *InCommand) downloadFile(url, destPath string) error {
 	}
 
 	return nil
+}
+
+func (c *InCommand) resolveTagToCommitSHA(tag string) string {
+	reference, err := c.github.GetRef(tag)
+
+	if err != nil {
+		fmt.Fprintln(c.writer, "could not resolve tag '%s' to commit: %v", tag, err)
+		return ""
+	}
+
+	if *reference.Object.Type != "commit" {
+		fmt.Fprintln(c.writer, "could not resolve tag '%s' to commit: returned type is not 'commit' - only lightweight tags are supported", tag)
+		return ""
+	}
+
+	return *reference.Object.SHA
 }
