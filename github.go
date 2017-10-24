@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"crypto/tls"
 	"errors"
 	"io"
 	"net/http"
@@ -40,17 +41,25 @@ type GitHubClient struct {
 }
 
 func NewGitHubClient(source Source) (*GitHubClient, error) {
-	var client *github.Client
+	var httpClient = &http.Client{}
+	var ctx = context.TODO()
 
-	if source.AccessToken == "" {
-		client = github.NewClient(nil)
-	} else {
+	if source.Insecure {
+		httpClient.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		ctx = context.WithValue(ctx, oauth2.HTTPClient, httpClient)
+	}
+
+	if source.AccessToken != "" {
 		var err error
-		client, err = oauthClient(source)
+		httpClient, err = oauthClient(ctx, source)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	client := github.NewClient(httpClient)
 
 	if source.GitHubAPIURL != "" {
 		var err error
@@ -238,16 +247,16 @@ func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 	return u, nil
 }
 
-func oauthClient(source Source) (*github.Client, error) {
+func oauthClient(ctx context.Context, source Source) (*http.Client, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: source.AccessToken,
 	})
 
-	oauthClient := oauth2.NewClient(oauth2.NoContext, ts)
+	oauthClient := oauth2.NewClient(ctx, ts)
 
 	githubHTTPClient := &http.Client{
 		Transport: oauthClient.Transport,
 	}
 
-	return github.NewClient(githubHTTPClient), nil
+	return githubHTTPClient, nil
 }

@@ -23,6 +23,9 @@ Fetches and creates versioned GitHub resources.
   for uploading. If `github_api_url` is set, this value defaults to the same
   value, but if you have your own endpoint, this field will override it.
 
+* `insecure`: *Optional. Default `false`.* When set to `true`, concourse will allow
+  insecure connection to your github API.
+
 * `release`: *Optional. Default `true`.* When set to `true`, `put` produces
   release and `check` detects releases.  If `false`, `put` and `check` will ignore releases.
   Note that releases must have semver compliant tags to be detected.
