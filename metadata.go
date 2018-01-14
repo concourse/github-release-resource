@@ -42,7 +42,7 @@ func metadataFromRelease(release *github.RepositoryRelease, commitSHA string) []
 
 	if commitSHA != "" {
 		metadata = append(metadata, MetadataPair{
-			Name:  "target_commit",
+			Name:  "commit_sha",
 			Value: commitSHA,
 		})
 	}
