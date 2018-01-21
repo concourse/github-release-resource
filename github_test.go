@@ -161,6 +161,7 @@ var _ = Describe("GitHub Client", func() {
 				Repository: "concourse",
 			}
 		})
+
 		Context("When GitHub's rate limit has been exceeded", func() {
 			BeforeEach(func() {
 				rateLimitResponse := `{
@@ -188,6 +189,22 @@ var _ = Describe("GitHub Client", func() {
 				Expect(err.Error()).To(ContainSubstring("API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)"))
 			})
 		})
+
+		Context("When GitHub responds successfully", func() {
+			BeforeEach(func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases/tags/some-tag"),
+						ghttp.RespondWith(200, "{}"),
+					),
+				)
+			})
+
+			It("Returns without error", func() {
+				_, err := client.GetReleaseByTag("some-tag")
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+		})
 	})
 
 	Describe("GetRef", func() {
@@ -197,6 +214,7 @@ var _ = Describe("GitHub Client", func() {
 				Repository: "concourse",
 			}
 		})
+
 		Context("When GitHub's rate limit has been exceeded", func() {
 			BeforeEach(func() {
 				rateLimitResponse := `{
@@ -222,6 +240,22 @@ var _ = Describe("GitHub Client", func() {
 				_, err := client.GetRef("some-tag")
 				Expect(err).ToNot(BeNil())
 				Expect(err.Error()).To(ContainSubstring("API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)"))
+			})
+		})
+
+		Context("When GitHub responds successfully", func() {
+			BeforeEach(func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/refs/tags/some-tag"),
+						ghttp.RespondWith(200, "{}"),
+					),
+				)
+			})
+
+			It("Returns without error", func() {
+				_, err := client.GetRef("some-tag")
+				Ω(err).ShouldNot(HaveOccurred())
 			})
 		})
 	})
