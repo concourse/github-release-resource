@@ -2,7 +2,7 @@ package resource
 
 import "github.com/google/go-github/github"
 
-func metadataFromRelease(release *github.RepositoryRelease) []MetadataPair {
+func metadataFromRelease(release *github.RepositoryRelease, commitSHA string) []MetadataPair {
 	metadata := []MetadataPair{}
 
 	if release.Name != nil {
@@ -37,6 +37,13 @@ func metadataFromRelease(release *github.RepositoryRelease) []MetadataPair {
 		metadata = append(metadata, MetadataPair{
 			Name:  "tag",
 			Value: *release.TagName,
+		})
+	}
+
+	if commitSHA != "" {
+		metadata = append(metadata, MetadataPair{
+			Name:  "commit_sha",
+			Value: commitSHA,
 		})
 	}
 

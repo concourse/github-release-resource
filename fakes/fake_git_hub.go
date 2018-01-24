@@ -109,6 +109,15 @@ type FakeGitHub struct {
 		result1 *url.URL
 		result2 error
 	}
+	GetRefStub        func(tag string) (*github.Reference, error)
+	getRefMutex       sync.RWMutex
+	getRefArgsForCall []struct {
+		tag string
+	}
+	getRefReturns struct {
+		result1 *github.Reference
+		result2 error
+	}
 }
 
 func (fake *FakeGitHub) ListReleases() ([]*github.RepositoryRelease, error) {
@@ -462,6 +471,39 @@ func (fake *FakeGitHub) GetZipballLinkReturns(result1 *url.URL, result2 error) {
 	fake.GetZipballLinkStub = nil
 	fake.getZipballLinkReturns = struct {
 		result1 *url.URL
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitHub) GetRef(tag string) (*github.Reference, error) {
+	fake.getRefMutex.Lock()
+	fake.getRefArgsForCall = append(fake.getRefArgsForCall, struct {
+		tag string
+	}{tag})
+	fake.getRefMutex.Unlock()
+	if fake.GetRefStub != nil {
+		return fake.GetRefStub(tag)
+	} else {
+		return fake.getRefReturns.result1, fake.getRefReturns.result2
+	}
+}
+
+func (fake *FakeGitHub) GetRefCallCount() int {
+	fake.getRefMutex.RLock()
+	defer fake.getRefMutex.RUnlock()
+	return len(fake.getRefArgsForCall)
+}
+
+func (fake *FakeGitHub) GetRefArgsForCall(i int) string {
+	fake.getRefMutex.RLock()
+	defer fake.getRefMutex.RUnlock()
+	return fake.getRefArgsForCall[i].tag
+}
+
+func (fake *FakeGitHub) GetRefReturns(result1 *github.Reference, result2 error) {
+	fake.GetRefStub = nil
+	fake.getRefReturns = struct {
+		result1 *github.Reference
 		result2 error
 	}{result1, result2}
 }
