@@ -468,6 +468,10 @@ var _ = Describe("In Command", func() {
 				contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("0.35.0"))
+
+				contents, err = ioutil.ReadFile(path.Join(destDir, "commit_sha"))
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(string(contents)).Should(Equal("f28085a4a8f744da83411f5e09fd7b1709149eee"))
 			})
 		})
 
@@ -532,6 +536,7 @@ var _ = Describe("In Command", func() {
 			It("does not create the tag and version files", func() {
 				Ω(path.Join(destDir, "tag")).ShouldNot(BeAnExistingFile())
 				Ω(path.Join(destDir, "version")).ShouldNot(BeAnExistingFile())
+				Ω(path.Join(destDir, "commit_sha")).ShouldNot(BeAnExistingFile())
 			})
 		})
 	})
