@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/onsi/gomega/ghttp"
+	"github.com/google/go-github/github"
 )
 
 var _ = Describe("GitHub Client", func() {
@@ -195,14 +196,20 @@ var _ = Describe("GitHub Client", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases/tags/some-tag"),
-						ghttp.RespondWith(200, "{}"),
+						ghttp.RespondWith(200, `{ "id": 1 }`),
 					),
 				)
 			})
 
-			It("Returns without error", func() {
-				_, err := client.GetReleaseByTag("some-tag")
+			It("Returns a populated github.RepositoryRelease", func() {
+				expectedRelease := &github.RepositoryRelease{
+					ID:         github.Int(1),
+				}
+
+				release, err := client.GetReleaseByTag("some-tag")
+
 				Ω(err).ShouldNot(HaveOccurred())
+				Expect(release).To(Equal(expectedRelease))
 			})
 		})
 	})
@@ -248,14 +255,20 @@ var _ = Describe("GitHub Client", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/refs/tags/some-tag"),
-						ghttp.RespondWith(200, "{}"),
+						ghttp.RespondWith(200, `{ "ref": "refs/tags/some-tag" }`),
 					),
 				)
 			})
 
-			It("Returns without error", func() {
-				_, err := client.GetRef("some-tag")
+			It("Returns a populated github.Reference", func() {
+				expectedReference := &github.Reference{
+					Ref: github.String("refs/tags/some-tag"),
+				}
+
+				reference, err := client.GetRef("some-tag")
+
 				Ω(err).ShouldNot(HaveOccurred())
+				Expect(reference).To(Equal(expectedReference))
 			})
 		})
 	})
