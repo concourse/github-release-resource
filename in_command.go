@@ -199,10 +199,13 @@ func (c *InCommand) downloadFile(url, destPath string) error {
 
 func (c *InCommand) resolveTagToCommitSHA(tag string) (string, error) {
 	reference, err := c.github.GetRef(tag)
+	if err != nil {
+		return "", err
+	}
 
-	if err != nil && *reference.Object.Type != "commit" {
+	if *reference.Object.Type != "commit" {
 		fmt.Fprintln(c.writer, "could not resolve tag '%s' to commit: returned type is not 'commit' - only lightweight tags are supported")
-		return "", nil
+		return "", err
 	}
 
 	return *reference.Object.SHA, err
