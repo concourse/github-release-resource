@@ -79,6 +79,32 @@ var _ = Describe("Check Command", func() {
 		})
 	})
 
+	Context("when version_filter is specified", func() {
+		BeforeEach(func() {
+			returnedReleases = []*github.RepositoryRelease{
+				newRepositoryRelease(1, "v0.1.4"),
+				newRepositoryRelease(2, "0.4.0"),
+				newRepositoryRelease(3, "v0.1.3"),
+				newRepositoryRelease(4, "0.1.2"),
+			}
+		})
+		It("returns only version not matching the filter", func() {
+			command = resource.NewCheckCommand(githubClient)
+
+			response, err := command.Run(resource.CheckRequest{
+				Version: resource.Version{Tag: "0.1.2"},
+				Source:  resource.Source{VersionFilter: "< 0.2.0"},
+			})
+			Ω(err).ShouldNot(HaveOccurred())
+
+			Ω(response).Should(Equal([]resource.Version{
+				{Tag: "0.1.2"},
+				{Tag: "v0.1.3"},
+				{Tag: "v0.1.4"},
+			}))
+		})
+	})
+
 	Context("when there are prior versions", func() {
 		Context("when there are no releases", func() {
 			BeforeEach(func() {

@@ -97,7 +97,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		)
 	}
 
-	return reversedVersions, nil
+	return FilterVersions(reversedVersions, request.Source.VersionFilter)
 }
 
 type byVersion []*github.RepositoryRelease
