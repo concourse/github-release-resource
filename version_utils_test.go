@@ -12,15 +12,15 @@ var _ = Describe("VersionUtils", func() {
 		It("should filter list of versions by tag", func() {
 			inputVersions := []Version{{Tag: "0.1.1"}, {Tag: "0.2.1"}, {Tag: "0.3.0"}, {Tag: "0.3.1"}}
 			versions, err := FilterVersions(inputVersions, "< 0.3.0")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(versions).To(Equal([]Version{{Tag: "0.1.1"}, {Tag: "0.2.1"}}))
+			Ω(err).ToNot(HaveOccurred())
+			Ω(versions).To(Equal([]Version{{Tag: "0.1.1"}, {Tag: "0.2.1"}}))
 		})
 		Context("When filter is blank", func() {
 			It("should return the input versions", func() {
 				inputVersions := []Version{{Tag: "0.1.1"}, {Tag: "0.2.1"}, {Tag: "0.3.0"}, {Tag: "0.3.1"}}
 				versions, err := FilterVersions(inputVersions, "")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(versions).To(Equal(inputVersions))
+				Ω(err).ToNot(HaveOccurred())
+				Ω(versions).To(Equal(inputVersions))
 			})
 		})
 	})
@@ -29,8 +29,8 @@ var _ = Describe("VersionUtils", func() {
 		Describe("ParsePredicate", func() {
 			It("should parse a '<' filter", func() {
 				filter, err := ParsePredicate("< 3.1.1")
-				Expect(err).ToNot(HaveOccurred())
-				Expect(filter).To(Equal(VersionPredicate{Condition: "<", Version: "3.1.1"}))
+				Ω(err).ToNot(HaveOccurred())
+				Ω(filter).To(Equal(VersionPredicate{Condition: "<", Version: "3.1.1"}))
 			})
 		})
 	})
@@ -38,7 +38,7 @@ var _ = Describe("VersionUtils", func() {
 	Describe("Apply", func() {
 		It("should determine if the given versions bool value", func() {
 			predicate := VersionPredicate{Condition: "<", Version: "4.0.0"}
-			Expect(predicate.Apply(Version{Tag: "3.9.9"})).To(Equal(true))
+			Ω(predicate.Apply(Version{Tag: "3.9.9"})).To(Equal(true))
 		})
 	})
 })
