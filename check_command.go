@@ -53,6 +53,11 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		filteredReleases = append(filteredReleases, release)
 	}
 
+	filteredReleases, err = FilterByVersion(filteredReleases, request.Source.VersionFilter)
+	if err != nil {
+		return []Version{}, err
+	}
+
 	sort.Sort(byVersion(filteredReleases))
 
 	if len(filteredReleases) == 0 {
@@ -97,7 +102,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		)
 	}
 
-	return FilterVersions(reversedVersions, request.Source.VersionFilter)
+	return reversedVersions, nil
 }
 
 type byVersion []*github.RepositoryRelease

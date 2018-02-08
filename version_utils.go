@@ -5,27 +5,28 @@ import (
 	"regexp"
 
 	"github.com/cppforlife/go-semi-semantic/version"
+	"github.com/google/go-github/github"
 )
 
-func FilterVersions(versions []Version, predicateString string) ([]Version, error) {
+func FilterByVersion(releases []*github.RepositoryRelease, predicateString string) ([]*github.RepositoryRelease, error) {
 	if predicateString == "" {
-		return versions, nil
+		return releases, nil
 	}
 
 	predicate, err := ParsePredicate(predicateString)
 	if err != nil {
-		return []Version{}, err
+		return []*github.RepositoryRelease{}, err
 	}
 
-	var filteredVersions []Version
+	var filteredReleases []*github.RepositoryRelease
 
-	for _, version := range versions {
-		if predicate.Apply(version) {
-			filteredVersions = append(filteredVersions, version)
+	for _, release := range releases {
+		if predicate.Apply(*release.TagName) {
+			filteredReleases = append(filteredReleases, release)
 		}
 	}
 
-	return filteredVersions, err
+	return filteredReleases, err
 }
 
 type VersionPredicate struct {
@@ -47,17 +48,17 @@ func ParsePredicate(filter string) (VersionPredicate, error) {
 	return VersionPredicate{Condition: matches[0][1], Version: matches[0][2]}, nil
 }
 
-func (p VersionPredicate) Apply(version Version) bool {
-	return lessThan(version, Version{Tag: p.Version})
+func (p VersionPredicate) Apply(version string) bool {
+	return lessThan(version, p.Version)
 }
 
-func lessThan(v1, v2 Version) bool {
-	first, err := version.NewVersionFromString(determineVersionFromTag(v1.Tag))
+func lessThan(v1, v2 string) bool {
+	first, err := version.NewVersionFromString(determineVersionFromTag(v1))
 	if err != nil {
 		return true
 	}
 
-	second, err := version.NewVersionFromString(determineVersionFromTag(v2.Tag))
+	second, err := version.NewVersionFromString(determineVersionFromTag(v2))
 	if err != nil {
 		return false
 	}

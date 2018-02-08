@@ -1,6 +1,7 @@
 package resource_test
 
 import (
+	"github.com/google/go-github/github"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -8,19 +9,34 @@ import (
 )
 
 var _ = Describe("VersionUtils", func() {
-	Describe("FilterVersion", func() {
-		It("should filter list of versions by tag", func() {
-			inputVersions := []Version{{Tag: "0.1.1"}, {Tag: "0.2.1"}, {Tag: "0.3.0"}, {Tag: "0.3.1"}}
-			versions, err := FilterVersions(inputVersions, "< 0.3.0")
-			Ω(err).ToNot(HaveOccurred())
-			Ω(versions).To(Equal([]Version{{Tag: "0.1.1"}, {Tag: "0.2.1"}}))
+	Describe("FilterByVersion", func() {
+		var inputReleases []*github.RepositoryRelease
+
+		BeforeEach(func() {
+			inputReleases = []*github.RepositoryRelease{
+				newRepositoryRelease(1, "0.1.1"),
+				newRepositoryRelease(1, "0.2.1"),
+				newRepositoryRelease(1, "0.3.0"),
+				newRepositoryRelease(1, "0.3.1"),
+			}
 		})
+
+		It("should filter releases by versions", func() {
+			filteredReleases, err := FilterByVersion(inputReleases, "< 0.3.0")
+			Ω(err).ToNot(HaveOccurred())
+
+			expectedReleases := []*github.RepositoryRelease{
+				newRepositoryRelease(1, "0.1.1"),
+				newRepositoryRelease(1, "0.2.1"),
+			}
+			Ω(filteredReleases).To(Equal(expectedReleases))
+		})
+
 		Context("When filter is blank", func() {
 			It("should return the input versions", func() {
-				inputVersions := []Version{{Tag: "0.1.1"}, {Tag: "0.2.1"}, {Tag: "0.3.0"}, {Tag: "0.3.1"}}
-				versions, err := FilterVersions(inputVersions, "")
+				filteredReleases, err := FilterByVersion(inputReleases, "")
 				Ω(err).ToNot(HaveOccurred())
-				Ω(versions).To(Equal(inputVersions))
+				Ω(filteredReleases).To(Equal(inputReleases))
 			})
 		})
 	})
@@ -36,9 +52,14 @@ var _ = Describe("VersionUtils", func() {
 	})
 
 	Describe("Apply", func() {
-		It("should determine if the given versions bool value", func() {
+		It("should return true for 3.9.9 < 4.0.0", func() {
 			predicate := VersionPredicate{Condition: "<", Version: "4.0.0"}
-			Ω(predicate.Apply(Version{Tag: "3.9.9"})).To(Equal(true))
+			Ω(predicate.Apply("3.9.9")).To(Equal(true))
+		})
+
+		It("should return true for v3.9.9 < 4.0.0", func() {
+			predicate := VersionPredicate{Condition: "<", Version: "4.0.0"}
+			Ω(predicate.Apply("v3.9.9")).To(Equal(true))
 		})
 	})
 })
