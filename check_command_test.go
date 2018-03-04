@@ -93,6 +93,34 @@ var _ = Describe("Check Command", func() {
 		})
 
 		Context("when there are releases", func() {
+			Context("and there is a custom tag filter", func() {
+				BeforeEach(func() {
+					returnedReleases = []*github.RepositoryRelease{
+						newRepositoryRelease(1, "package-0.1.4"),
+						newRepositoryRelease(2, "package-0.4.0"),
+						newRepositoryRelease(3, "package-0.1.3"),
+						newRepositoryRelease(4, "package-0.1.2"),
+					}
+				})
+
+				It("returns all of the versions that are newer", func() {
+					command := resource.NewCheckCommand(githubClient)
+
+					response, err := command.Run(resource.CheckRequest{
+						Version: resource.Version{
+							Tag: "package-0.1.3",
+						},
+					})
+					Ω(err).ShouldNot(HaveOccurred())
+
+					Ω(response).Should(Equal([]resource.Version{
+						{Tag: "package-0.1.3"},
+						{Tag: "package-0.1.4"},
+						{Tag: "package-0.4.0"},
+					}))
+				})
+			})
+
 			Context("and the releases do not contain a draft release", func() {
 				BeforeEach(func() {
 					returnedReleases = []*github.RepositoryRelease{

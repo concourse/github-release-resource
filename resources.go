@@ -14,6 +14,8 @@ type Source struct {
 	PreRelease       bool   `json:"pre_release"`
 	Release          bool   `json:"release"`
 	Insecure         bool   `json:"insecure"`
+
+	TagFilter string `json:"tag_filter"`
 }
 
 type CheckRequest struct {
