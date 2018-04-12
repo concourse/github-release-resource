@@ -55,7 +55,11 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			return InResponse{}, err
 		}
 
-		version := determineVersionFromTag(*foundRelease.TagName)
+		versionParser, err := newVersionParser(request.Source.TagFilter)
+		if err != nil {
+			return InResponse{}, err
+		}
+		version := versionParser.parse(*foundRelease.TagName)
 		versionPath := filepath.Join(destDir, "version")
 		err = ioutil.WriteFile(versionPath, []byte(version), 0644)
 		if err != nil {

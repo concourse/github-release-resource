@@ -42,6 +42,11 @@ Fetches and creates versioned GitHub resources.
   will be detected and published. Note that releases must have semver compliant
   tags to be detected, even if they're drafts.
 
+* `tag_filter`: *Optional. If set, override default tag filter regular
+  expression of `v?([^v].*)`. If the filter includes a capture group, the capture
+  group is used as the release version; otherwise, the entire matching substring
+  is used as the version.
+
 ### Example
 
 ``` yaml
@@ -72,6 +77,17 @@ To get a specific version of a release:
 ``` yaml
 - get: gh-release
   version: { tag: 'v0.0.1' }
+```
+
+To set a custom tag filter:
+
+```yaml
+- name: gh-release
+  type: github-release
+  source:
+    owner: concourse
+    repository: concourse
+    tag_filter: "version-(.*)"
 ```
 
 ## Behavior

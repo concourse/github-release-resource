@@ -31,6 +31,11 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 
 	var filteredReleases []*github.RepositoryRelease
 
+	versionParser, err := newVersionParser(request.Source.TagFilter)
+	if err != nil {
+		return []Version{}, err
+	}
+
 	for _, release := range releases {
 		if request.Source.Drafts != *release.Draft {
 			continue
@@ -46,14 +51,26 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		if release.TagName == nil {
 			continue
 		}
-		if _, err := version.NewVersionFromString(determineVersionFromTag(*release.TagName)); err != nil {
+		if _, err := version.NewVersionFromString(versionParser.parse(*release.TagName)); err != nil {
 			continue
 		}
 
 		filteredReleases = append(filteredReleases, release)
 	}
 
-	sort.Sort(byVersion(filteredReleases))
+	sort.Slice(filteredReleases, func(i, j int) bool {
+		first, err := version.NewVersionFromString(versionParser.parse(*filteredReleases[i].TagName))
+		if err != nil {
+			return true
+		}
+
+		second, err := version.NewVersionFromString(versionParser.parse(*filteredReleases[j].TagName))
+		if err != nil {
+			return false
+		}
+
+		return first.IsLt(second)
+	})
 
 	if len(filteredReleases) == 0 {
 		return []Version{}, nil
@@ -98,28 +115,4 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	}
 
 	return reversedVersions, nil
-}
-
-type byVersion []*github.RepositoryRelease
-
-func (r byVersion) Len() int {
-	return len(r)
-}
-
-func (r byVersion) Swap(i, j int) {
-	r[i], r[j] = r[j], r[i]
-}
-
-func (r byVersion) Less(i, j int) bool {
-	first, err := version.NewVersionFromString(determineVersionFromTag(*r[i].TagName))
-	if err != nil {
-		return true
-	}
-
-	second, err := version.NewVersionFromString(determineVersionFromTag(*r[j].TagName))
-	if err != nil {
-		return false
-	}
-
-	return first.IsLt(second)
 }

@@ -180,6 +180,35 @@ var _ = Describe("In Command", func() {
 					Ω(string(contents)).Should(Equal("*markdown*"))
 				})
 
+				Context("when there is a custom tag filter", func() {
+					BeforeEach(func() {
+						inRequest.Source = resource.Source{
+							TagFilter: "package-(.*)",
+						}
+						githubClient.GetReleaseByTagReturns(buildRelease(1, "package-0.35.0", false), nil)
+						githubClient.GetRefReturns(buildTagRef("package-0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
+						inResponse, inErr = command.Run(destDir, inRequest)
+					})
+
+					It("succeeds", func() {
+						inResponse, inErr = command.Run(destDir, inRequest)
+
+						Expect(inErr).ToNot(HaveOccurred())
+					})
+
+					It("does create the body, tag and version files", func() {
+						inResponse, inErr = command.Run(destDir, inRequest)
+
+						contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
+						Ω(err).ShouldNot(HaveOccurred())
+						Ω(string(contents)).Should(Equal("package-0.35.0"))
+
+						contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
+						Ω(err).ShouldNot(HaveOccurred())
+						Ω(string(contents)).Should(Equal("0.35.0"))
+					})
+				})
+
 				Context("when include_source_tarball is true", func() {
 					var tarballUrl *url.URL
 
