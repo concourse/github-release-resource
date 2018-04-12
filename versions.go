@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-github/github"
 )
 
-var defaultTagFilter = "v?([^v].*)"
+var defaultTagFilter = "^v?([^v].*)"
 
 type versionParser struct {
 	re *regexp.Regexp
