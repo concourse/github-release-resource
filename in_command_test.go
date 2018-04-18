@@ -464,9 +464,9 @@ var _ = Describe("In Command", func() {
 		Context("which has a tag", func() {
 			BeforeEach(func() {
 				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", true), nil)
-				githubClient.GetRefReturns(buildTagRef("v0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
 
 				inRequest.Version = &resource.Version{ID: "1"}
+				inRequest.Source.Drafts = true
 				inResponse, inErr = command.Run(destDir, inRequest)
 			})
 
@@ -484,7 +484,6 @@ var _ = Describe("In Command", func() {
 					resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
 					resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
 					resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
-					resource.MetadataPair{Name: "commit_sha", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
 					resource.MetadataPair{Name: "draft", Value: "true"},
 				))
 			})
@@ -497,10 +496,6 @@ var _ = Describe("In Command", func() {
 				contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("0.35.0"))
-
-				contents, err = ioutil.ReadFile(path.Join(destDir, "commit_sha"))
-				Ω(err).ShouldNot(HaveOccurred())
-				Ω(string(contents)).Should(Equal("f28085a4a8f744da83411f5e09fd7b1709149eee"))
 			})
 		})
 
@@ -509,6 +504,7 @@ var _ = Describe("In Command", func() {
 				githubClient.GetReleaseReturns(buildRelease(1, "", true), nil)
 
 				inRequest.Version = &resource.Version{ID: "1"}
+				inRequest.Source.Drafts = true
 				inResponse, inErr = command.Run(destDir, inRequest)
 			})
 
@@ -542,6 +538,7 @@ var _ = Describe("In Command", func() {
 				githubClient.GetReleaseReturns(buildNilTagRelease(1), nil)
 
 				inRequest.Version = &resource.Version{ID: "1"}
+				inRequest.Source.Drafts = true
 				inResponse, inErr = command.Run(destDir, inRequest)
 			})
 
