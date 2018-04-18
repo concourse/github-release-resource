@@ -66,16 +66,18 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			return InResponse{}, err
 		}
 
-		commitPath := filepath.Join(destDir, "commit_sha")
-		commitSHA, err = c.resolveTagToCommitSHA(*foundRelease.TagName)
-		if err != nil {
-			return InResponse{}, err
-		}
-
-		if commitSHA != "" {
-			err = ioutil.WriteFile(commitPath, []byte(commitSHA), 0644)
+		if !request.Source.Drafts {
+			commitPath := filepath.Join(destDir, "commit_sha")
+			commitSHA, err = c.resolveTagToCommitSHA(*foundRelease.TagName)
 			if err != nil {
 				return InResponse{}, err
+			}
+
+			if commitSHA != "" {
+				err = ioutil.WriteFile(commitPath, []byte(commitSHA), 0644)
+				if err != nil {
+					return InResponse{}, err
+				}
 			}
 		}
 
