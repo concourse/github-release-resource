@@ -66,7 +66,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			return InResponse{}, err
 		}
 
-		if !request.Source.Drafts {
+		if foundRelease.Draft != nil && !*foundRelease.Draft {
 			commitPath := filepath.Join(destDir, "commit_sha")
 			commitSHA, err = c.resolveTagToCommitSHA(*foundRelease.TagName)
 			if err != nil {
