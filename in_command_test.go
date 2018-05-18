@@ -466,7 +466,6 @@ var _ = Describe("In Command", func() {
 				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", true), nil)
 
 				inRequest.Version = &resource.Version{ID: "1"}
-				inRequest.Source.Drafts = true
 				inResponse, inErr = command.Run(destDir, inRequest)
 			})
 
@@ -504,7 +503,6 @@ var _ = Describe("In Command", func() {
 				githubClient.GetReleaseReturns(buildRelease(1, "", true), nil)
 
 				inRequest.Version = &resource.Version{ID: "1"}
-				inRequest.Source.Drafts = true
 				inResponse, inErr = command.Run(destDir, inRequest)
 			})
 
@@ -538,7 +536,6 @@ var _ = Describe("In Command", func() {
 				githubClient.GetReleaseReturns(buildNilTagRelease(1), nil)
 
 				inRequest.Version = &resource.Version{ID: "1"}
-				inRequest.Source.Drafts = true
 				inResponse, inErr = command.Run(destDir, inRequest)
 			})
 
