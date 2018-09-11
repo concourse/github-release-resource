@@ -210,7 +210,7 @@ func (c *InCommand) resolveTagToCommitSHA(tag string) (string, error) {
 	}
 
 	if *reference.Object.Type != "commit" {
-		fmt.Fprintln(c.writer, "could not resolve tag '%s' to commit: returned type is not 'commit' - only lightweight tags are supported")
+		fmt.Fprintf(c.writer, "could not resolve tag '%s' to commit: returned type is not 'commit' - only lightweight tags are supported\n")
 		return "", err
 	}
 
