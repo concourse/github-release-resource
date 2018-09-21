@@ -49,32 +49,58 @@ var _ = Describe("Check Command", func() {
 				}
 			})
 
-			It("returns no versions", func() {
-				versions, err := command.Run(resource.CheckRequest{})
-				Ω(err).ShouldNot(HaveOccurred())
-				Ω(versions).Should(BeEmpty())
+			Context("and releases are ordered by version", func() {
+				It("returns no versions", func() {
+					versions, err := command.Run(resource.CheckRequest{})
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(versions).Should(BeEmpty())
+				})
+			})
+
+			Context("and releases are ordered by time", func() {
+				It("returns no versions", func() {
+					versions, err := command.Run(resource.CheckRequest{
+						Source: resource.Source{ OrderBy: "time" },
+					})
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(versions).Should(BeEmpty())
+				})
 			})
 		})
 
 		Context("when there are releases", func() {
 			BeforeEach(func() {
 				returnedReleases = []*github.RepositoryRelease{
-					newRepositoryRelease(1, "v0.4.0"),
-					newRepositoryRelease(2, "0.1.3"),
-					newRepositoryRelease(3, "v0.1.2"),
+					newRepositoryReleaseWithCreatedTime(1, "v0.4.0", 2),
+					newRepositoryReleaseWithCreatedTime(2, "v0.1.3", 3),
+					newRepositoryReleaseWithCreatedTime(3, "v0.1.2", 1),
 				}
 			})
 
-			It("outputs the most recent version only", func() {
-				command := resource.NewCheckCommand(githubClient)
+			Context("and releases are ordered by version", func() {
+				It("outputs the most recent version only", func() {
+					command := resource.NewCheckCommand(githubClient)
 
-				response, err := command.Run(resource.CheckRequest{})
-				Ω(err).ShouldNot(HaveOccurred())
+					response, err := command.Run(resource.CheckRequest{})
+					Ω(err).ShouldNot(HaveOccurred())
 
-				Ω(response).Should(HaveLen(1))
-				Ω(response[0]).Should(Equal(resource.Version{
-					Tag: "v0.4.0",
-				}))
+					Ω(response).Should(HaveLen(1))
+					Ω(response[0]).Should(Equal(newVersionWithTimestamp(1, "v0.4.0", 2)))
+				})
+			})
+
+			Context("and releases are ordered by time", func() {
+				It("outputs the most recent time only", func() {
+					command := resource.NewCheckCommand(githubClient)
+
+					response, err := command.Run(resource.CheckRequest{
+						Source: resource.Source{ OrderBy: "time" },
+					})
+					Ω(err).ShouldNot(HaveOccurred())
+
+					Ω(response).Should(HaveLen(1))
+					Ω(response[0]).Should(Equal(newVersionWithTimestamp(2, "v0.1.3", 3)))
+				})
 			})
 		})
 	})
@@ -114,9 +140,9 @@ var _ = Describe("Check Command", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 
 					Ω(response).Should(Equal([]resource.Version{
-						{Tag: "package-0.1.3"},
-						{Tag: "package-0.1.4"},
-						{Tag: "package-0.4.0"},
+						{ID: "3", Tag: "package-0.1.3"},
+						{ID: "1", Tag: "package-0.1.4"},
+						{ID: "2", Tag: "package-0.4.0"},
 					}))
 				})
 			})
@@ -131,7 +157,7 @@ var _ = Describe("Check Command", func() {
 					}
 				})
 
-				It("returns an empty list if the lastet version has been checked", func() {
+				It("returns the current version if it is also the latest", func() {
 					command := resource.NewCheckCommand(githubClient)
 
 					response, err := command.Run(resource.CheckRequest{
@@ -141,7 +167,9 @@ var _ = Describe("Check Command", func() {
 					})
 					Ω(err).ShouldNot(HaveOccurred())
 
-					Ω(response).Should(BeEmpty())
+					Ω(response).Should(Equal([]resource.Version{
+						{ID: "2", Tag: "0.4.0"},
+					}))
 				})
 
 				It("returns all of the versions that are newer", func() {
@@ -155,9 +183,25 @@ var _ = Describe("Check Command", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 
 					Ω(response).Should(Equal([]resource.Version{
-						{Tag: "v0.1.3"},
-						{Tag: "v0.1.4"},
-						{Tag: "0.4.0"},
+						{ID: "3", Tag: "v0.1.3"},
+						{ID: "1", Tag: "v0.1.4"},
+						{ID: "2", Tag: "0.4.0"},
+					}))
+				})
+
+				It("returns all newer versions even when current version not found", func() {
+					command := resource.NewCheckCommand(githubClient)
+
+					response, err := command.Run(resource.CheckRequest{
+						Version: resource.Version{
+							Tag: "v0.1.4-beta",
+						},
+					})
+					Ω(err).ShouldNot(HaveOccurred())
+
+					Ω(response).Should(Equal([]resource.Version{
+						{ID: "1", Tag: "v0.1.4"},
+						{ID: "2", Tag: "0.4.0"},
 					}))
 				})
 
@@ -172,7 +216,7 @@ var _ = Describe("Check Command", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 
 					Ω(response).Should(Equal([]resource.Version{
-						{Tag: "0.4.0"},
+						{ID: "2", Tag: "0.4.0"},
 					}))
 				})
 
@@ -193,10 +237,10 @@ var _ = Describe("Check Command", func() {
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{Tag: "v0.1.3"},
-							{Tag: "v0.1.4"},
-							{Tag: "0.4.0"},
-							{Tag: "v1"},
+							{ID: "3", Tag: "v0.1.3"},
+							{ID: "1", Tag: "v0.1.4"},
+							{ID: "2", Tag: "0.4.0"},
+							{ID: "5", Tag: "v1"},
 						}))
 					})
 				})
@@ -222,8 +266,8 @@ var _ = Describe("Check Command", func() {
 					Ω(err).ShouldNot(HaveOccurred())
 
 					Ω(response).Should(Equal([]resource.Version{
-						{Tag: "v0.1.3"},
-						{Tag: "0.4.0"},
+						{ID: "3", Tag: "v0.1.3"},
+						{ID: "2", Tag: "0.4.0"},
 					}))
 				})
 			})
@@ -234,9 +278,9 @@ var _ = Describe("Check Command", func() {
 						returnedReleases = []*github.RepositoryRelease{
 							newDraftRepositoryRelease(1, "v0.1.4"),
 							newRepositoryRelease(2, "0.4.0"),
-							newPreReleaseRepositoryRelease(1, "v0.4.1-rc.10"),
-							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
-							newPreReleaseRepositoryRelease(3, "v0.4.1-rc.8"),
+							newPreReleaseRepositoryRelease(3, "v0.4.1-rc.10"),
+							newPreReleaseRepositoryRelease(4, "0.4.1-rc.9"),
+							newPreReleaseRepositoryRelease(5, "v0.4.1-rc.8"),
 						}
 
 					})
@@ -245,14 +289,14 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "2"},
+							Version: resource.Version{ID: "3", Tag: "0.4.1-rc.9"},
 							Source:  resource.Source{Drafts: false, PreRelease: true, Release: false},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{Tag: "0.4.1-rc.9"},
-							{Tag: "v0.4.1-rc.10"},
+							{ID: "4", Tag: "0.4.1-rc.9"},
+							{ID: "3", Tag: "v0.4.1-rc.10"},
 						}))
 					})
 
@@ -266,7 +310,7 @@ var _ = Describe("Check Command", func() {
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{Tag: "v0.4.1-rc.10"},
+							{ID: "3", Tag: "v0.4.1-rc.10"},
 						}))
 					})
 				})
@@ -281,9 +325,9 @@ var _ = Describe("Check Command", func() {
 							newRepositoryRelease(1, "0.3.9"),
 							newRepositoryRelease(2, "0.4.0"),
 							newRepositoryRelease(3, "v0.4.2"),
-							newPreReleaseRepositoryRelease(1, "v0.4.1-rc.10"),
-							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
-							newPreReleaseRepositoryRelease(3, "v0.4.2-rc.1"),
+							newPreReleaseRepositoryRelease(4, "v0.4.1-rc.10"),
+							newPreReleaseRepositoryRelease(5, "0.4.1-rc.9"),
+							newPreReleaseRepositoryRelease(6, "v0.4.2-rc.1"),
 						}
 
 					})
@@ -298,11 +342,11 @@ var _ = Describe("Check Command", func() {
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{Tag: "0.4.0"},
-							{Tag: "0.4.1-rc.9"},
-							{Tag: "v0.4.1-rc.10"},
-							{Tag: "v0.4.2-rc.1"},
-							{Tag: "v0.4.2"},
+							{ID: "2", Tag: "0.4.0"},
+							{ID: "5", Tag: "0.4.1-rc.9"},
+							{ID: "4", Tag: "v0.4.1-rc.10"},
+							{ID: "6", Tag: "v0.4.2-rc.1"},
+							{ID: "3", Tag: "v0.4.2"},
 						}))
 					})
 
@@ -316,7 +360,7 @@ var _ = Describe("Check Command", func() {
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{Tag: "v0.4.2"},
+							{ID: "3", Tag: "v0.4.2"},
 						}))
 					})
 				})
@@ -328,15 +372,15 @@ var _ = Describe("Check Command", func() {
 							newRepositoryRelease(1, "0.3.9"),
 							newRepositoryRelease(2, "0.4.0"),
 							newRepositoryRelease(3, "v0.4.2"),
-							newPreReleaseRepositoryRelease(1, "v0.4.1-rc.10"),
-							newPreReleaseRepositoryRelease(2, "0.4.1-rc.9"),
-							newPreReleaseRepositoryRelease(3, "v0.4.2-rc.1"),
-							newPreReleaseRepositoryRelease(4, "v0.4.3-rc.1"),
+							newPreReleaseRepositoryRelease(4, "v0.4.1-rc.10"),
+							newPreReleaseRepositoryRelease(5, "0.4.1-rc.9"),
+							newPreReleaseRepositoryRelease(6, "v0.4.2-rc.1"),
+							newPreReleaseRepositoryRelease(7, "v0.4.3-rc.1"),
 						}
 
 					})
 
-					It("returns all of the versions that are newer, and are release and prerealse", func() {
+					It("returns all of the versions that are newer, and are release and prerelease", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
@@ -346,12 +390,12 @@ var _ = Describe("Check Command", func() {
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{Tag: "0.4.0"},
-							{Tag: "0.4.1-rc.9"},
-							{Tag: "v0.4.1-rc.10"},
-							{Tag: "v0.4.2-rc.1"},
-							{Tag: "v0.4.2"},
-							{Tag: "v0.4.3-rc.1"},
+							{ID: "2", Tag: "0.4.0"},
+							{ID: "5", Tag: "0.4.1-rc.9"},
+							{ID: "4", Tag: "v0.4.1-rc.10"},
+							{ID: "6", Tag: "v0.4.2-rc.1"},
+							{ID: "3", Tag: "v0.4.2"},
+							{ID: "7", Tag: "v0.4.3-rc.1"},
 						}))
 					})
 
@@ -365,7 +409,7 @@ var _ = Describe("Check Command", func() {
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{Tag: "v0.4.3-rc.1"},
+							{ID: "7", Tag: "v0.4.3-rc.1"},
 						}))
 					})
 				})
@@ -387,28 +431,29 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "2"},
+							Version: resource.Version{Tag: "v0.1.3"},
 							Source:  resource.Source{Drafts: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{ID: "2"},
-							{ID: "1"},
+							{ID: "2", Tag: "v0.1.3"},
+							{ID: "1", Tag: "v0.1.4"},
 						}))
 					})
 
-					It("returns the latest draft version if the current version is not found", func() {
+					It("returns all newer draft versions even if current version is not found", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ID: "5"},
+							Version: resource.Version{Tag: "v0.1.2"},
 							Source:  resource.Source{Drafts: true},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{ID: "1"},
+							{ID: "2", Tag: "v0.1.3"},
+							{ID: "1", Tag: "v0.1.4"},
 						}))
 					})
 				})
@@ -454,8 +499,131 @@ var _ = Describe("Check Command", func() {
 						Ω(err).ShouldNot(HaveOccurred())
 
 						Ω(response).Should(Equal([]resource.Version{
-							{ID: "1"},
+							{ID: "1", Tag: "v0.1.4"},
 						}))
+					})
+				})
+			})
+
+			Context("ordered by time", func() {
+				Context("with created time only", func() {
+					BeforeEach(func() {
+						returnedReleases = []*github.RepositoryRelease{
+							newRepositoryReleaseWithCreatedTime(1, "v0.1.1", 1),
+							newRepositoryReleaseWithCreatedTime(2, "v0.2.1", 2),
+							newRepositoryReleaseWithCreatedTime(3, "v0.1.3", 3),
+							newRepositoryReleaseWithCreatedTime(4, "v0.1.4", 4),
+						}
+					})
+					It("returns releases with newer created time", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: newVersionWithTimestamp(3, "v0.1.3", 3),
+							Source:  resource.Source{ OrderBy: "time" },
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							newVersionWithTimestamp(3, "v0.1.3", 3),
+							newVersionWithTimestamp(4, "v0.1.4", 4),
+						}))
+					})
+				})
+				Context("with published time only", func() {
+					BeforeEach(func() {
+						returnedReleases = []*github.RepositoryRelease{
+							newRepositoryReleaseWithPublishedTime(1, "v0.1.1", 1),
+							newRepositoryReleaseWithPublishedTime(2, "v0.2.1", 2),
+							newRepositoryReleaseWithPublishedTime(3, "v0.1.3", 3),
+							newRepositoryReleaseWithPublishedTime(4, "v0.1.4", 4),
+						}
+					})
+					It("returns releases with newer published time", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: newVersionWithTimestamp(3, "v0.1.3", 3),
+							Source:  resource.Source{ OrderBy: "time" },
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							newVersionWithTimestamp(3, "v0.1.3", 3),
+							newVersionWithTimestamp(4, "v0.1.4", 4),
+						}))
+					})
+				})
+				Context("with created and published time", func() {
+					BeforeEach(func() {
+						returnedReleases = []*github.RepositoryRelease{
+							newRepositoryReleaseWithCreatedAndPublishedTime(1, "v0.1.1", 1, 5),
+							newRepositoryReleaseWithCreatedAndPublishedTime(2, "v0.2.1", 2, 4),
+							newRepositoryReleaseWithCreatedAndPublishedTime(3, "v0.1.3", 4, 2),
+							newRepositoryReleaseWithCreatedAndPublishedTime(4, "v0.1.4", 5, 1),
+						}
+					})
+					It("returns releases with newer published time", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: newVersionWithTimestamp(2, "v0.2.1", 4),
+							Source:  resource.Source{ OrderBy: "time" },
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							newVersionWithTimestamp(2, "v0.2.1", 4),
+							newVersionWithTimestamp(1, "v0.1.1", 5),
+						}))
+					})
+					It("returns releases with newer published time even when current version not found", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: newVersionWithTimestamp(9, "v1.0.0", 3),
+							Source:  resource.Source{ OrderBy: "time" },
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							newVersionWithTimestamp(2, "v0.2.1", 4),
+							newVersionWithTimestamp(1, "v0.1.1", 5),
+						}))
+					})
+					It("returns release with latest published time when request has no timestamp", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: resource.Version{ ID: "2", Tag: "v0.2.1" },
+							Source:  resource.Source{ OrderBy: "time" },
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(Equal([]resource.Version{
+							newVersionWithTimestamp(1, "v0.1.1", 5),
+						}))
+					})
+
+				})
+				Context("without time", func() {
+					BeforeEach(func() {
+						returnedReleases = []*github.RepositoryRelease{
+							newRepositoryRelease(1, "v0.1.1"),
+							newRepositoryRelease(2, "v0.2.1"),
+							newRepositoryRelease(3, "v0.1.3"),
+							newRepositoryRelease(4, "v0.1.4"),
+						}
+					})
+					It("returns empty list", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Version: newVersionWithTimestamp(2, "v0.2.1", 3),
+							Source:  resource.Source{ OrderBy: "time" },
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+						Ω(response).Should(Equal([]resource.Version{}))
 					})
 				})
 			})

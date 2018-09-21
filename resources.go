@@ -1,5 +1,9 @@
 package resource
 
+import (
+    "time"
+)
+
 type Source struct {
 	Owner      string `json:"owner"`
 	Repository string `json:"repository"`
@@ -15,7 +19,8 @@ type Source struct {
 	Release          bool   `json:"release"`
 	Insecure         bool   `json:"insecure"`
 
-	TagFilter string `json:"tag_filter"`
+	TagFilter       string  `json:"tag_filter"`
+	OrderBy         string  `json:"order_by"`
 }
 
 type CheckRequest struct {
@@ -80,7 +85,8 @@ type OutResponse struct {
 
 type Version struct {
 	Tag string `json:"tag,omitempty"`
-	ID  string `json:"id,omitempty"`
+	ID  string `json:"id"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 type MetadataPair struct {

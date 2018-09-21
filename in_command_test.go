@@ -101,7 +101,7 @@ var _ = Describe("In Command", func() {
 	Context("when there is a tagged release", func() {
 		Context("when a present version is specified", func() {
 			BeforeEach(func() {
-				githubClient.GetReleaseByTagReturns(buildRelease(1, "v0.35.0", false), nil)
+				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", false), nil)
 				githubClient.GetRefReturns(buildTagRef("v0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
 
 				githubClient.ListReleaseAssetsReturns([]*github.ReleaseAsset{
@@ -111,6 +111,7 @@ var _ = Describe("In Command", func() {
 				}, nil)
 
 				inRequest.Version = &resource.Version{
+					ID: "1",
 					Tag: "v0.35.0",
 				}
 			})
@@ -131,7 +132,7 @@ var _ = Describe("In Command", func() {
 				It("returns the fetched version", func() {
 					inResponse, inErr = command.Run(destDir, inRequest)
 
-					Ω(inResponse.Version).Should(Equal(resource.Version{Tag: "v0.35.0"}))
+					Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1", Tag: "v0.35.0"}))
 				})
 
 				It("has some sweet metadata", func() {
@@ -146,10 +147,10 @@ var _ = Describe("In Command", func() {
 					))
 				})
 
-				It("calls #GetReleastByTag with the correct arguments", func() {
+				It("calls #GetReleast with the correct arguments", func() {
 					command.Run(destDir, inRequest)
 
-					Ω(githubClient.GetReleaseByTagArgsForCall(0)).Should(Equal("v0.35.0"))
+					Ω(githubClient.GetReleaseArgsForCall(0)).Should(Equal(1))
 				})
 
 				It("downloads only the files that match the globs", func() {
@@ -185,7 +186,7 @@ var _ = Describe("In Command", func() {
 						inRequest.Source = resource.Source{
 							TagFilter: "package-(.*)",
 						}
-						githubClient.GetReleaseByTagReturns(buildRelease(1, "package-0.35.0", false), nil)
+						githubClient.GetReleaseReturns(buildRelease(1, "package-0.35.0", false), nil)
 						githubClient.GetRefReturns(buildTagRef("package-0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
 						inResponse, inErr = command.Run(destDir, inRequest)
 					})
@@ -381,7 +382,7 @@ var _ = Describe("In Command", func() {
 				})
 
 				It("returns the fetched version", func() {
-					Ω(inResponse.Version).Should(Equal(resource.Version{Tag: "v0.35.0"}))
+					Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1", Tag: "v0.35.0"}))
 				})
 
 				It("has some sweet metadata", func() {
@@ -429,7 +430,7 @@ var _ = Describe("In Command", func() {
 
 	Context("when no tagged release is present", func() {
 		BeforeEach(func() {
-			githubClient.GetReleaseByTagReturns(nil, nil)
+			githubClient.GetReleaseReturns(nil, nil)
 
 			inRequest.Version = &resource.Version{
 				Tag: "v0.40.0",
@@ -447,7 +448,7 @@ var _ = Describe("In Command", func() {
 		disaster := errors.New("nope")
 
 		BeforeEach(func() {
-			githubClient.GetReleaseByTagReturns(nil, disaster)
+			githubClient.GetReleaseReturns(nil, disaster)
 
 			inRequest.Version = &resource.Version{
 				Tag: "some-tag",
@@ -474,7 +475,7 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("returns the fetched version", func() {
-				Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1"}))
+				Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1", Tag: "v0.35.0"}))
 			})
 
 			It("has some sweet metadata", func() {

@@ -3,7 +3,7 @@ package resource
 import (
 	"regexp"
 	"strconv"
-
+	"time"
 	"github.com/google/go-github/github"
 )
 
@@ -32,10 +32,23 @@ func (vp *versionParser) parse(tag string) string {
 	return ""
 }
 
-func versionFromRelease(release *github.RepositoryRelease) Version {
-	if *release.Draft {
-		return Version{ID: strconv.Itoa(*release.ID)}
+func getTimestamp(release *github.RepositoryRelease) time.Time {
+	if release.PublishedAt != nil {
+		return release.PublishedAt.Time
+	} else if release.CreatedAt != nil {
+		return release.CreatedAt.Time
 	} else {
-		return Version{Tag: *release.TagName}
+		return time.Time{}
 	}
+}
+
+func versionFromRelease(release *github.RepositoryRelease) Version {
+	v := Version {
+		ID: strconv.Itoa(*release.ID),
+		Timestamp: getTimestamp(release),
+	}
+	if release.TagName != nil {
+		v.Tag = *release.TagName
+	}
+	return v
 }
