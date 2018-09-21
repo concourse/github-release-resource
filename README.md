@@ -47,6 +47,10 @@ Fetches and creates versioned GitHub resources.
   group is used as the release version; otherwise, the entire matching substring
   is used as the version.
 
+* `order_by`: *Optional. One of [`version`, `time`]. Default `version`.*
+   Selects whether to order releases by version (as extracted by `tag_filter`)
+   or by time. See `check` behavior described below for details.
+
 ### Example
 
 ``` yaml
@@ -94,14 +98,29 @@ To set a custom tag filter:
 
 ### `check`: Check for released versions.
 
-Releases are listed and sorted by their tag, using
-[semver](http://semver.org) semantics if possible. If `version` is specified, `check` returns releases from the specified version on. Otherwise, `check` returns the latest release.
+Lists releases, sorted either by their version or time, depending on the `order_by` source option.
+
+When sorting by version, the version is extracted from the git tag using the `tag_filter` source option.
+Versions are compared using [semver](http://semver.org) semantics if possible.
+
+When sorting by time and a release is published, it uses the publication time, otherwise it uses the creation time.
+
+The returned list contains an object of the following format for each release (with timestamp in the RFC3339 format):
+
+```
+{
+    "id": "12345",
+    "tag": "v1.2.3",
+    "timestamp": "2006-01-02T15:04:05.999999999Z"
+}
+```
+
+When `check` is given such an object as the `version` parameter, it returns releases from the specified version or time on.
+Otherwise it returns the release with the latest version or time.
 
 ### `in`: Fetch assets from a release.
 
-Fetches artifacts from the given release version. If the version is not
-specified, the latest version is chosen using [semver](http://semver.org)
-semantics.
+Fetches artifacts from the requested release.
 
 Also creates the following files:
 
