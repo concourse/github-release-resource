@@ -36,7 +36,6 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 	id, _ := strconv.Atoi(request.Version.ID)
 	foundRelease, err = c.github.GetRelease(id)
-
 	if err != nil {
 		return InResponse{}, err
 	}
