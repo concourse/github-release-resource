@@ -312,8 +312,7 @@ func (s *RepositoriesService) UploadReleaseAsset(ctx context.Context, owner, rep
 		return nil, nil, errors.New("the asset to upload can't be a directory")
 	}
 
-	mediaType := mime.TypeByExtension(filepath.Ext(file.Name()))
-	os.Stderr.WriteString("Media Type: " + mediaType)
+	mediaType := mime.TypeByExtension(filepath.Ext(file.Name()))	
 	req, err := s.client.NewUploadRequest(u, file, stat.Size(), mediaType)
 	if err != nil {
 		return nil, nil, err
