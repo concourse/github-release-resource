@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"mime"
+	"errors"
 
 	"github.com/google/go-github/github"
 )
@@ -159,9 +161,14 @@ func (c *OutCommand) fileContents(path string) (string, error) {
 }
 
 func (c *OutCommand) upload(release *github.RepositoryRelease, filePath string) error {
-	fmt.Fprintf(c.writer, "uploading %s\n", filePath)
-
 	name := filepath.Base(filePath)
+	mediaType := mime.TypeByExtension(filepath.Ext(name))
+
+	if mediaType == "" {
+		return errors.New("no mime type found for file")
+	}
+
+	fmt.Fprintf(c.writer, "uploading %s as type %s \n", name, mediaType)
 
 	var retryErr error
 	for i := 0; i < 10; i++ {
