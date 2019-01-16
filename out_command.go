@@ -9,6 +9,7 @@ import (
 	"strings"
 	"mime"
 	"errors"
+	"time"
 
 	"github.com/google/go-github/github"
 )
@@ -201,6 +202,8 @@ func (c *OutCommand) upload(release *github.RepositoryRelease, filePath string) 
 				break
 			}
 		}
+
+		time.Sleep(2 * time.Second)
 	}
 
 	if retryErr != nil {
