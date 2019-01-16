@@ -184,6 +184,8 @@ func (c *OutCommand) upload(release *github.RepositoryRelease, filePath string) 
 			break
 		}
 
+		fmt.Fprintf(c.writer, "\tfailed to upload %s\n", name)
+
 		assets, err := c.github.ListReleaseAssets(*release)
 		if err != nil {
 			return err
@@ -191,6 +193,7 @@ func (c *OutCommand) upload(release *github.RepositoryRelease, filePath string) 
 
 		for _, asset := range assets {
 			if asset.Name != nil && *asset.Name == name {
+				fmt.Fprintf(c.writer, "\tdeleting failed upload %s from assets\n", name)
 				err = c.github.DeleteReleaseAsset(*asset)
 				if err != nil {
 					return err
