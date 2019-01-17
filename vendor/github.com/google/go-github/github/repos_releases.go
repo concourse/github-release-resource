@@ -313,9 +313,7 @@ func (s *RepositoriesService) UploadReleaseAsset(ctx context.Context, owner, rep
 	}
 
 	mediaType := mime.TypeByExtension(filepath.Ext(file.Name()))
-	if (mediaType == nil || mediaType == "") {
-		return nil, nil, errors.New("no media type found")
-	}
+	os.Stderr.WriteString("MediaType: " + mediaType + "\n")
 
 	req, err := s.client.NewUploadRequest(u, file, stat.Size(), mediaType)
 	if err != nil {
