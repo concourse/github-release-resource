@@ -84,7 +84,8 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 			if !versionParser.re.MatchString(tag) {
 				continue
 			}
-			// Skip releases with zero time
+			// We don't expect any releases with a missing (zero) timestamp,
+			// but we skip those just in case, since the data type includes them
 			if getTimestamp(release).IsZero() {
 				continue
 			}
