@@ -1,7 +1,7 @@
 package resource
 
 import (
-    "time"
+	"time"
 )
 
 type Source struct {
@@ -19,8 +19,8 @@ type Source struct {
 	Release          bool   `json:"release"`
 	Insecure         bool   `json:"insecure"`
 
-	TagFilter       string  `json:"tag_filter"`
-	OrderBy         string  `json:"order_by"`
+	TagFilter string `json:"tag_filter"`
+	OrderBy   string `json:"order_by"`
 }
 
 type CheckRequest struct {
@@ -84,8 +84,8 @@ type OutResponse struct {
 }
 
 type Version struct {
-	Tag string `json:"tag,omitempty"`
-	ID  string `json:"id"`
+	Tag       string    `json:"tag,omitempty"`
+	ID        string    `json:"id"`
 	Timestamp time.Time `json:"timestamp"`
 }
 

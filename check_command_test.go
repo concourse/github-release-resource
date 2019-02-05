@@ -60,7 +60,7 @@ var _ = Describe("Check Command", func() {
 			Context("and releases are ordered by time", func() {
 				It("returns no versions", func() {
 					versions, err := command.Run(resource.CheckRequest{
-						Source: resource.Source{ OrderBy: "time" },
+						Source: resource.Source{OrderBy: "time"},
 					})
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(versions).Should(BeEmpty())
@@ -94,7 +94,7 @@ var _ = Describe("Check Command", func() {
 					command := resource.NewCheckCommand(githubClient)
 
 					response, err := command.Run(resource.CheckRequest{
-						Source: resource.Source{ OrderBy: "time" },
+						Source: resource.Source{OrderBy: "time"},
 					})
 					Ω(err).ShouldNot(HaveOccurred())
 
@@ -520,7 +520,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: newVersionWithTimestamp(3, "v0.1.3", 3),
-							Source:  resource.Source{ OrderBy: "time" },
+							Source:  resource.Source{OrderBy: "time"},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -544,7 +544,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: newVersionWithTimestamp(3, "v0.1.3", 3),
-							Source:  resource.Source{ OrderBy: "time" },
+							Source:  resource.Source{OrderBy: "time"},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -568,7 +568,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: newVersionWithTimestamp(2, "v0.2.1", 4),
-							Source:  resource.Source{ OrderBy: "time" },
+							Source:  resource.Source{OrderBy: "time"},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -582,7 +582,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: newVersionWithTimestamp(9, "v1.0.0", 3),
-							Source:  resource.Source{ OrderBy: "time" },
+							Source:  resource.Source{OrderBy: "time"},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -595,8 +595,8 @@ var _ = Describe("Check Command", func() {
 						command := resource.NewCheckCommand(githubClient)
 
 						response, err := command.Run(resource.CheckRequest{
-							Version: resource.Version{ ID: "2", Tag: "v0.2.1" },
-							Source:  resource.Source{ OrderBy: "time" },
+							Version: resource.Version{ID: "2", Tag: "v0.2.1"},
+							Source:  resource.Source{OrderBy: "time"},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 
@@ -620,7 +620,7 @@ var _ = Describe("Check Command", func() {
 
 						response, err := command.Run(resource.CheckRequest{
 							Version: newVersionWithTimestamp(2, "v0.2.1", 3),
-							Source:  resource.Source{ OrderBy: "time" },
+							Source:  resource.Source{OrderBy: "time"},
 						})
 						Ω(err).ShouldNot(HaveOccurred())
 						Ω(response).Should(Equal([]resource.Version{}))

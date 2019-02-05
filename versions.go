@@ -1,10 +1,10 @@
 package resource
 
 import (
+	"github.com/google/go-github/github"
 	"regexp"
 	"strconv"
 	"time"
-	"github.com/google/go-github/github"
 )
 
 var defaultTagFilter = "^v?([^v].*)"
@@ -43,8 +43,8 @@ func getTimestamp(release *github.RepositoryRelease) time.Time {
 }
 
 func versionFromRelease(release *github.RepositoryRelease) Version {
-	v := Version {
-		ID: strconv.Itoa(*release.ID),
+	v := Version{
+		ID:        strconv.Itoa(*release.ID),
 		Timestamp: getTimestamp(release),
 	}
 	if release.TagName != nil {

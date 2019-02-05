@@ -1,9 +1,9 @@
 package resource
 
 import (
-	"sort"
-	"github.com/google/go-github/github"
 	"github.com/cppforlife/go-semi-semantic/version"
+	"github.com/google/go-github/github"
+	"sort"
 )
 
 type CheckCommand struct {
@@ -78,10 +78,16 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		if orderByTime {
 			// We won't do anything with the tags, so just make sure the filter matches the tag.
 			var tag string
-			if release.TagName != nil { tag = *release.TagName }
-			if !versionParser.re.MatchString(tag) { continue }
+			if release.TagName != nil {
+				tag = *release.TagName
+			}
+			if !versionParser.re.MatchString(tag) {
+				continue
+			}
 			// Skip releases with zero time
-			if getTimestamp(release).IsZero() { continue }
+			if getTimestamp(release).IsZero() {
+				continue
+			}
 		} else {
 			// We will sort by versions parsed out of tags, so make sure we parse successfully.
 			if release.TagName == nil {
@@ -126,7 +132,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	if orderByTime {
 		// Only search if request has a timestamp
 		if !request.Version.Timestamp.IsZero() {
-			firstIncludedReleaseIndex = sort.Search(len(filteredReleases), func (i int) bool {
+			firstIncludedReleaseIndex = sort.Search(len(filteredReleases), func(i int) bool {
 				release := filteredReleases[i]
 				return !getTimestamp(release).Before(request.Version.Timestamp)
 			})
@@ -134,10 +140,12 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	} else {
 		requestVersion, err := version.NewVersionFromString(versionParser.parse(request.Version.Tag))
 		if err == nil {
-			firstIncludedReleaseIndex = sort.Search(len(filteredReleases), func (i int) bool {
+			firstIncludedReleaseIndex = sort.Search(len(filteredReleases), func(i int) bool {
 				release := filteredReleases[i]
 				releaseVersion, err := version.NewVersionFromString(versionParser.parse(*release.TagName))
-				if err != nil { return false }
+				if err != nil {
+					return false
+				}
 				return !releaseVersion.IsLt(requestVersion)
 			})
 		}

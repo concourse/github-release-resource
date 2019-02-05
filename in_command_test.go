@@ -111,7 +111,7 @@ var _ = Describe("In Command", func() {
 				}, nil)
 
 				inRequest.Version = &resource.Version{
-					ID: "1",
+					ID:  "1",
 					Tag: "v0.35.0",
 				}
 			})
