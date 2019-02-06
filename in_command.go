@@ -34,12 +34,8 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	var foundRelease *github.RepositoryRelease
 	var commitSHA string
 
-	if request.Version.Tag != "" {
-		foundRelease, err = c.github.GetReleaseByTag(request.Version.Tag)
-	} else {
-		id, _ := strconv.Atoi(request.Version.ID)
-		foundRelease, err = c.github.GetRelease(id)
-	}
+	id, _ := strconv.Atoi(request.Version.ID)
+	foundRelease, err = c.github.GetRelease(id)
 	if err != nil {
 		return InResponse{}, err
 	}
@@ -129,8 +125,8 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		}
 	}
 
-	if request.Params.IncludeSourceTarball {
-		u, err := c.github.GetTarballLink(request.Version.Tag)
+	if request.Params.IncludeSourceTarball && foundRelease.TagName != nil {
+		u, err := c.github.GetTarballLink(*foundRelease.TagName)
 		if err != nil {
 			return InResponse{}, err
 		}
@@ -140,8 +136,8 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		}
 	}
 
-	if request.Params.IncludeSourceZip {
-		u, err := c.github.GetZipballLink(request.Version.Tag)
+	if request.Params.IncludeSourceZip && foundRelease.TagName != nil {
+		u, err := c.github.GetZipballLink(*foundRelease.TagName)
 		if err != nil {
 			return InResponse{}, err
 		}

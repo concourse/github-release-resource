@@ -1,12 +1,9 @@
 package resource
 
 import (
-	"sort"
-	"strconv"
-
-	"github.com/google/go-github/github"
-
 	"github.com/cppforlife/go-semi-semantic/version"
+	"github.com/google/go-github/github"
+	"sort"
 )
 
 type CheckCommand struct {
@@ -19,6 +16,30 @@ func NewCheckCommand(github GitHub) *CheckCommand {
 	}
 }
 
+func SortByVersion(releases []*github.RepositoryRelease, versionParser *versionParser) {
+	sort.Slice(releases, func(i, j int) bool {
+		first, err := version.NewVersionFromString(versionParser.parse(*releases[i].TagName))
+		if err != nil {
+			return true
+		}
+
+		second, err := version.NewVersionFromString(versionParser.parse(*releases[j].TagName))
+		if err != nil {
+			return false
+		}
+
+		return first.IsLt(second)
+	})
+}
+
+func SortByTimestamp(releases []*github.RepositoryRelease) {
+	sort.Slice(releases, func(i, j int) bool {
+		a := releases[i]
+		b := releases[j]
+		return getTimestamp(a).Before(getTimestamp(b))
+	})
+}
+
 func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	releases, err := c.github.ListReleases()
 	if err != nil {
@@ -29,6 +50,11 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		return []Version{}, nil
 	}
 
+	orderByTime := false
+	if request.Source.OrderBy == "time" {
+		orderByTime = true
+	}
+
 	var filteredReleases []*github.RepositoryRelease
 
 	versionParser, err := newVersionParser(request.Source.TagFilter)
@@ -37,6 +63,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	}
 
 	for _, release := range releases {
+
 		if request.Source.Drafts != *release.Draft {
 			continue
 		}
@@ -48,33 +75,49 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 			continue
 		}
 
-		if release.TagName == nil {
-			continue
-		}
-		if _, err := version.NewVersionFromString(versionParser.parse(*release.TagName)); err != nil {
-			continue
+		if orderByTime {
+			// We won't do anything with the tags, so just make sure the filter matches the tag.
+			var tag string
+			if release.TagName != nil {
+				tag = *release.TagName
+			}
+			if !versionParser.re.MatchString(tag) {
+				continue
+			}
+			// We don't expect any releases with a missing (zero) timestamp,
+			// but we skip those just in case, since the data type includes them
+			if getTimestamp(release).IsZero() {
+				continue
+			}
+		} else {
+			// We will sort by versions parsed out of tags, so make sure we parse successfully.
+			if release.TagName == nil {
+				continue
+			}
+			if _, err := version.NewVersionFromString(versionParser.parse(*release.TagName)); err != nil {
+				continue
+			}
 		}
 
 		filteredReleases = append(filteredReleases, release)
 	}
 
-	sort.Slice(filteredReleases, func(i, j int) bool {
-		first, err := version.NewVersionFromString(versionParser.parse(*filteredReleases[i].TagName))
-		if err != nil {
-			return true
-		}
-
-		second, err := version.NewVersionFromString(versionParser.parse(*filteredReleases[j].TagName))
-		if err != nil {
-			return false
-		}
-
-		return first.IsLt(second)
-	})
+	// If there are no valid releases, output an empty list.
 
 	if len(filteredReleases) == 0 {
 		return []Version{}, nil
 	}
+
+	// Sort releases by time or by version
+
+	if orderByTime {
+		SortByTimestamp(filteredReleases)
+	} else {
+		SortByVersion(filteredReleases, &versionParser)
+	}
+
+	// If request has no version, output the latest release
+
 	latestRelease := filteredReleases[len(filteredReleases)-1]
 
 	if (request.Version == Version{}) {
@@ -83,36 +126,49 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		}, nil
 	}
 
-	if *latestRelease.TagName == request.Version.Tag {
-		return []Version{}, nil
+	// Find first release equal or later than the current version
+
+	var firstIncludedReleaseIndex int = -1
+
+	if orderByTime {
+		// Only search if request has a timestamp
+		if !request.Version.Timestamp.IsZero() {
+			firstIncludedReleaseIndex = sort.Search(len(filteredReleases), func(i int) bool {
+				release := filteredReleases[i]
+				return !getTimestamp(release).Before(request.Version.Timestamp)
+			})
+		}
+	} else {
+		requestVersion, err := version.NewVersionFromString(versionParser.parse(request.Version.Tag))
+		if err == nil {
+			firstIncludedReleaseIndex = sort.Search(len(filteredReleases), func(i int) bool {
+				release := filteredReleases[i]
+				releaseVersion, err := version.NewVersionFromString(versionParser.parse(*release.TagName))
+				if err != nil {
+					return false
+				}
+				return !releaseVersion.IsLt(requestVersion)
+			})
+		}
 	}
 
-	upToLatest := false
-	reversedVersions := []Version{}
+	// Output all releases equal or later than the current version,
+	// or just the latest release if there are no such releases.
 
-	for _, release := range filteredReleases {
-		if !upToLatest {
-			if *release.Draft || *release.Prerelease {
-				id := *release.ID
-				upToLatest = request.Version.ID == strconv.Itoa(id)
-			} else {
-				version := *release.TagName
-				upToLatest = request.Version.Tag == version
-			}
+	outputVersions := []Version{}
+
+	if firstIncludedReleaseIndex >= 0 && firstIncludedReleaseIndex < len(filteredReleases) {
+		// Found first release >= current version, so output this and all the following release versions
+		for i := firstIncludedReleaseIndex; i < len(filteredReleases); i++ {
+			outputVersions = append(outputVersions, versionFromRelease(filteredReleases[i]))
 		}
-
-		if upToLatest {
-			reversedVersions = append(reversedVersions, versionFromRelease(release))
-		}
-	}
-
-	if !upToLatest {
-		// current version was removed; start over from latest
-		reversedVersions = append(
-			reversedVersions,
+	} else {
+		// No release >= current version, so output the latest release version
+		outputVersions = append(
+			outputVersions,
 			versionFromRelease(filteredReleases[len(filteredReleases)-1]),
 		)
 	}
 
-	return reversedVersions, nil
+	return outputVersions, nil
 }
