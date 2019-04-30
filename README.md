@@ -128,6 +128,8 @@ Also creates the following files:
 * `version` containing the version determined by the git tag of the release being fetched.
 * `body` containing the body text of the release.
 * `commit_sha` containing the commit SHA the tag is pointing to.
+* `prerelease` containing `1` for a prerelease, `0` otherwise.
+* `draft` containing `1` for a draft, `0` otherwise.
 
 #### Parameters
 

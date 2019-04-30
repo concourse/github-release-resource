@@ -56,7 +56,7 @@ var _ = Describe("In Command", func() {
 		Ω(os.RemoveAll(tmpDir)).Should(Succeed())
 	})
 
-	buildRelease := func(id int, tag string, draft bool) *github.RepositoryRelease {
+	buildRelease := func(id int, tag string, draft bool, prerelease bool) *github.RepositoryRelease {
 		return &github.RepositoryRelease{
 			ID:         github.Int(id),
 			TagName:    github.String(tag),
@@ -64,7 +64,7 @@ var _ = Describe("In Command", func() {
 			Name:       github.String("release-name"),
 			Body:       github.String("*markdown*"),
 			Draft:      github.Bool(draft),
-			Prerelease: github.Bool(false),
+			Prerelease: github.Bool(prerelease),
 		}
 	}
 
@@ -101,7 +101,7 @@ var _ = Describe("In Command", func() {
 	Context("when there is a tagged release", func() {
 		Context("when a present version is specified", func() {
 			BeforeEach(func() {
-				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", false), nil)
+				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", false, false), nil)
 				githubClient.GetRefReturns(buildTagRef("v0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
 
 				githubClient.ListReleaseAssetsReturns([]*github.ReleaseAsset{
@@ -161,7 +161,7 @@ var _ = Describe("In Command", func() {
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(*buildAsset(1, "example.rtf")))
 				})
 
-				It("does create the body, tag and version files", func() {
+				It("does create the metadata files", func() {
 					inResponse, inErr = command.Run(destDir, inRequest)
 
 					contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
@@ -179,6 +179,14 @@ var _ = Describe("In Command", func() {
 					contents, err = ioutil.ReadFile(path.Join(destDir, "body"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("*markdown*"))
+
+					contents, err = ioutil.ReadFile(path.Join(destDir, "draft"))
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(string(contents)).Should(Equal("0"))
+
+					contents, err = ioutil.ReadFile(path.Join(destDir, "prerelease"))
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(string(contents)).Should(Equal("0"))
 				})
 
 				Context("when there is a custom tag filter", func() {
@@ -186,7 +194,7 @@ var _ = Describe("In Command", func() {
 						inRequest.Source = resource.Source{
 							TagFilter: "package-(.*)",
 						}
-						githubClient.GetReleaseReturns(buildRelease(1, "package-0.35.0", false), nil)
+						githubClient.GetReleaseReturns(buildRelease(1, "package-0.35.0", false, false), nil)
 						githubClient.GetRefReturns(buildTagRef("package-0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
 						inResponse, inErr = command.Run(destDir, inRequest)
 					})
@@ -197,7 +205,7 @@ var _ = Describe("In Command", func() {
 						Expect(inErr).ToNot(HaveOccurred())
 					})
 
-					It("does create the body, tag and version files", func() {
+					It("does create the metadata files", func() {
 						inResponse, inErr = command.Run(destDir, inRequest)
 
 						contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
@@ -461,10 +469,57 @@ var _ = Describe("In Command", func() {
 		})
 	})
 
+	Context("when there is a pre-release", func() {
+		BeforeEach(func() {
+			githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", false, true), nil)
+			githubClient.GetRefReturns(buildTagRef("v0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
+
+			inRequest.Version = &resource.Version{ID: "1"}
+			inResponse, inErr = command.Run(destDir, inRequest)
+		})
+
+		It("succeeds", func() {
+			Ω(inErr).ShouldNot(HaveOccurred())
+		})
+
+		It("returns the fetched version", func() {
+			Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1", Tag: "v0.35.0"}))
+		})
+
+		It("has some sweet metadata", func() {
+			Ω(inResponse.Metadata).Should(ConsistOf(
+				resource.MetadataPair{Name: "url", Value: "http://google.com"},
+				resource.MetadataPair{Name: "name", Value: "release-name", URL: "http://google.com"},
+				resource.MetadataPair{Name: "body", Value: "*markdown*", Markdown: true},
+				resource.MetadataPair{Name: "tag", Value: "v0.35.0"},
+				resource.MetadataPair{Name: "pre-release", Value: "true"},
+				resource.MetadataPair{Name: "commit_sha", Value: "f28085a4a8f744da83411f5e09fd7b1709149eee"},
+			))
+		})
+
+		It("does create the metadata files", func() {
+			contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(string(contents)).Should(Equal("v0.35.0"))
+
+			contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(string(contents)).Should(Equal("0.35.0"))
+
+			contents, err = ioutil.ReadFile(path.Join(destDir, "draft"))
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(string(contents)).Should(Equal("0"))
+
+			contents, err = ioutil.ReadFile(path.Join(destDir, "prerelease"))
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(string(contents)).Should(Equal("1"))
+		})
+	})
+
 	Context("when there is a draft release", func() {
 		Context("which has a tag", func() {
 			BeforeEach(func() {
-				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", true), nil)
+				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", true, false), nil)
 
 				inRequest.Version = &resource.Version{ID: "1"}
 				inResponse, inErr = command.Run(destDir, inRequest)
@@ -488,7 +543,7 @@ var _ = Describe("In Command", func() {
 				))
 			})
 
-			It("does create the tag and version files", func() {
+			It("does create the metadata files", func() {
 				contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("v0.35.0"))
@@ -496,12 +551,20 @@ var _ = Describe("In Command", func() {
 				contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("0.35.0"))
+
+				contents, err = ioutil.ReadFile(path.Join(destDir, "draft"))
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(string(contents)).Should(Equal("1"))
+
+				contents, err = ioutil.ReadFile(path.Join(destDir, "prerelease"))
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(string(contents)).Should(Equal("0"))
 			})
 		})
 
 		Context("which has an empty tag", func() {
 			BeforeEach(func() {
-				githubClient.GetReleaseReturns(buildRelease(1, "", true), nil)
+				githubClient.GetReleaseReturns(buildRelease(1, "", true, false), nil)
 
 				inRequest.Version = &resource.Version{ID: "1"}
 				inResponse, inErr = command.Run(destDir, inRequest)

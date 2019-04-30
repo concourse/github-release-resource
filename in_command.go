@@ -62,6 +62,28 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			return InResponse{}, err
 		}
 
+		draftFlag := "0"
+		if foundRelease.Draft != nil && *foundRelease.Draft {
+			draftFlag = "1"
+		}
+
+		prereleaseFlag := "0"
+		if foundRelease.Prerelease != nil && *foundRelease.Prerelease {
+			prereleaseFlag = "1"
+		}
+
+		draftFlagPath := filepath.Join(destDir, "draft")
+		err = ioutil.WriteFile(draftFlagPath, []byte(draftFlag), 0644)
+		if err != nil {
+			return InResponse{}, err
+		}
+
+		prereleaseFlagPath := filepath.Join(destDir, "prerelease")
+		err = ioutil.WriteFile(prereleaseFlagPath, []byte(prereleaseFlag), 0644)
+		if err != nil {
+			return InResponse{}, err
+		}
+
 		if foundRelease.Draft != nil && !*foundRelease.Draft {
 			commitPath := filepath.Join(destDir, "commit_sha")
 			commitSHA, err = c.resolveTagToCommitSHA(*foundRelease.TagName)
