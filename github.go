@@ -47,6 +47,7 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 
 	if source.Insecure {
 		httpClient.Transport = &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 		ctx = context.WithValue(ctx, oauth2.HTTPClient, httpClient)
