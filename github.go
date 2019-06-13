@@ -170,7 +170,8 @@ func (g *GitHubClient) UpdateRelease(release github.RepositoryRelease) (*github.
 }
 
 func (g *GitHubClient) ListReleaseAssets(release github.RepositoryRelease) ([]*github.ReleaseAsset, error) {
-	assets, res, err := g.client.Repositories.ListReleaseAssets(context.TODO(), g.owner, g.repository, *release.ID, nil)
+	opt := &github.ListOptions{PerPage: 100}
+	assets, res, err := g.client.Repositories.ListReleaseAssets(context.TODO(), g.owner, g.repository, *release.ID, opt)
 	if err != nil {
 		return nil, err
 	}
