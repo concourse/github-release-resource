@@ -3,6 +3,7 @@ package resource
 import (
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -15,7 +16,8 @@ import (
 	"github.com/google/go-github/github"
 )
 
-//go:generate counterfeiter . GitHub
+// Last run with counterfeiter v6
+//go:generate counterfeiter -o fakes/fake_git_hub.go . GitHub
 
 type GitHub interface {
 	ListReleases() ([]*github.RepositoryRelease, error)
@@ -31,7 +33,7 @@ type GitHub interface {
 
 	GetTarballLink(tag string) (*url.URL, error)
 	GetZipballLink(tag string) (*url.URL, error)
-	GetRef(tag string) (*github.Reference, error)
+	ResolveTagToCommitSHA(tag string) (string, error)
 }
 
 type GitHubClient struct {
@@ -248,13 +250,39 @@ func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 	return u, nil
 }
 
-func (g *GitHubClient) GetRef(tag string) (*github.Reference, error) {
-	ref, res, err := g.client.Git.GetRef(context.TODO(), g.owner, g.repository, "tags/"+tag)
+func (g *GitHubClient) ResolveTagToCommitSHA(tagName string) (string, error) {
+	ref, res, err := g.client.Git.GetRef(context.TODO(), g.owner, g.repository, "tags/"+tagName)
+
 	if err != nil {
-		return nil, err
+		return "", err
 	}
+
 	res.Body.Close()
-	return ref, nil
+
+	// Lightweight tag
+	if *ref.Object.Type == "commit" {
+		return *ref.Object.SHA, nil
+	}
+
+	// Fail if we're not pointing to a annotated tag
+	if *ref.Object.Type != "tag" {
+		return "", fmt.Errorf("could not resolve tag %q to commit: returned type is not 'commit' or 'tag'", tagName)
+	}
+
+	// Resolve tag to commit sha
+	tag, res, err := g.client.Git.GetTag(context.TODO(), g.owner, g.repository, *ref.Object.SHA)
+
+	if err != nil {
+		return "", err
+	}
+
+	res.Body.Close()
+
+	if *tag.Object.Type != "commit" {
+		return "", fmt.Errorf("could not resolve tag %q to commit: returned type is not 'commit'", tagName)
+	}
+
+	return *tag.Object.SHA, nil
 }
 
 func oauthClient(ctx context.Context, source Source) (*http.Client, error) {

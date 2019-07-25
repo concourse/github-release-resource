@@ -16,7 +16,7 @@ import (
 
 	"github.com/google/go-github/github"
 
-	"github.com/concourse/github-release-resource"
+	resource "github.com/concourse/github-release-resource"
 	"github.com/concourse/github-release-resource/fakes"
 )
 
@@ -86,23 +86,11 @@ var _ = Describe("In Command", func() {
 		}
 	}
 
-	buildTagRef := func(tagRef, commitSHA string) *github.Reference {
-		return &github.Reference{
-			Ref: github.String(tagRef),
-			URL: github.String("https://example.com"),
-			Object: &github.GitObject{
-				Type: github.String("commit"),
-				SHA:  github.String(commitSHA),
-				URL:  github.String("https://example.com"),
-			},
-		}
-	}
-
 	Context("when there is a tagged release", func() {
 		Context("when a present version is specified", func() {
 			BeforeEach(func() {
 				githubClient.GetReleaseReturns(buildRelease(1, "v0.35.0", false), nil)
-				githubClient.GetRefReturns(buildTagRef("v0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
+				githubClient.ResolveTagToCommitSHAReturns("f28085a4a8f744da83411f5e09fd7b1709149eee", nil)
 
 				githubClient.ListReleaseAssetsReturns([]*github.ReleaseAsset{
 					buildAsset(0, "example.txt"),
@@ -187,7 +175,7 @@ var _ = Describe("In Command", func() {
 							TagFilter: "package-(.*)",
 						}
 						githubClient.GetReleaseReturns(buildRelease(1, "package-0.35.0", false), nil)
-						githubClient.GetRefReturns(buildTagRef("package-0.35.0", "f28085a4a8f744da83411f5e09fd7b1709149eee"), nil)
+						githubClient.ResolveTagToCommitSHAReturns("f28085a4a8f744da83411f5e09fd7b1709149eee", nil)
 						inResponse, inErr = command.Run(destDir, inRequest)
 					})
 
