@@ -44,6 +44,14 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		return InResponse{}, errors.New("no releases")
 	}
 
+	if foundRelease.HTMLURL != nil && *foundRelease.HTMLURL != "" {
+		urlPath := filepath.Join(destDir, "url")
+		err = ioutil.WriteFile(urlPath, []byte(*foundRelease.HTMLURL), 0644)
+		if err != nil {
+			return InResponse{}, err
+		}
+	}
+
 	if foundRelease.TagName != nil && *foundRelease.TagName != "" {
 		tagPath := filepath.Join(destDir, "tag")
 		err = ioutil.WriteFile(tagPath, []byte(*foundRelease.TagName), 0644)

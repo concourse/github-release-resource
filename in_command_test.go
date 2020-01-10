@@ -149,7 +149,7 @@ var _ = Describe("In Command", func() {
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(*buildAsset(1, "example.rtf")))
 				})
 
-				It("does create the body, tag and version files", func() {
+				It("does create the body, tag, version, and url files", func() {
 					inResponse, inErr = command.Run(destDir, inRequest)
 
 					contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
@@ -167,6 +167,10 @@ var _ = Describe("In Command", func() {
 					contents, err = ioutil.ReadFile(path.Join(destDir, "body"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("*markdown*"))
+
+					contents, err = ioutil.ReadFile(path.Join(destDir, "url"))
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(string(contents)).Should(Equal("http://google.com"))
 				})
 
 				Context("when there is a custom tag filter", func() {
@@ -185,7 +189,7 @@ var _ = Describe("In Command", func() {
 						Expect(inErr).ToNot(HaveOccurred())
 					})
 
-					It("does create the body, tag and version files", func() {
+					It("does create the tag, version, and url files", func() {
 						inResponse, inErr = command.Run(destDir, inRequest)
 
 						contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
@@ -195,6 +199,10 @@ var _ = Describe("In Command", func() {
 						contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
 						Ω(err).ShouldNot(HaveOccurred())
 						Ω(string(contents)).Should(Equal("0.35.0"))
+
+						contents, err = ioutil.ReadFile(path.Join(destDir, "url"))
+						Ω(err).ShouldNot(HaveOccurred())
+						Ω(string(contents)).Should(Equal("http://google.com"))
 					})
 				})
 
@@ -476,7 +484,7 @@ var _ = Describe("In Command", func() {
 				))
 			})
 
-			It("does create the tag and version files", func() {
+			It("does create the tag, version, and URL files", func() {
 				contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("v0.35.0"))
@@ -484,6 +492,10 @@ var _ = Describe("In Command", func() {
 				contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("0.35.0"))
+
+				contents, err = ioutil.ReadFile(path.Join(destDir, "url"))
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(string(contents)).Should(Equal("http://google.com"))
 			})
 		})
 
@@ -518,6 +530,12 @@ var _ = Describe("In Command", func() {
 				Ω(path.Join(destDir, "version")).ShouldNot(BeAnExistingFile())
 				Ω(path.Join(destDir, "commit_sha")).ShouldNot(BeAnExistingFile())
 			})
+
+			It("does create the url file", func() {
+				contents, err := ioutil.ReadFile(path.Join(destDir, "url"))
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(string(contents)).Should(Equal("http://google.com"))
+			})
 		})
 
 		Context("which has a nil tag", func() {
@@ -549,6 +567,12 @@ var _ = Describe("In Command", func() {
 				Ω(path.Join(destDir, "tag")).ShouldNot(BeAnExistingFile())
 				Ω(path.Join(destDir, "version")).ShouldNot(BeAnExistingFile())
 				Ω(path.Join(destDir, "commit_sha")).ShouldNot(BeAnExistingFile())
+			})
+
+			It("does create the url file", func() {
+				contents, err := ioutil.ReadFile(path.Join(destDir, "url"))
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(string(contents)).Should(Equal("http://google.com"))
 			})
 		})
 	})
