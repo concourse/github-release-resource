@@ -128,6 +128,7 @@ Also creates the following files:
 * `version` containing the version determined by the git tag of the release being fetched.
 * `body` containing the body text of the release.
 * `commit_sha` containing the commit SHA the tag is pointing to.
+* `url` containing the HTMLURL for the release being fetched.
 
 #### Parameters
 
