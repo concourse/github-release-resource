@@ -49,7 +49,7 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 
 	if source.Insecure {
 		httpClient.Transport = &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
+			Proxy:           http.ProxyFromEnvironment,
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 		ctx = context.WithValue(ctx, oauth2.HTTPClient, httpClient)
@@ -99,17 +99,27 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 }
 
 func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
-	releases, res, err := g.client.Repositories.ListReleases(context.TODO(), g.owner, g.repository, nil)
-	if err != nil {
-		return []*github.RepositoryRelease{}, err
+	opt := &github.RepositoryListByOrgOptions{
+		ListOptions: github.ListOptions{PerPage: 10},
+	}
+	var allReleases []*github.RepositoryRelease
+	for {
+		releases, res, err := g.client.Repositories.ListReleases(context.TODO(), g.owner, g.repository, nil)
+		if err != nil {
+			return []*github.RepositoryRelease{}, err
+		}
+		allReleases = append(allReleases, releases...)
+		if res.NextPage == 0 {
+			err = res.Body.Close()
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+		opt.Page = res.NextPage
 	}
 
-	err = res.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	return releases, nil
+	return allReleases, nil
 }
 
 func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, error) {
