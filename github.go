@@ -99,12 +99,10 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 }
 
 func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
-	opt := &github.RepositoryListByOrgOptions{
-		ListOptions: github.ListOptions{PerPage: 10},
-	}
+	opt := &github.ListOptions{PerPage: 100}
 	var allReleases []*github.RepositoryRelease
 	for {
-		releases, res, err := g.client.Repositories.ListReleases(context.TODO(), g.owner, g.repository, nil)
+		releases, res, err := g.client.Repositories.ListReleases(context.TODO(), g.owner, g.repository, opt)
 		if err != nil {
 			return []*github.RepositoryRelease{}, err
 		}
