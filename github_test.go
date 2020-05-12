@@ -140,8 +140,12 @@ var _ = Describe("GitHub Client", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases"),
-						ghttp.RespondWith(200, reqBodyBytes.Bytes()),
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100"),
+						ghttp.RespondWithJSONEncoded(200, result[:100], http.Header{"Link": []string{`</releases?page=2>; rel="next"`}}),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100&page=2"),
+						ghttp.RespondWithJSONEncoded(200, result[100:]),
 					),
 				)
 			})
@@ -150,6 +154,7 @@ var _ = Describe("GitHub Client", func() {
 				releases, err := client.ListReleases()
 				Ω(err).ShouldNot(HaveOccurred())
 				Expect(releases).To(HaveLen(101))
+				Expect(server.ReceivedRequests()).To(HaveLen(2))
 			})
 		})
 	})
