@@ -119,6 +119,42 @@ var _ = Describe("GitHub Client", func() {
 		})
 	})
 
+	Describe("ListReleases", func() {
+		BeforeEach(func() {
+			source = Source{
+				Owner:      "concourse",
+				Repository: "concourse",
+			}
+		})
+		Context("When list of releases return more then 100 items", func() {
+			BeforeEach(func() {
+				var result []*github.RepositoryRelease
+				for i := 1; i < 102; i++ {
+					result = append(result, &github.RepositoryRelease{ID: github.Int(i)})
+
+				}
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100"),
+						ghttp.RespondWithJSONEncoded(200, result[:100], http.Header{"Link": []string{`</releases?page=2>; rel="next"`}}),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100&page=2"),
+						ghttp.RespondWithJSONEncoded(200, result[100:]),
+					),
+				)
+			})
+
+			It("list releases", func() {
+				releases, err := client.ListReleases()
+				Ω(err).ShouldNot(HaveOccurred())
+				Expect(releases).To(HaveLen(101))
+				Expect(server.ReceivedRequests()).To(HaveLen(2))
+			})
+		})
+	})
+
 	Describe("GetRelease", func() {
 		BeforeEach(func() {
 			source = Source{
