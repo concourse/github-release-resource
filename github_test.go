@@ -1,8 +1,6 @@
 package resource_test
 
 import (
-	"bytes"
-	"encoding/json"
 	"net/http"
 
 	. "github.com/concourse/github-release-resource"
@@ -135,8 +133,6 @@ var _ = Describe("GitHub Client", func() {
 					result = append(result, &github.RepositoryRelease{ID: github.Int(i)})
 
 				}
-				reqBodyBytes := new(bytes.Buffer)
-				json.NewEncoder(reqBodyBytes).Encode(result)
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
