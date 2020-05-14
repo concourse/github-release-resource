@@ -223,21 +223,25 @@ func (g *GitHubClient) DeleteReleaseAsset(asset github.ReleaseAsset) error {
 }
 
 func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error) {
-	res, redir, err := g.client.Repositories.DownloadReleaseAsset(context.TODO(), g.owner, g.repository, *asset.ID)
+	bodyReader, redirectURL, err := g.client.Repositories.DownloadReleaseAsset(context.TODO(), g.owner, g.repository, *asset.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if redir != "" {
-		resp, err := http.Get(redir)
-		if err != nil {
-			return nil, err
-		}
-
-		return resp.Body, nil
+	if redirectURL == "" {
+		return bodyReader, err
 	}
 
-	return res, err
+	resp, err := http.Get(redirectURL)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return nil, fmt.Errorf("redirect URL %q responded with bad status code: %d", redirectURL, resp.StatusCode)
+	}
+
+	return resp.Body, nil
 }
 
 func (g *GitHubClient) GetTarballLink(tag string) (*url.URL, error) {
