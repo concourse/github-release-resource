@@ -1,6 +1,8 @@
 package resource_test
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	. "github.com/concourse/github-release-resource"
@@ -348,6 +350,183 @@ var _ = Describe("GitHub Client", func() {
 				})
 			})
 
+		})
+	})
+
+	Describe("DownloadReleaseAsset", func() {
+		const (
+			owner = "bob"
+			repo  = "burgers"
+		)
+
+		var (
+			assetID   int
+			asset     github.ReleaseAsset
+			assetPath string
+		)
+
+		BeforeEach(func() {
+			source.Owner = owner
+			source.Repository = repo
+			assetID = 42
+			asset = github.ReleaseAsset{ID: &assetID}
+			assetPath = fmt.Sprintf("/repos/%s/%s/releases/assets/%d", owner, repo, assetID)
+		})
+
+		var appendGetHandler = func(server *ghttp.Server, path string, statusCode int, body string, headers ...http.Header) {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", path),
+					ghttp.RespondWith(statusCode, body, headers...),
+				),
+			)
+		}
+
+		Context("when the asset can be downloaded directly", func() {
+			Context("when the asset is downloaded successfully", func() {
+				const (
+					fileContents = "some-random-contents-from-github"
+				)
+
+				BeforeEach(func() {
+					appendGetHandler(server, assetPath, 200, fileContents)
+				})
+
+				It("returns the correct body", func() {
+					readCloser, err := client.DownloadReleaseAsset(asset)
+					Expect(err).NotTo(HaveOccurred())
+					defer readCloser.Close()
+
+					body, err := ioutil.ReadAll(readCloser)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(body)).To(Equal(fileContents))
+				})
+			})
+
+			Context("when there is an error downloading the asset", func() {
+				BeforeEach(func() {
+					appendGetHandler(server, assetPath, 401, "authorized personnel only")
+				})
+
+				It("returns an error", func() {
+					_, err := client.DownloadReleaseAsset(asset)
+					Expect(err).To(HaveOccurred())
+				})
+			})
+		})
+
+		Context("when the asset is behind a redirect", func() {
+			const (
+				redirectPath = "/the/redirect/path"
+			)
+
+			var locationHeader = func(url string) http.Header {
+				header := make(http.Header)
+				header.Add("Location", url)
+				return header
+			}
+
+			BeforeEach(func() {
+				appendGetHandler(server, assetPath, 307, "", locationHeader(redirectPath))
+			})
+
+			Context("when the redirect succeeds", func() {
+				const (
+					redirectFileContents = "some-random-contents-from-redirect"
+				)
+
+				BeforeEach(func() {
+					appendGetHandler(server, redirectPath, 200, redirectFileContents)
+				})
+
+				It("returns the body from the redirect request", func() {
+					readCloser, err := client.DownloadReleaseAsset(asset)
+					Expect(err).NotTo(HaveOccurred())
+					defer readCloser.Close()
+
+					body, err := ioutil.ReadAll(readCloser)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(body)).To(Equal(redirectFileContents))
+				})
+
+			})
+
+			Context("when there is another redirect to a URL that succeeds", func() {
+				const (
+					redirectFileContents = "some-random-contents-from-redirect"
+				)
+
+				BeforeEach(func() {
+					appendGetHandler(server, redirectPath, 307, "", locationHeader("/somewhere-else"))
+					appendGetHandler(server, "/somewhere-else", 200, redirectFileContents)
+				})
+
+				It("returns the body from the final redirect request", func() {
+					readCloser, err := client.DownloadReleaseAsset(asset)
+					Expect(err).NotTo(HaveOccurred())
+					defer readCloser.Close()
+
+					body, err := ioutil.ReadAll(readCloser)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(body)).To(Equal(redirectFileContents))
+				})
+			})
+
+			Context("when the redirect request response is a 400", func() {
+				BeforeEach(func() {
+					appendGetHandler(server, redirectPath, 400, "oops")
+				})
+
+				It("returns an error", func() {
+					_, err := client.DownloadReleaseAsset(asset)
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			Context("when the redirect request response is a 401", func() {
+				BeforeEach(func() {
+					appendGetHandler(server, redirectPath, 401, "authorized personnel only")
+				})
+
+				It("returns an error", func() {
+					_, err := client.DownloadReleaseAsset(asset)
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			Context("when the redirect request response is a 403", func() {
+
+				BeforeEach(func() {
+					appendGetHandler(server, redirectPath, 403, "authorized personnel only")
+				})
+
+				It("returns an error", func() {
+					_, err := client.DownloadReleaseAsset(asset)
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			Context("when the redirect request response is a 404", func() {
+				BeforeEach(func() {
+					appendGetHandler(server, redirectPath, 404, "I don't know her")
+				})
+
+				It("returns an error", func() {
+					_, err := client.DownloadReleaseAsset(asset)
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			Context("when the redirect request response is a 500", func() {
+				BeforeEach(func() {
+					appendGetHandler(server, redirectPath, 500, "boom")
+				})
+
+				It("returns an error", func() {
+					_, err := client.DownloadReleaseAsset(asset)
+					Expect(err).To(HaveOccurred())
+				})
+			})
 		})
 	})
 })
