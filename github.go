@@ -238,6 +238,7 @@ func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadC
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Accept", "application/octet-stream")
 
 	resp, err := g.httpClient.Do(req)
 	if err != nil {

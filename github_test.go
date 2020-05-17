@@ -380,6 +380,7 @@ var _ = Describe("GitHub Client", func() {
 					ghttp.VerifyRequest("GET", path),
 					ghttp.RespondWith(statusCode, body, headers...),
 					ghttp.VerifyHeaderKV("Authorization", "Bearer abc123"),
+					ghttp.VerifyHeaderKV("Accept", "application/octet-stream"),
 				),
 			)
 		}
