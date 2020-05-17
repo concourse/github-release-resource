@@ -37,7 +37,8 @@ type GitHub interface {
 }
 
 type GitHubClient struct {
-	client *github.Client
+	client     *github.Client
+	httpClient *http.Client
 
 	owner      string
 	repository string
@@ -93,6 +94,7 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 
 	return &GitHubClient{
 		client:     client,
+		httpClient: httpClient,
 		owner:      owner,
 		repository: source.Repository,
 	}, nil
@@ -232,7 +234,12 @@ func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadC
 		return bodyReader, err
 	}
 
-	resp, err := http.Get(redirectURL)
+	req, err := g.client.NewRequest("GET", redirectURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := g.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

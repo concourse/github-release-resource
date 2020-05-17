@@ -368,6 +368,7 @@ var _ = Describe("GitHub Client", func() {
 		BeforeEach(func() {
 			source.Owner = owner
 			source.Repository = repo
+			source.AccessToken = "abc123"
 			assetID = 42
 			asset = github.ReleaseAsset{ID: &assetID}
 			assetPath = fmt.Sprintf("/repos/%s/%s/releases/assets/%d", owner, repo, assetID)
@@ -378,6 +379,7 @@ var _ = Describe("GitHub Client", func() {
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", path),
 					ghttp.RespondWith(statusCode, body, headers...),
+					ghttp.VerifyHeaderKV("Authorization", "Bearer abc123"),
 				),
 			)
 		}
