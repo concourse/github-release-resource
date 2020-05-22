@@ -374,16 +374,25 @@ var _ = Describe("GitHub Client", func() {
 			assetPath = fmt.Sprintf("/repos/%s/%s/releases/assets/%d", owner, repo, assetID)
 		})
 
-		var appendGetHandler = func(server *ghttp.Server, path string, statusCode int, body string, headers ...http.Header) {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", path),
+		var appendGetHandler = func(server *ghttp.Server, path string, statusCode int, body string, usesAuth bool, headers ...http.Header) {
+			var authHeaderValue []string
+			if usesAuth {
+				authHeaderValue = []string{"Bearer abc123"}
+			}
+			server.AppendHandlers(ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", fmt.Sprintf("%s", path)),
 					ghttp.RespondWith(statusCode, body, headers...),
-					ghttp.VerifyHeaderKV("Authorization", "Bearer abc123"),
 					ghttp.VerifyHeaderKV("Accept", "application/octet-stream"),
-				),
-			)
+					ghttp.VerifyHeaderKV("Authorization", authHeaderValue...),
+			))
 		}
+
+		var locationHeader = func(url string) http.Header {
+			header := make(http.Header)
+			header.Add("Location", url)
+			return header
+		}
+
 
 		Context("when the asset can be downloaded directly", func() {
 			Context("when the asset is downloaded successfully", func() {
@@ -392,7 +401,7 @@ var _ = Describe("GitHub Client", func() {
 				)
 
 				BeforeEach(func() {
-					appendGetHandler(server, assetPath, 200, fileContents)
+					appendGetHandler(server, assetPath, 200, fileContents, true)
 				})
 
 				It("returns the correct body", func() {
@@ -408,7 +417,7 @@ var _ = Describe("GitHub Client", func() {
 
 			Context("when there is an error downloading the asset", func() {
 				BeforeEach(func() {
-					appendGetHandler(server, assetPath, 401, "authorized personnel only")
+					appendGetHandler(server, assetPath, 401, "authorized personnel only", true)
 				})
 
 				It("returns an error", func() {
@@ -419,18 +428,10 @@ var _ = Describe("GitHub Client", func() {
 		})
 
 		Context("when the asset is behind a redirect", func() {
-			const (
-				redirectPath = "/the/redirect/path"
-			)
-
-			var locationHeader = func(url string) http.Header {
-				header := make(http.Header)
-				header.Add("Location", url)
-				return header
-			}
+			const redirectPath = "/the/redirect/path"
 
 			BeforeEach(func() {
-				appendGetHandler(server, assetPath, 307, "", locationHeader(redirectPath))
+				appendGetHandler(server, assetPath, 307, "", true, locationHeader(redirectPath))
 			})
 
 			Context("when the redirect succeeds", func() {
@@ -439,7 +440,7 @@ var _ = Describe("GitHub Client", func() {
 				)
 
 				BeforeEach(func() {
-					appendGetHandler(server, redirectPath, 200, redirectFileContents)
+					appendGetHandler(server, redirectPath, 200, redirectFileContents, true)
 				})
 
 				It("returns the body from the redirect request", func() {
@@ -460,8 +461,8 @@ var _ = Describe("GitHub Client", func() {
 				)
 
 				BeforeEach(func() {
-					appendGetHandler(server, redirectPath, 307, "", locationHeader("/somewhere-else"))
-					appendGetHandler(server, "/somewhere-else", 200, redirectFileContents)
+					appendGetHandler(server, redirectPath, 307, "", true, locationHeader("/somewhere-else"))
+					appendGetHandler(server, "/somewhere-else", 200, redirectFileContents, true)
 				})
 
 				It("returns the body from the final redirect request", func() {
@@ -475,9 +476,34 @@ var _ = Describe("GitHub Client", func() {
 				})
 			})
 
+			Context("when there is another redirect to an external server", func() {
+				const (
+					redirectFileContents = "some-random-contents-from-redirect"
+				)
+
+				var externalServer *ghttp.Server
+
+				BeforeEach(func() {
+					externalServer = ghttp.NewServer()
+
+					appendGetHandler(server, redirectPath, 307, "", true, locationHeader(externalServer.URL() + "/somewhere-else"))
+					appendGetHandler(externalServer, "/somewhere-else", 200, redirectFileContents, false)
+				})
+
+				It("downloads the file without the Authorization header", func() {
+					readCloser, err := client.DownloadReleaseAsset(asset)
+					Expect(err).NotTo(HaveOccurred())
+					defer readCloser.Close()
+
+					body, err := ioutil.ReadAll(readCloser)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(body)).To(Equal(redirectFileContents))
+				})
+			})
+
 			Context("when the redirect request response is a 400", func() {
 				BeforeEach(func() {
-					appendGetHandler(server, redirectPath, 400, "oops")
+					appendGetHandler(server, redirectPath, 400, "oops", true)
 				})
 
 				It("returns an error", func() {
@@ -488,7 +514,7 @@ var _ = Describe("GitHub Client", func() {
 
 			Context("when the redirect request response is a 401", func() {
 				BeforeEach(func() {
-					appendGetHandler(server, redirectPath, 401, "authorized personnel only")
+					appendGetHandler(server, redirectPath, 401, "authorized personnel only", true)
 				})
 
 				It("returns an error", func() {
@@ -500,7 +526,7 @@ var _ = Describe("GitHub Client", func() {
 			Context("when the redirect request response is a 403", func() {
 
 				BeforeEach(func() {
-					appendGetHandler(server, redirectPath, 403, "authorized personnel only")
+					appendGetHandler(server, redirectPath, 403, "authorized personnel only", true)
 				})
 
 				It("returns an error", func() {
@@ -511,7 +537,7 @@ var _ = Describe("GitHub Client", func() {
 
 			Context("when the redirect request response is a 404", func() {
 				BeforeEach(func() {
-					appendGetHandler(server, redirectPath, 404, "I don't know her")
+					appendGetHandler(server, redirectPath, 404, "I don't know her", true)
 				})
 
 				It("returns an error", func() {
@@ -522,13 +548,38 @@ var _ = Describe("GitHub Client", func() {
 
 			Context("when the redirect request response is a 500", func() {
 				BeforeEach(func() {
-					appendGetHandler(server, redirectPath, 500, "boom")
+					appendGetHandler(server, redirectPath, 500, "boom", true)
 				})
 
 				It("returns an error", func() {
 					_, err := client.DownloadReleaseAsset(asset)
 					Expect(err).To(HaveOccurred())
 				})
+			})
+		})
+
+		Context("when the asset is behind a redirect on an external server", func() {
+			const (
+				redirectFileContents = "some-random-contents-from-redirect"
+			)
+
+			var externalServer *ghttp.Server
+
+			BeforeEach(func() {
+				externalServer = ghttp.NewServer()
+
+				appendGetHandler(server, assetPath, 307, "", true, locationHeader(externalServer.URL() + "/somewhere-else"))
+				appendGetHandler(externalServer, "/somewhere-else", 200, redirectFileContents, false)
+			})
+
+			It("downloads the file without the Authorization header", func() {
+				readCloser, err := client.DownloadReleaseAsset(asset)
+				Expect(err).NotTo(HaveOccurred())
+				defer readCloser.Close()
+
+				body, err := ioutil.ReadAll(readCloser)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(body)).To(Equal(redirectFileContents))
 			})
 		})
 	})
