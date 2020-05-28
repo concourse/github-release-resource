@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -10,8 +11,6 @@ import (
 	"os"
 
 	"golang.org/x/oauth2"
-
-	"context"
 
 	"github.com/google/go-github/github"
 )
@@ -37,10 +36,11 @@ type GitHub interface {
 }
 
 type GitHubClient struct {
-	client *github.Client
+	client     *github.Client
 
-	owner      string
-	repository string
+	owner       string
+	repository  string
+	accessToken string
 }
 
 func NewGitHubClient(source Source) (*GitHubClient, error) {
@@ -92,9 +92,10 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 	}
 
 	return &GitHubClient{
-		client:     client,
-		owner:      owner,
-		repository: source.Repository,
+		client:      client,
+		owner:       owner,
+		repository:  source.Repository,
+		accessToken: source.AccessToken,
 	}, nil
 }
 
@@ -232,12 +233,23 @@ func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadC
 		return bodyReader, err
 	}
 
-	resp, err := http.Get(redirectURL)
+	req, err := g.client.NewRequest("GET", redirectURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "application/octet-stream")
+	if g.accessToken != "" && req.URL.Host == g.client.BaseURL.Host {
+		req.Header.Set("Authorization", "Bearer " + g.accessToken)
+	}
+
+	httpClient := &http.Client{}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		resp.Body.Close()
 		return nil, fmt.Errorf("redirect URL %q responded with bad status code: %d", redirectURL, resp.StatusCode)
 	}
 
