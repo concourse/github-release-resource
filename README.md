@@ -32,8 +32,7 @@ Fetches and creates versioned GitHub resources.
   publish pre-releases if `pre_release` is set to `true`
 
   **note:** if both `release` and `pre_release` are set to `false`, `put` will
-  still produce final releases
-
+  still produce final releases  
   **note:** releases must have [semver compliant](https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions) tags to be detected.
 
 * `pre_release`: *Optional. Default `false`.* When set to `true`, `check`
@@ -42,8 +41,7 @@ Fetches and creates versioned GitHub resources.
   and published.
 
   **note:** if both `release` and `pre_release` are set to `true`, `put`
-  produces final releases and `check` detects both pre-releases and releases.
-
+  produces final releases and `check` detects both pre-releases and releases.  
   **note:** releases must have [semver compliant](https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions) tags to be detected.
 
 * `drafts`: *Optional. Default `false`.* When set to `true`, `put` produces
