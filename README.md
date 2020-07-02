@@ -31,17 +31,17 @@ Fetches and creates versioned GitHub resources.
   pre-releases). If `false`, `check` will ignore final releases, and `put` will
   publish pre-releases if `pre_release` is set to `true`
 
-  **note:** if both `release` and `pre_release` are set to `false`, `put` will
-  still produce final releases  
-  **note:** releases must have [semver compliant](https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions) tags to be detected.
-
 * `pre_release`: *Optional. Default `false`.* When set to `true`, `check`
   detects pre-releases, and `put` will produce pre-releases (if `release` is
   also set to `false`). If `false`, only non-prerelease releases will be detected
   and published.
 
   **note:** if both `release` and `pre_release` are set to `true`, `put`
-  produces final releases and `check` detects both pre-releases and releases.  
+  produces final releases and `check` detects both pre-releases and releases. In
+  order to produce pre-releases, you must set `pre_release` to `true` and
+  `release` to `false`.  
+  **note:** if both `release` and `pre_release` are set to `false`, `put` will
+  still produce final releases.  
   **note:** releases must have [semver compliant](https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions) tags to be detected.
 
 * `drafts`: *Optional. Default `false`.* When set to `true`, `put` produces
