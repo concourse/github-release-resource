@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/concourse/github-release-resource"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -21,7 +21,7 @@ func newRepositoryRelease(id int, version string) *github.RepositoryRelease {
 		TagName:    github.String(version),
 		Draft:      github.Bool(false),
 		Prerelease: github.Bool(false),
-		ID:         github.Int(id),
+		ID:         github.Int64(int64(id)),
 	}
 }
 
@@ -30,7 +30,7 @@ func newPreReleaseRepositoryRelease(id int, version string) *github.RepositoryRe
 		TagName:    github.String(version),
 		Draft:      github.Bool(false),
 		Prerelease: github.Bool(true),
-		ID:         github.Int(id),
+		ID:         github.Int64(int64(id)),
 	}
 }
 func newDraftRepositoryRelease(id int, version string) *github.RepositoryRelease {
@@ -38,7 +38,7 @@ func newDraftRepositoryRelease(id int, version string) *github.RepositoryRelease
 		TagName:    github.String(version),
 		Draft:      github.Bool(true),
 		Prerelease: github.Bool(false),
-		ID:         github.Int(id),
+		ID:         github.Int64(int64(id)),
 	}
 }
 
@@ -46,7 +46,7 @@ func newDraftWithNilTagRepositoryRelease(id int) *github.RepositoryRelease {
 	return &github.RepositoryRelease{
 		Draft:      github.Bool(true),
 		Prerelease: github.Bool(false),
-		ID:         github.Int(id),
+		ID:         github.Int64(int64(id)),
 	}
 }
 
@@ -59,7 +59,7 @@ func newRepositoryReleaseWithCreatedTime(id int, version string, day int) *githu
 		TagName:    github.String(version),
 		Draft:      github.Bool(false),
 		Prerelease: github.Bool(false),
-		ID:         github.Int(id),
+		ID:         github.Int64(int64(id)),
 		CreatedAt:  &github.Timestamp{exampleTimeStamp(day)},
 	}
 }
@@ -69,7 +69,7 @@ func newRepositoryReleaseWithPublishedTime(id int, version string, day int) *git
 		TagName:     github.String(version),
 		Draft:       github.Bool(false),
 		Prerelease:  github.Bool(false),
-		ID:          github.Int(id),
+		ID:          github.Int64(int64(id)),
 		PublishedAt: &github.Timestamp{exampleTimeStamp(day)},
 	}
 }
@@ -79,7 +79,7 @@ func newRepositoryReleaseWithCreatedAndPublishedTime(id int, version string, cre
 		TagName:     github.String(version),
 		Draft:       github.Bool(false),
 		Prerelease:  github.Bool(false),
-		ID:          github.Int(id),
+		ID:          github.Int64(int64(id)),
 		CreatedAt:   &github.Timestamp{exampleTimeStamp(createdDay)},
 		PublishedAt: &github.Timestamp{exampleTimeStamp(publishedDay)},
 	}

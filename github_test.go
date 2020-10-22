@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 	"github.com/onsi/gomega/ghttp"
 )
 
@@ -24,7 +24,7 @@ var _ = Describe("GitHub Client", func() {
 	})
 
 	JustBeforeEach(func() {
-		source.GitHubAPIURL = server.URL()
+		source.GitHubAPIURL = server.URL() + "/"
 
 		var err error
 		client, err = NewGitHubClient(source)
@@ -132,7 +132,7 @@ var _ = Describe("GitHub Client", func() {
 			BeforeEach(func() {
 				var result []*github.RepositoryRelease
 				for i := 1; i < 102; i++ {
-					result = append(result, &github.RepositoryRelease{ID: github.Int(i)})
+					result = append(result, &github.RepositoryRelease{ID: github.Int64(int64(i))})
 
 				}
 
@@ -241,7 +241,7 @@ var _ = Describe("GitHub Client", func() {
 
 			It("Returns a populated github.RepositoryRelease", func() {
 				expectedRelease := &github.RepositoryRelease{
-					ID: github.Int(1),
+					ID: github.Int64(1),
 				}
 
 				release, err := client.GetReleaseByTag("some-tag")
@@ -360,7 +360,7 @@ var _ = Describe("GitHub Client", func() {
 		)
 
 		var (
-			assetID   int
+			assetID   int64
 			asset     github.ReleaseAsset
 			assetPath string
 		)
@@ -380,10 +380,10 @@ var _ = Describe("GitHub Client", func() {
 				authHeaderValue = []string{"Bearer abc123"}
 			}
 			server.AppendHandlers(ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", fmt.Sprintf("%s", path)),
-					ghttp.RespondWith(statusCode, body, headers...),
-					ghttp.VerifyHeaderKV("Accept", "application/octet-stream"),
-					ghttp.VerifyHeaderKV("Authorization", authHeaderValue...),
+				ghttp.VerifyRequest("GET", fmt.Sprintf("%s", path)),
+				ghttp.RespondWith(statusCode, body, headers...),
+				ghttp.VerifyHeaderKV("Accept", "application/octet-stream"),
+				ghttp.VerifyHeaderKV("Authorization", authHeaderValue...),
 			))
 		}
 
@@ -392,7 +392,6 @@ var _ = Describe("GitHub Client", func() {
 			header.Add("Location", url)
 			return header
 		}
-
 
 		Context("when the asset can be downloaded directly", func() {
 			Context("when the asset is downloaded successfully", func() {
@@ -486,7 +485,7 @@ var _ = Describe("GitHub Client", func() {
 				BeforeEach(func() {
 					externalServer = ghttp.NewServer()
 
-					appendGetHandler(server, redirectPath, 307, "", true, locationHeader(externalServer.URL() + "/somewhere-else"))
+					appendGetHandler(server, redirectPath, 307, "", true, locationHeader(externalServer.URL()+"/somewhere-else"))
 					appendGetHandler(externalServer, "/somewhere-else", 200, redirectFileContents, false)
 				})
 
@@ -568,7 +567,7 @@ var _ = Describe("GitHub Client", func() {
 			BeforeEach(func() {
 				externalServer = ghttp.NewServer()
 
-				appendGetHandler(server, assetPath, 307, "", true, locationHeader(externalServer.URL() + "/somewhere-else"))
+				appendGetHandler(server, assetPath, 307, "", true, locationHeader(externalServer.URL()+"/somewhere-else"))
 				appendGetHandler(externalServer, "/somewhere-else", 200, redirectFileContents, false)
 			})
 

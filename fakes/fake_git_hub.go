@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	resource "github.com/concourse/github-release-resource"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 )
 
 type FakeGitHub struct {
