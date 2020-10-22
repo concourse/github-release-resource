@@ -1,8 +1,8 @@
-FROM golang:alpine as builder
-COPY . /go/src/github.com/concourse/github-release-resource
+FROM golang:alpine AS builder
+COPY . $GOPATH/src/github.com/concourse/github-release-resource
+WORKDIR $GOPATH/src/github.com/concourse/github-release-resource
 ENV CGO_ENABLED 0
-ENV GOPATH /go/src/github.com/concourse/github-release-resource/Godeps/_workspace:${GOPATH}
-ENV PATH /go/src/github.com/concourse/github-release-resource/Godeps/_workspace/bin:${PATH}
+RUN go mod vendor
 RUN go build -o /assets/out github.com/concourse/github-release-resource/cmd/out
 RUN go build -o /assets/in github.com/concourse/github-release-resource/cmd/in
 RUN go build -o /assets/check github.com/concourse/github-release-resource/cmd/check
