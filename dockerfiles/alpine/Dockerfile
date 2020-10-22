@@ -1,4 +1,4 @@
-FROM golang:1.15-alpine AS builder
+FROM golang:alpine AS builder
 COPY . $GOPATH/src/github.com/concourse/github-release-resource
 WORKDIR $GOPATH/src/github.com/concourse/github-release-resource
 ENV CGO_ENABLED 0
