@@ -77,14 +77,14 @@ var _ = Describe("Out Command", func() {
 			{
 				ID:      github.Int64(112),
 				TagName: github.String("some-tag-name"),
-				Assets:  []github.ReleaseAsset{existingAssets[0]},
+				Assets:  []*github.ReleaseAsset{&existingAssets[0]},
 				Draft:   github.Bool(false),
 			},
 		}
 
 		BeforeEach(func() {
 			githubClient.ListReleasesStub = func() ([]*github.RepositoryRelease, error) {
-				rels := []*github.RepositoryRelease{}
+				var rels []*github.RepositoryRelease
 				for _, r := range existingReleases {
 					c := r
 					rels = append(rels, &c)
@@ -94,7 +94,7 @@ var _ = Describe("Out Command", func() {
 			}
 
 			githubClient.ListReleaseAssetsStub = func(github.RepositoryRelease) ([]*github.ReleaseAsset, error) {
-				assets := []*github.ReleaseAsset{}
+				var assets []*github.ReleaseAsset
 				for _, a := range existingAssets {
 					c := a
 					assets = append(assets, &c)

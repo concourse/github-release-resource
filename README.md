@@ -176,11 +176,10 @@ prepended with this string. This is useful for adding v in front of version numb
 
 ### Prerequisites
 
-* golang is *required* - version 1.9.x is tested; earlier versions may also
+* golang is *required* - version 1.15.x is tested; earlier versions may also
   work.
 * docker is *required* - version 17.06.x is tested; earlier versions may also
   work.
-* godep is used for dependency management of the golang packages.
 
 ### Running the tests
 

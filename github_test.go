@@ -14,6 +14,74 @@ import (
 	"github.com/onsi/gomega/ghttp"
 )
 
+const (
+	multiPageResp = `{
+ "data": {
+   "repository": {
+     "releases": {
+       "edges": [
+         {
+           "node": {
+             "createdAt": "2010-10-01T00:58:07Z",
+             "id": "MDc6UmVsZWFzZTMyMDk1MTAz",
+             "name": "xyz",
+             "publishedAt": "2010-10-02T15:39:53Z",
+             "tagName": "xyz",
+             "url": "https://github.com/xyz/xyz/releases/tag/xyz",
+             "isDraft": false,
+             "isPrerelease": false
+           }
+         },
+         {
+           "node": {
+             "createdAt": "2010-08-27T13:55:36Z",
+             "id": "MDc6UmVsZWFzZTMwMjMwNjU5",
+             "name": "xyz",
+             "publishedAt": "2010-08-27T17:18:06Z",
+             "tagName": "xyz",
+             "url": "https://github.com/xyz/xyz/releases/tag/xyz",
+             "isDraft": false,
+             "isPrerelease": false
+           }
+         }
+       ],
+       "pageInfo": {
+         "endCursor": "Y3Vyc29yOnYyOpK5MjAyMC0xMC0wMVQwMjo1ODowNyswMjowMM4B6bt_",
+         "hasNextPage": true
+       }
+     }
+   }
+ }
+}`
+
+	singlePageResp = `{
+  "data": {
+    "repository": {
+      "releases": {
+        "edges": [
+          {
+            "node": {
+              "createdAt": "2010-10-10T01:01:07Z",
+              "id": "MDc6UmVsZWFzZTMyMDk1MTAk",
+              "name": "xyq",
+              "publishedAt": "2010-10-10T15:39:53Z",
+              "tagName": "xyq",
+              "url": "https://github.com/xyq/xyq/releases/tag/xyq",
+              "isDraft": false,
+              "isPrerelease": false
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "Y3Vyc29yOnYyOpK5MjAyMC0xMC0wMVQwMjo1ODowNyswMjowMM4B6bt_",
+          "hasNextPage": false
+        }
+      }
+    }
+  }
+}`
+)
+
 var _ = Describe("GitHub Client", func() {
 	var server *ghttp.Server
 	var client *GitHubClient
@@ -63,10 +131,11 @@ var _ = Describe("GitHub Client", func() {
 				AccessToken: "abc123",
 			}
 
+			server.SetAllowUnhandledRequests(true)
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases"),
-					ghttp.RespondWith(200, "[]"),
+					ghttp.VerifyRequest("POST", "/graphql"),
+					ghttp.RespondWith(200, singlePageResp),
 					ghttp.VerifyHeaderKV("Authorization", "Bearer abc123"),
 				),
 			)
@@ -87,35 +156,14 @@ var _ = Describe("GitHub Client", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases"),
-					ghttp.RespondWith(200, "[]"),
+					ghttp.VerifyRequest("POST", "/graphql"),
+					ghttp.RespondWith(200, singlePageResp),
 					ghttp.VerifyHeader(http.Header{"Authorization": nil}),
 				),
 			)
 		})
 
 		It("sends one", func() {
-			_, err := client.ListReleases()
-			Ω(err).ShouldNot(HaveOccurred())
-		})
-	})
-
-	Describe("when the source is configured with the deprecated user field", func() {
-		BeforeEach(func() {
-			source = Source{
-				User:       "some-owner",
-				Repository: "some-repo",
-			}
-
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/repos/some-owner/some-repo/releases"),
-					ghttp.RespondWith(200, "[]"),
-				),
-			)
-		})
-
-		It("uses the provided user as the owner", func() {
 			_, err := client.ListReleases()
 			Ω(err).ShouldNot(HaveOccurred())
 		})
@@ -128,7 +176,7 @@ var _ = Describe("GitHub Client", func() {
 				Repository: "concourse",
 			}
 		})
-		Context("When list of releases return more then 100 items", func() {
+		Context("List graphql releases", func() {
 			BeforeEach(func() {
 				var result []*github.RepositoryRelease
 				for i := 1; i < 102; i++ {
@@ -138,12 +186,12 @@ var _ = Describe("GitHub Client", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100"),
-						ghttp.RespondWithJSONEncoded(200, result[:100], http.Header{"Link": []string{`</releases?page=2>; rel="next"`}}),
+						ghttp.VerifyRequest("POST", "/graphql"),
+						ghttp.RespondWith(200, multiPageResp),
 					),
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100&page=2"),
-						ghttp.RespondWithJSONEncoded(200, result[100:]),
+						ghttp.VerifyRequest("POST", "/graphql"),
+						ghttp.RespondWith(200, singlePageResp),
 					),
 				)
 			})
@@ -151,7 +199,7 @@ var _ = Describe("GitHub Client", func() {
 			It("list releases", func() {
 				releases, err := client.ListReleases()
 				Ω(err).ShouldNot(HaveOccurred())
-				Expect(releases).To(HaveLen(101))
+				Expect(releases).To(HaveLen(3))
 				Expect(server.ReceivedRequests()).To(HaveLen(2))
 			})
 		})
@@ -275,7 +323,7 @@ var _ = Describe("GitHub Client", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/refs/tags/some-tag"),
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/ref/tags/some-tag"),
 						ghttp.RespondWith(403, rateLimitResponse, rateLimitHeaders),
 					),
 				)
@@ -292,7 +340,7 @@ var _ = Describe("GitHub Client", func() {
 			BeforeEach(func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/refs/tags/some-tag"),
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/ref/tags/some-tag"),
 						ghttp.RespondWith(200, `{ "ref": "refs/tags/some-tag", "object" : { "type": "commit", "sha": "some-sha"} }`),
 					),
 				)
@@ -310,7 +358,7 @@ var _ = Describe("GitHub Client", func() {
 			BeforeEach(func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/refs/tags/some-tag"),
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/ref/tags/some-tag"),
 						ghttp.RespondWith(200, `{ "ref": "refs/tags/some-tag", "object" : { "type": "tag", "sha": "some-tag-sha"} }`),
 					),
 				)
