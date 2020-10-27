@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"strconv"
 	"time"
 )
@@ -81,9 +80,11 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 		if err != nil {
 			return nil, err
 		}
-		u, err := url.Parse(source.GitHubAPIURL)
-		u.Path = path.Join(u.Path, "graphql")
-		clientV4 = githubv4.NewEnterpriseClient(u.String(), httpClient)
+
+	}
+
+	if source.GitHubV4APIURL != "" {
+		clientV4 = githubv4.NewEnterpriseClient(source.GitHubAPIURL, httpClient)
 	}
 
 	if source.GitHubUploadsURL != "" {

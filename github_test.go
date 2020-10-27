@@ -93,6 +93,7 @@ var _ = Describe("GitHub Client", func() {
 
 	JustBeforeEach(func() {
 		source.GitHubAPIURL = server.URL() + "/"
+		source.GitHubV4APIURL = server.URL() + "/graphql"
 
 		var err error
 		client, err = NewGitHubClient(source)
@@ -134,7 +135,7 @@ var _ = Describe("GitHub Client", func() {
 			server.SetAllowUnhandledRequests(true)
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/graphql"),
+					ghttp.VerifyRequest("POST", "/"),
 					ghttp.RespondWith(200, singlePageResp),
 					ghttp.VerifyHeaderKV("Authorization", "Bearer abc123"),
 				),
@@ -156,7 +157,7 @@ var _ = Describe("GitHub Client", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/graphql"),
+					ghttp.VerifyRequest("POST", "/"),
 					ghttp.RespondWith(200, singlePageResp),
 					ghttp.VerifyHeader(http.Header{"Authorization": nil}),
 				),
@@ -186,11 +187,11 @@ var _ = Describe("GitHub Client", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/graphql"),
+						ghttp.VerifyRequest("POST", "/"),
 						ghttp.RespondWith(200, multiPageResp),
 					),
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/graphql"),
+						ghttp.VerifyRequest("POST", "/"),
 						ghttp.RespondWith(200, singlePageResp),
 					),
 				)

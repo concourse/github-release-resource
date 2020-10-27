@@ -18,6 +18,9 @@ Fetches and creates versioned GitHub resources.
 
 * `github_api_url`: *Optional.* If you use a non-public GitHub deployment then
   you can set your API URL here.
+  
+* `github_v4_api_url`: *Optional.* If you use a non-public GitHub deployment then
+  you can set your API URL for graphql calls here.
 
 * `github_uploads_url`: *Optional.* Some GitHub instances have a separate URL
   for uploading. If `github_api_url` is set, this value defaults to the same

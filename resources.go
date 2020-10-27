@@ -12,6 +12,7 @@ type Source struct {
 	User string `json:"user"`
 
 	GitHubAPIURL     string `json:"github_api_url"`
+	GitHubV4APIURL   string `json:"github_v4_api_url"`
 	GitHubUploadsURL string `json:"github_uploads_url"`
 	AccessToken      string `json:"access_token"`
 	Drafts           bool   `json:"drafts"`
