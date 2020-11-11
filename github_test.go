@@ -157,8 +157,8 @@ var _ = Describe("GitHub Client", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/"),
-					ghttp.RespondWith(200, singlePageResp),
+					ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases"),
+					ghttp.RespondWith(200, "[]"),
 					ghttp.VerifyHeader(http.Header{"Authorization": nil}),
 				),
 			)
@@ -173,8 +173,9 @@ var _ = Describe("GitHub Client", func() {
 	Describe("ListReleases", func() {
 		BeforeEach(func() {
 			source = Source{
-				Owner:      "concourse",
-				Repository: "concourse",
+				Owner:       "concourse",
+				Repository:  "concourse",
+				AccessToken: "test",
 			}
 		})
 		Context("List graphql releases", func() {

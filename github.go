@@ -19,6 +19,7 @@ import (
 
 type GitHub interface {
 	ListReleases() ([]*github.RepositoryRelease, error)
+	ListReleasesV4() ([]*github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)
 	GetRelease(id int) (*github.RepositoryRelease, error)
 	CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
@@ -105,6 +106,31 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 		repository:  source.Repository,
 		accessToken: source.AccessToken,
 	}, nil
+}
+
+func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
+	if g.accessToken != "" {
+		return g.ListReleasesV4()
+	}
+	opt := &github.ListOptions{PerPage: 100}
+	var allReleases []*github.RepositoryRelease
+	for {
+		releases, res, err := g.client.Repositories.ListReleases(context.TODO(), g.owner, g.repository, opt)
+		if err != nil {
+			return []*github.RepositoryRelease{}, err
+		}
+		allReleases = append(allReleases, releases...)
+		if res.NextPage == 0 {
+			err = res.Body.Close()
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+		opt.Page = res.NextPage
+	}
+
+	return allReleases, nil
 }
 
 func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, error) {

@@ -10,7 +10,7 @@ import (
 	"github.com/shurcooL/githubv4"
 )
 
-func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
+func (g *GitHubClient) ListReleasesV4() ([]*github.RepositoryRelease, error) {
 	if g.clientV4 == nil {
 		return nil, errors.New("github graphql is not been initialised")
 	}
