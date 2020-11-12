@@ -80,6 +80,10 @@ const (
     }
   }
 }`
+	rateLimitMessage = `{
+          "message": "API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
+          "documentation_url": "https://developer.github.com/v3/#rate-limiting"
+        }`
 )
 
 var _ = Describe("GitHub Client", func() {
@@ -182,7 +186,6 @@ var _ = Describe("GitHub Client", func() {
 				var result []*github.RepositoryRelease
 				for i := 1; i < 102; i++ {
 					result = append(result, &github.RepositoryRelease{ID: github.Int64(int64(i))})
-
 				}
 
 				server.AppendHandlers(
@@ -248,10 +251,7 @@ var _ = Describe("GitHub Client", func() {
 		})
 		Context("When GitHub's rate limit has been exceeded", func() {
 			BeforeEach(func() {
-				rateLimitResponse := `{
-          "message": "API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
-          "documentation_url": "https://developer.github.com/v3/#rate-limiting"
-        }`
+				rateLimitResponse := rateLimitMessage
 
 				rateLimitHeaders := http.Header(map[string][]string{
 					"X-RateLimit-Limit":     {"60"},
@@ -285,10 +285,7 @@ var _ = Describe("GitHub Client", func() {
 
 		Context("When GitHub's rate limit has been exceeded", func() {
 			BeforeEach(func() {
-				rateLimitResponse := `{
-          "message": "API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
-          "documentation_url": "https://developer.github.com/v3/#rate-limiting"
-        }`
+				rateLimitResponse := rateLimitMessage
 
 				rateLimitHeaders := http.Header(map[string][]string{
 					"X-RateLimit-Limit":     {"60"},
@@ -344,10 +341,7 @@ var _ = Describe("GitHub Client", func() {
 
 		Context("When GitHub's rate limit has been exceeded", func() {
 			BeforeEach(func() {
-				rateLimitResponse := `{
-          "message": "API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
-          "documentation_url": "https://developer.github.com/v3/#rate-limiting"
-        }`
+				rateLimitResponse := rateLimitMessage
 
 				rateLimitHeaders := http.Header(map[string][]string{
 					"X-RateLimit-Limit":     {"60"},
@@ -462,7 +456,7 @@ var _ = Describe("GitHub Client", func() {
 				authHeaderValue = []string{"Bearer abc123"}
 			}
 			server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", fmt.Sprintf("%s", path)),
+				ghttp.VerifyRequest("GET", path),
 				ghttp.RespondWith(statusCode, body, headers...),
 				ghttp.VerifyHeaderKV("Accept", "application/octet-stream"),
 				ghttp.VerifyHeaderKV("Authorization", authHeaderValue...),
