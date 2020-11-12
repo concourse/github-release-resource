@@ -126,18 +126,6 @@ type FakeGitHub struct {
 		result1 []*github.RepositoryRelease
 		result2 error
 	}
-	ListReleasesV4Stub        func() ([]*github.RepositoryRelease, error)
-	listReleasesV4Mutex       sync.RWMutex
-	listReleasesV4ArgsForCall []struct {
-	}
-	listReleasesV4Returns struct {
-		result1 []*github.RepositoryRelease
-		result2 error
-	}
-	listReleasesV4ReturnsOnCall map[int]struct {
-		result1 []*github.RepositoryRelease
-		result2 error
-	}
 	ResolveTagToCommitSHAStub        func(string) (string, error)
 	resolveTagToCommitSHAMutex       sync.RWMutex
 	resolveTagToCommitSHAArgsForCall []struct {
@@ -737,61 +725,6 @@ func (fake *FakeGitHub) ListReleasesReturnsOnCall(i int, result1 []*github.Repos
 	}{result1, result2}
 }
 
-func (fake *FakeGitHub) ListReleasesV4() ([]*github.RepositoryRelease, error) {
-	fake.listReleasesV4Mutex.Lock()
-	ret, specificReturn := fake.listReleasesV4ReturnsOnCall[len(fake.listReleasesV4ArgsForCall)]
-	fake.listReleasesV4ArgsForCall = append(fake.listReleasesV4ArgsForCall, struct {
-	}{})
-	fake.recordInvocation("ListReleasesV4", []interface{}{})
-	fake.listReleasesV4Mutex.Unlock()
-	if fake.ListReleasesV4Stub != nil {
-		return fake.ListReleasesV4Stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	fakeReturns := fake.listReleasesV4Returns
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeGitHub) ListReleasesV4CallCount() int {
-	fake.listReleasesV4Mutex.RLock()
-	defer fake.listReleasesV4Mutex.RUnlock()
-	return len(fake.listReleasesV4ArgsForCall)
-}
-
-func (fake *FakeGitHub) ListReleasesV4Calls(stub func() ([]*github.RepositoryRelease, error)) {
-	fake.listReleasesV4Mutex.Lock()
-	defer fake.listReleasesV4Mutex.Unlock()
-	fake.ListReleasesV4Stub = stub
-}
-
-func (fake *FakeGitHub) ListReleasesV4Returns(result1 []*github.RepositoryRelease, result2 error) {
-	fake.listReleasesV4Mutex.Lock()
-	defer fake.listReleasesV4Mutex.Unlock()
-	fake.ListReleasesV4Stub = nil
-	fake.listReleasesV4Returns = struct {
-		result1 []*github.RepositoryRelease
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeGitHub) ListReleasesV4ReturnsOnCall(i int, result1 []*github.RepositoryRelease, result2 error) {
-	fake.listReleasesV4Mutex.Lock()
-	defer fake.listReleasesV4Mutex.Unlock()
-	fake.ListReleasesV4Stub = nil
-	if fake.listReleasesV4ReturnsOnCall == nil {
-		fake.listReleasesV4ReturnsOnCall = make(map[int]struct {
-			result1 []*github.RepositoryRelease
-			result2 error
-		})
-	}
-	fake.listReleasesV4ReturnsOnCall[i] = struct {
-		result1 []*github.RepositoryRelease
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeGitHub) ResolveTagToCommitSHA(arg1 string) (string, error) {
 	fake.resolveTagToCommitSHAMutex.Lock()
 	ret, specificReturn := fake.resolveTagToCommitSHAReturnsOnCall[len(fake.resolveTagToCommitSHAArgsForCall)]
@@ -1001,8 +934,6 @@ func (fake *FakeGitHub) Invocations() map[string][][]interface{} {
 	defer fake.listReleaseAssetsMutex.RUnlock()
 	fake.listReleasesMutex.RLock()
 	defer fake.listReleasesMutex.RUnlock()
-	fake.listReleasesV4Mutex.RLock()
-	defer fake.listReleasesV4Mutex.RUnlock()
 	fake.resolveTagToCommitSHAMutex.RLock()
 	defer fake.resolveTagToCommitSHAMutex.RUnlock()
 	fake.updateReleaseMutex.RLock()

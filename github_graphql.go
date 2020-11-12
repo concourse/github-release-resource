@@ -10,7 +10,7 @@ import (
 	"github.com/shurcooL/githubv4"
 )
 
-func (g *GitHubClient) ListReleasesV4() ([]*github.RepositoryRelease, error) {
+func (g *GitHubClient) listReleasesV4() ([]*github.RepositoryRelease, error) {
 	if g.clientV4 == nil {
 		return nil, errors.New("github graphql is not been initialised")
 	}
@@ -44,11 +44,12 @@ func (g *GitHubClient) ListReleasesV4() ([]*github.RepositoryRelease, error) {
 		}
 
 		for _, r := range listReleases.Repository.Releases.Edges {
-			var publishedAt, _ = time.ParseInLocation(time.RFC3339, r.Node.PublishedAt.Time.Format(time.RFC3339), time.UTC)
-			var createdAt, _ = time.ParseInLocation(time.RFC3339, r.Node.CreatedAt.Time.Format(time.RFC3339), time.UTC)
-			var releaseId, _ = strconv.ParseInt(r.Node.ID, 10, 64)
+			r := r
+			publishedAt, _ := time.ParseInLocation(time.RFC3339, r.Node.PublishedAt.Time.Format(time.RFC3339), time.UTC)
+			createdAt, _ := time.ParseInLocation(time.RFC3339, r.Node.CreatedAt.Time.Format(time.RFC3339), time.UTC)
+			releaseID, _ := strconv.ParseInt(r.Node.ID, 10, 64)
 			allReleases = append(allReleases, &github.RepositoryRelease{
-				ID:          &releaseId,
+				ID:          &releaseID,
 				TagName:     &r.Node.TagName,
 				Name:        &r.Node.Name,
 				Prerelease:  &r.Node.IsPrerelease,

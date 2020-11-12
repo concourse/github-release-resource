@@ -5,13 +5,15 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/google/go-github/v32/github"
-	"github.com/shurcooL/githubv4"
-	"golang.org/x/oauth2"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
+
+	"github.com/google/go-github/v32/github"
+	"github.com/shurcooL/githubv4"
+	"golang.org/x/oauth2"
 )
 
 // Last run with counterfeiter v6
@@ -19,7 +21,6 @@ import (
 
 type GitHub interface {
 	ListReleases() ([]*github.RepositoryRelease, error)
-	ListReleasesV4() ([]*github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)
 	GetRelease(id int) (*github.RepositoryRelease, error)
 	CreateRelease(release github.RepositoryRelease) (*github.RepositoryRelease, error)
@@ -70,6 +71,9 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 
 	if source.GitHubAPIURL != "" {
 		var err error
+		if !strings.HasSuffix(source.GitHubAPIURL, "/") {
+			source.GitHubAPIURL += "/"
+		}
 		client.BaseURL, err = url.Parse(source.GitHubAPIURL)
 		if err != nil {
 			return nil, err
@@ -80,10 +84,11 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 			return nil, err
 		}
 
+		clientV4 = githubv4.NewEnterpriseClient(source.GitHubAPIURL+"graphql", httpClient)
 	}
 
 	if source.GitHubV4APIURL != "" {
-		clientV4 = githubv4.NewEnterpriseClient(source.GitHubAPIURL, httpClient)
+		clientV4 = githubv4.NewEnterpriseClient(source.GitHubV4APIURL, httpClient)
 	}
 
 	if source.GitHubUploadsURL != "" {
@@ -110,7 +115,7 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 
 func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
 	if g.accessToken != "" {
-		return g.ListReleasesV4()
+		return g.listReleasesV4()
 	}
 	opt := &github.ListOptions{PerPage: 100}
 	var allReleases []*github.RepositoryRelease

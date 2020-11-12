@@ -93,7 +93,6 @@ var _ = Describe("GitHub Client", func() {
 
 	JustBeforeEach(func() {
 		source.GitHubAPIURL = server.URL() + "/"
-		source.GitHubV4APIURL = server.URL() + "/graphql"
 
 		var err error
 		client, err = NewGitHubClient(source)
@@ -135,7 +134,7 @@ var _ = Describe("GitHub Client", func() {
 			server.SetAllowUnhandledRequests(true)
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/"),
+					ghttp.VerifyRequest("POST", "/graphql"),
 					ghttp.RespondWith(200, singlePageResp),
 					ghttp.VerifyHeaderKV("Authorization", "Bearer abc123"),
 				),
@@ -170,7 +169,7 @@ var _ = Describe("GitHub Client", func() {
 		})
 	})
 
-	Describe("ListReleases", func() {
+	Describe("ListReleases with access token", func() {
 		BeforeEach(func() {
 			source = Source{
 				Owner:       "concourse",
@@ -188,11 +187,11 @@ var _ = Describe("GitHub Client", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/"),
+						ghttp.VerifyRequest("POST", "/graphql"),
 						ghttp.RespondWith(200, multiPageResp),
 					),
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/"),
+						ghttp.VerifyRequest("POST", "/graphql"),
 						ghttp.RespondWith(200, singlePageResp),
 					),
 				)
@@ -203,6 +202,39 @@ var _ = Describe("GitHub Client", func() {
 				Ω(err).ShouldNot(HaveOccurred())
 				Expect(releases).To(HaveLen(3))
 				Expect(server.ReceivedRequests()).To(HaveLen(2))
+			})
+		})
+	})
+
+	Describe("ListReleases without access token", func() {
+		BeforeEach(func() {
+			source = Source{
+				Owner:      "concourse",
+				Repository: "concourse",
+			}
+		})
+		Context("When list of releases return more then 100 items", func() {
+			Context("List graphql releases", func() {
+				BeforeEach(func() {
+					var result []*github.RepositoryRelease
+					for i := 1; i < 102; i++ {
+						result = append(result, &github.RepositoryRelease{ID: github.Int64(int64(i))})
+					}
+					server.AppendHandlers(
+						ghttp.CombineHandlers(ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100"),
+							ghttp.RespondWithJSONEncoded(200, result[:100], http.Header{"Link": []string{`</releases?page=2>; rel="next"`}}),
+						),
+						ghttp.CombineHandlers(ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100&page=2"),
+							ghttp.RespondWithJSONEncoded(200, result[100:])),
+					)
+				})
+				It("list releases", func() {
+					releases, err := client.ListReleases()
+					Ω(err).ShouldNot(HaveOccurred())
+					Expect(releases).To(HaveLen(101))
+					Expect(server.ReceivedRequests()).To(HaveLen(2))
+				})
+
 			})
 		})
 	})
