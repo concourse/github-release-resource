@@ -81,6 +81,32 @@ const (
     }
   }
 }`
+	invalidPageIdResp = `{
+  "data": {
+    "repository": {
+      "releases": {
+        "edges": [
+          {
+            "node": {
+              "createdAt": "2010-10-10T01:01:07Z",
+              "id": "MDc6UmVsZWFzZTMzMjZyzzzz",
+              "name": "xyq",
+              "publishedAt": "2010-10-10T15:39:53Z",
+              "tagName": "xyq",
+              "url": "https://github.com/xyq/xyq/releases/tag/xyq",
+              "isDraft": false,
+              "isPrerelease": false
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "Y3Vyc29yOnYyOpK5MjAyMC0xMC0wMVQwMjo1ODowNyswMjowMM4B6bt_",
+          "hasNextPage": false
+        }
+      }
+    }
+  }
+}`
 	rateLimitMessage = `{
           "message": "API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
           "documentation_url": "https://developer.github.com/v3/#rate-limiting"
@@ -200,13 +226,27 @@ var _ = Describe("GitHub Client", func() {
 				releases, err := client.ListReleases()
 				Ω(err).ShouldNot(HaveOccurred())
 				Expect(releases).To(HaveLen(3))
-				fmt.Println(releases)
 				Expect(server.ReceivedRequests()).To(HaveLen(2))
 				Expect(releases).To(Equal([]*github.RepositoryRelease{
 					{TagName: github.String("xyz"), Name: github.String("xyz"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(32095103), CreatedAt: &github.Timestamp{time.Date(2010, time.October, 01, 00, 58, 07, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.October, 02, 15, 39, 53, 0, time.UTC)}, URL: github.String("https://github.com/xyz/xyz/releases/tag/xyz")},
 					{TagName: github.String("xyz"), Name: github.String("xyz"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(30230659), CreatedAt: &github.Timestamp{time.Date(2010, time.August, 27, 13, 55, 36, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.August, 27, 17, 18, 06, 0, time.UTC)}, URL: github.String("https://github.com/xyz/xyz/releases/tag/xyz")},
 					{TagName: github.String("xyq"), Name: github.String("xyq"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(33222243), CreatedAt: &github.Timestamp{time.Date(2010, time.October, 10, 01, 01, 07, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.October, 10, 15, 39, 53, 0, time.UTC)}, URL: github.String("https://github.com/xyq/xyq/releases/tag/xyq")},
 				}))
+			})
+		})
+
+		Context("List graphql releases with bad id", func() {
+			BeforeEach(func() {
+				server.SetAllowUnhandledRequests(true)
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/graphql"),
+						ghttp.RespondWith(200, invalidPageIdResp),
+					))
+			})
+			It("list releases with incorrect id", func() {
+				_, err := client.ListReleases()
+				Ω(err).Should(HaveOccurred())
 			})
 		})
 	})
