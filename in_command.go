@@ -3,14 +3,13 @@ package resource
 import (
 	"errors"
 	"fmt"
+	"github.com/google/go-github/v32/github"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
-
-	"github.com/google/go-github/v32/github"
 )
 
 type InCommand struct {
@@ -37,7 +36,10 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	id, _ := strconv.Atoi(request.Version.ID)
 	foundRelease, err = c.github.GetRelease(id)
 	if err != nil {
-		return InResponse{}, err
+		foundRelease, err = c.github.GetReleaseByTag(request.Version.Tag)
+		if err != nil {
+			return InResponse{}, err
+		}
 	}
 
 	if foundRelease == nil {
@@ -93,7 +95,6 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 				return InResponse{}, err
 			}
 		}
-
 	}
 
 	assets, err := c.github.ListReleaseAssets(*foundRelease)

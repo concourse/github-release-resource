@@ -2,7 +2,9 @@ package resource
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -47,7 +49,17 @@ func (g *GitHubClient) listReleasesV4() ([]*github.RepositoryRelease, error) {
 			r := r
 			publishedAt, _ := time.ParseInLocation(time.RFC3339, r.Node.PublishedAt.Time.Format(time.RFC3339), time.UTC)
 			createdAt, _ := time.ParseInLocation(time.RFC3339, r.Node.CreatedAt.Time.Format(time.RFC3339), time.UTC)
-			releaseID, _ := strconv.ParseInt(r.Node.ID, 10, 64)
+			var releaseID int64
+			decodedID, err := base64.StdEncoding.DecodeString(r.Node.ID)
+			if err != nil {
+				return nil, err
+			}
+			re := regexp.MustCompile(`.*[^\d]`)
+			decodedID = re.ReplaceAll(decodedID, []byte(""))
+			releaseID, err = strconv.ParseInt(r.Node.ID, 10, 64)
+			if err != nil {
+				return nil, err
+			}
 			allReleases = append(allReleases, &github.RepositoryRelease{
 				ID:          &releaseID,
 				TagName:     &r.Node.TagName,
