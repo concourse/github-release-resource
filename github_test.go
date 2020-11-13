@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	. "github.com/concourse/github-release-resource"
 
@@ -183,11 +184,6 @@ var _ = Describe("GitHub Client", func() {
 		})
 		Context("List graphql releases", func() {
 			BeforeEach(func() {
-				var result []*github.RepositoryRelease
-				for i := 1; i < 102; i++ {
-					result = append(result, &github.RepositoryRelease{ID: github.Int64(int64(i))})
-				}
-
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/graphql"),
@@ -204,7 +200,13 @@ var _ = Describe("GitHub Client", func() {
 				releases, err := client.ListReleases()
 				Ω(err).ShouldNot(HaveOccurred())
 				Expect(releases).To(HaveLen(3))
+				fmt.Println(releases)
 				Expect(server.ReceivedRequests()).To(HaveLen(2))
+				Expect(releases).To(Equal([]*github.RepositoryRelease{
+					{TagName: github.String("xyz"), Name: github.String("xyz"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(32095103), CreatedAt: &github.Timestamp{time.Date(2010, time.October, 01, 00, 58, 07, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.October, 02, 15, 39, 53, 0, time.UTC)}, URL: github.String("https://github.com/xyz/xyz/releases/tag/xyz")},
+					{TagName: github.String("xyz"), Name: github.String("xyz"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(30230659), CreatedAt: &github.Timestamp{time.Date(2010, time.August, 27, 13, 55, 36, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.August, 27, 17, 18, 06, 0, time.UTC)}, URL: github.String("https://github.com/xyz/xyz/releases/tag/xyz")},
+					{TagName: github.String("xyq"), Name: github.String("xyq"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(33222243), CreatedAt: &github.Timestamp{time.Date(2010, time.October, 10, 01, 01, 07, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.October, 10, 15, 39, 53, 0, time.UTC)}, URL: github.String("https://github.com/xyq/xyq/releases/tag/xyq")},
+				}))
 			})
 		})
 	})
