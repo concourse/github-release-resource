@@ -56,7 +56,7 @@ func (g *GitHubClient) listReleasesV4() ([]*github.RepositoryRelease, error) {
 			}
 			re := regexp.MustCompile(`.*[^\d]`)
 			decodedID = re.ReplaceAll(decodedID, []byte(""))
-			releaseID, err = strconv.ParseInt(r.Node.ID, 10, 64)
+			releaseID, err = strconv.ParseInt(string(decodedID), 10, 64)
 			if err != nil {
 				return nil, err
 			}

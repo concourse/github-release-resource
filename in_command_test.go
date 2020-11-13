@@ -441,7 +441,7 @@ var _ = Describe("In Command", func() {
 	})
 
 	Context("when getting a tagged release fails", func() {
-		disaster := errors.New("nope")
+		disaster := errors.New("no releases")
 
 		BeforeEach(func() {
 			githubClient.GetReleaseReturns(nil, disaster)
