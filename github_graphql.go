@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"time"
@@ -52,7 +51,6 @@ func (g *GitHubClient) listReleasesV4() ([]*github.RepositoryRelease, error) {
 			createdAt, _ := time.ParseInLocation(time.RFC3339, r.Node.CreatedAt.Time.Format(time.RFC3339), time.UTC)
 			var releaseID int64
 			decodedID, err := base64.StdEncoding.DecodeString(r.Node.ID)
-			fmt.Print(string(decodedID))
 			if err != nil {
 				return nil, err
 			}
