@@ -12,7 +12,7 @@ import (
 	"github.com/concourse/github-release-resource"
 	"github.com/concourse/github-release-resource/fakes"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 )
 
 func file(path, contents string) {
@@ -40,7 +40,7 @@ var _ = Describe("Out Command", func() {
 
 		githubClient.CreateReleaseStub = func(gh github.RepositoryRelease) (*github.RepositoryRelease, error) {
 			createdRel := gh
-			createdRel.ID = github.Int(112)
+			createdRel.ID = github.Int64(112)
 			createdRel.HTMLURL = github.String("http://google.com")
 			createdRel.Name = github.String("release-name")
 			createdRel.Body = github.String("*markdown*")
@@ -59,11 +59,11 @@ var _ = Describe("Out Command", func() {
 	Context("when the release has already been created", func() {
 		existingAssets := []github.ReleaseAsset{
 			{
-				ID:   github.Int(456789),
+				ID:   github.Int64(456789),
 				Name: github.String("unicorns.txt"),
 			},
 			{
-				ID:    github.Int(3450798),
+				ID:    github.Int64(3450798),
 				Name:  github.String("rainbows.txt"),
 				State: github.String("new"),
 			},
@@ -71,20 +71,20 @@ var _ = Describe("Out Command", func() {
 
 		existingReleases := []github.RepositoryRelease{
 			{
-				ID:    github.Int(1),
+				ID:    github.Int64(1),
 				Draft: github.Bool(true),
 			},
 			{
-				ID:      github.Int(112),
+				ID:      github.Int64(112),
 				TagName: github.String("some-tag-name"),
-				Assets:  []github.ReleaseAsset{existingAssets[0]},
+				Assets:  []*github.ReleaseAsset{&existingAssets[0]},
 				Draft:   github.Bool(false),
 			},
 		}
 
 		BeforeEach(func() {
 			githubClient.ListReleasesStub = func() ([]*github.RepositoryRelease, error) {
-				rels := []*github.RepositoryRelease{}
+				var rels []*github.RepositoryRelease
 				for _, r := range existingReleases {
 					c := r
 					rels = append(rels, &c)
@@ -94,7 +94,7 @@ var _ = Describe("Out Command", func() {
 			}
 
 			githubClient.ListReleaseAssetsStub = func(github.RepositoryRelease) ([]*github.ReleaseAsset, error) {
-				assets := []*github.ReleaseAsset{}
+				var assets []*github.ReleaseAsset
 				for _, a := range existingAssets {
 					c := a
 					assets = append(assets, &c)
@@ -448,7 +448,7 @@ var _ = Describe("Out Command", func() {
 				Ω(githubClient.UploadReleaseAssetCallCount()).Should(Equal(1))
 				release, name, file := githubClient.UploadReleaseAssetArgsForCall(0)
 
-				Ω(*release.ID).Should(Equal(112))
+				Ω(*release.ID).Should(Equal(int64(112)))
 				Ω(name).Should(Equal("great-file.tgz"))
 				Ω(file.Name()).Should(Equal(filepath.Join(sourcesDir, "great-file.tgz")))
 			})
@@ -486,11 +486,11 @@ var _ = Describe("Out Command", func() {
 
 					githubClient.ListReleaseAssetsReturns([]*github.ReleaseAsset{
 						{
-							ID:   github.Int(456789),
+							ID:   github.Int64(456789),
 							Name: github.String("great-file.tgz"),
 						},
 						{
-							ID:   github.Int(3450798),
+							ID:   github.Int64(3450798),
 							Name: github.String("whatever.tgz"),
 						},
 					}, nil)
@@ -509,16 +509,16 @@ var _ = Describe("Out Command", func() {
 
 					Ω(githubClient.UploadReleaseAssetCallCount()).Should(Equal(10))
 					Ω(githubClient.ListReleaseAssetsCallCount()).Should(Equal(10))
-					Ω(*githubClient.ListReleaseAssetsArgsForCall(9).ID).Should(Equal(112))
+					Ω(*githubClient.ListReleaseAssetsArgsForCall(9).ID).Should(Equal(int64(112)))
 
 					actualRelease, actualName, actualFile := githubClient.UploadReleaseAssetArgsForCall(9)
-					Ω(*actualRelease.ID).Should(Equal(112))
+					Ω(*actualRelease.ID).Should(Equal(int64(112)))
 					Ω(actualName).Should(Equal("great-file.tgz"))
 					Ω(actualFile.Name()).Should(Equal(filepath.Join(sourcesDir, "great-file.tgz")))
 
 					Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(10))
 					actualAsset := githubClient.DeleteReleaseAssetArgsForCall(8)
-					Expect(*actualAsset.ID).To(Equal(456789))
+					Expect(*actualAsset.ID).To(Equal(int64(456789)))
 				})
 
 				Context("when uploading succeeds on the 5th attempt", func() {
@@ -542,16 +542,16 @@ var _ = Describe("Out Command", func() {
 
 						Ω(githubClient.UploadReleaseAssetCallCount()).Should(Equal(5))
 						Ω(githubClient.ListReleaseAssetsCallCount()).Should(Equal(4))
-						Ω(*githubClient.ListReleaseAssetsArgsForCall(3).ID).Should(Equal(112))
+						Ω(*githubClient.ListReleaseAssetsArgsForCall(3).ID).Should(Equal(int64(112)))
 
 						actualRelease, actualName, actualFile := githubClient.UploadReleaseAssetArgsForCall(4)
-						Ω(*actualRelease.ID).Should(Equal(112))
+						Ω(*actualRelease.ID).Should(Equal(int64(112)))
 						Ω(actualName).Should(Equal("great-file.tgz"))
 						Ω(actualFile.Name()).Should(Equal(filepath.Join(sourcesDir, "great-file.tgz")))
 
 						Ω(githubClient.DeleteReleaseAssetCallCount()).Should(Equal(4))
 						actualAsset := githubClient.DeleteReleaseAssetArgsForCall(3)
-						Expect(*actualAsset.ID).To(Equal(456789))
+						Expect(*actualAsset.ID).To(Equal(int64(456789)))
 					})
 				})
 			})

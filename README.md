@@ -18,6 +18,9 @@ Fetches and creates versioned GitHub resources.
 
 * `github_api_url`: *Optional.* If you use a non-public GitHub deployment then
   you can set your API URL here.
+  
+* `github_v4_api_url`: *Optional.* If you use a non-public GitHub deployment then
+  you can set your API URL for graphql calls here.
 
 * `github_uploads_url`: *Optional.* Some GitHub instances have a separate URL
   for uploading. If `github_api_url` is set, this value defaults to the same
@@ -176,11 +179,10 @@ prepended with this string. This is useful for adding v in front of version numb
 
 ### Prerequisites
 
-* golang is *required* - version 1.9.x is tested; earlier versions may also
+* golang is *required* - version 1.15.x is tested; earlier versions may also
   work.
 * docker is *required* - version 17.06.x is tested; earlier versions may also
   work.
-* godep is used for dependency management of the golang packages.
 
 ### Running the tests
 

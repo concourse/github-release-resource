@@ -1,7 +1,7 @@
 package resource
 
 import (
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 	"regexp"
 	"strconv"
 	"time"
@@ -44,7 +44,7 @@ func getTimestamp(release *github.RepositoryRelease) time.Time {
 
 func versionFromRelease(release *github.RepositoryRelease) Version {
 	v := Version{
-		ID:        strconv.Itoa(*release.ID),
+		ID:        strconv.FormatInt(*release.ID, 10),
 		Timestamp: getTimestamp(release),
 	}
 	if release.TagName != nil {

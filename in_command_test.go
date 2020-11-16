@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 
 	resource "github.com/concourse/github-release-resource"
 	"github.com/concourse/github-release-resource/fakes"
@@ -56,9 +56,9 @@ var _ = Describe("In Command", func() {
 		Ω(os.RemoveAll(tmpDir)).Should(Succeed())
 	})
 
-	buildRelease := func(id int, tag string, draft bool) *github.RepositoryRelease {
+	buildRelease := func(id int64, tag string, draft bool) *github.RepositoryRelease {
 		return &github.RepositoryRelease{
-			ID:         github.Int(id),
+			ID:         github.Int64(id),
 			TagName:    github.String(tag),
 			HTMLURL:    github.String("http://google.com"),
 			Name:       github.String("release-name"),
@@ -68,9 +68,9 @@ var _ = Describe("In Command", func() {
 		}
 	}
 
-	buildNilTagRelease := func(id int) *github.RepositoryRelease {
+	buildNilTagRelease := func(id int64) *github.RepositoryRelease {
 		return &github.RepositoryRelease{
-			ID:         github.Int(id),
+			ID:         github.Int64(id),
 			HTMLURL:    github.String("http://google.com"),
 			Name:       github.String("release-name"),
 			Body:       github.String("*markdown*"),
@@ -79,9 +79,9 @@ var _ = Describe("In Command", func() {
 		}
 	}
 
-	buildAsset := func(id int, name string) *github.ReleaseAsset {
+	buildAsset := func(id int64, name string) *github.ReleaseAsset {
 		return &github.ReleaseAsset{
-			ID:   github.Int(id),
+			ID:   github.Int64(id),
 			Name: &name,
 		}
 	}
@@ -441,7 +441,7 @@ var _ = Describe("In Command", func() {
 	})
 
 	Context("when getting a tagged release fails", func() {
-		disaster := errors.New("nope")
+		disaster := errors.New("no releases")
 
 		BeforeEach(func() {
 			githubClient.GetReleaseReturns(nil, disaster)

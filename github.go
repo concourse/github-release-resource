@@ -9,10 +9,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
+	"github.com/google/go-github/v32/github"
+	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
-
-	"github.com/google/go-github/github"
 )
 
 // Last run with counterfeiter v6
@@ -36,7 +37,8 @@ type GitHub interface {
 }
 
 type GitHubClient struct {
-	client     *github.Client
+	client   *github.Client
+	clientV4 *githubv4.Client
 
 	owner       string
 	repository  string
@@ -65,8 +67,13 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 
 	client := github.NewClient(httpClient)
 
+	clientV4 := githubv4.NewClient(httpClient)
+
 	if source.GitHubAPIURL != "" {
 		var err error
+		if !strings.HasSuffix(source.GitHubAPIURL, "/") {
+			source.GitHubAPIURL += "/"
+		}
 		client.BaseURL, err = url.Parse(source.GitHubAPIURL)
 		if err != nil {
 			return nil, err
@@ -76,6 +83,12 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		clientV4 = githubv4.NewEnterpriseClient(source.GitHubAPIURL+"graphql", httpClient)
+	}
+
+	if source.GitHubV4APIURL != "" {
+		clientV4 = githubv4.NewEnterpriseClient(source.GitHubV4APIURL, httpClient)
 	}
 
 	if source.GitHubUploadsURL != "" {
@@ -93,6 +106,7 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 
 	return &GitHubClient{
 		client:      client,
+		clientV4:    clientV4,
 		owner:       owner,
 		repository:  source.Repository,
 		accessToken: source.AccessToken,
@@ -100,6 +114,9 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 }
 
 func (g *GitHubClient) ListReleases() ([]*github.RepositoryRelease, error) {
+	if g.accessToken != "" {
+		return g.listReleasesV4()
+	}
 	opt := &github.ListOptions{PerPage: 100}
 	var allReleases []*github.RepositoryRelease
 	for {
@@ -136,7 +153,7 @@ func (g *GitHubClient) GetReleaseByTag(tag string) (*github.RepositoryRelease, e
 }
 
 func (g *GitHubClient) GetRelease(id int) (*github.RepositoryRelease, error) {
-	release, res, err := g.client.Repositories.GetRelease(context.TODO(), g.owner, g.repository, id)
+	release, res, err := g.client.Repositories.GetRelease(context.TODO(), g.owner, g.repository, int64(id))
 	if err != nil {
 		return &github.RepositoryRelease{}, err
 	}
@@ -224,7 +241,7 @@ func (g *GitHubClient) DeleteReleaseAsset(asset github.ReleaseAsset) error {
 }
 
 func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadCloser, error) {
-	bodyReader, redirectURL, err := g.client.Repositories.DownloadReleaseAsset(context.TODO(), g.owner, g.repository, *asset.ID)
+	bodyReader, redirectURL, err := g.client.Repositories.DownloadReleaseAsset(context.TODO(), g.owner, g.repository, *asset.ID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +256,7 @@ func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadC
 	}
 	req.Header.Set("Accept", "application/octet-stream")
 	if g.accessToken != "" && req.URL.Host == g.client.BaseURL.Host {
-		req.Header.Set("Authorization", "Bearer " + g.accessToken)
+		req.Header.Set("Authorization", "Bearer "+g.accessToken)
 	}
 
 	httpClient := &http.Client{}
@@ -258,7 +275,7 @@ func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadC
 
 func (g *GitHubClient) GetTarballLink(tag string) (*url.URL, error) {
 	opt := &github.RepositoryContentGetOptions{Ref: tag}
-	u, res, err := g.client.Repositories.GetArchiveLink(context.TODO(), g.owner, g.repository, github.Tarball, opt)
+	u, res, err := g.client.Repositories.GetArchiveLink(context.TODO(), g.owner, g.repository, github.Tarball, opt, true)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +285,7 @@ func (g *GitHubClient) GetTarballLink(tag string) (*url.URL, error) {
 
 func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 	opt := &github.RepositoryContentGetOptions{Ref: tag}
-	u, res, err := g.client.Repositories.GetArchiveLink(context.TODO(), g.owner, g.repository, github.Zipball, opt)
+	u, res, err := g.client.Repositories.GetArchiveLink(context.TODO(), g.owner, g.repository, github.Zipball, opt, true)
 	if err != nil {
 		return nil, err
 	}

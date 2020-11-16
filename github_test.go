@@ -4,14 +4,113 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	. "github.com/concourse/github-release-resource"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 	"github.com/onsi/gomega/ghttp"
+)
+
+const (
+	multiPageResp = `{
+ "data": {
+   "repository": {
+     "releases": {
+       "edges": [
+         {
+           "node": {
+             "createdAt": "2010-10-01T00:58:07Z",
+             "id": "MDc6UmVsZWFzZTMyMDk1MTAz",
+             "name": "xyz",
+             "publishedAt": "2010-10-02T15:39:53Z",
+             "tagName": "xyz",
+             "url": "https://github.com/xyz/xyz/releases/tag/xyz",
+             "isDraft": false,
+             "isPrerelease": false
+           }
+         },
+         {
+           "node": {
+             "createdAt": "2010-08-27T13:55:36Z",
+             "id": "MDc6UmVsZWFzZTMwMjMwNjU5",
+             "name": "xyz",
+             "publishedAt": "2010-08-27T17:18:06Z",
+             "tagName": "xyz",
+             "url": "https://github.com/xyz/xyz/releases/tag/xyz",
+             "isDraft": false,
+             "isPrerelease": false
+           }
+         }
+       ],
+       "pageInfo": {
+         "endCursor": "Y3Vyc29yOnYyOpK5MjAyMC0xMC0wMVQwMjo1ODowNyswMjowMM4B6bt_",
+         "hasNextPage": true
+       }
+     }
+   }
+ }
+}`
+
+	singlePageResp = `{
+  "data": {
+    "repository": {
+      "releases": {
+        "edges": [
+          {
+            "node": {
+              "createdAt": "2010-10-10T01:01:07Z",
+              "id": "MDc6UmVsZWFzZTMzMjIyMjQz",
+              "name": "xyq",
+              "publishedAt": "2010-10-10T15:39:53Z",
+              "tagName": "xyq",
+              "url": "https://github.com/xyq/xyq/releases/tag/xyq",
+              "isDraft": false,
+              "isPrerelease": false
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "Y3Vyc29yOnYyOpK5MjAyMC0xMC0wMVQwMjo1ODowNyswMjowMM4B6bt_",
+          "hasNextPage": false
+        }
+      }
+    }
+  }
+}`
+	invalidPageIdResp = `{
+  "data": {
+    "repository": {
+      "releases": {
+        "edges": [
+          {
+            "node": {
+              "createdAt": "2010-10-10T01:01:07Z",
+              "id": "MDc6UmVsZWFzZTMzMjZyzzzz",
+              "name": "xyq",
+              "publishedAt": "2010-10-10T15:39:53Z",
+              "tagName": "xyq",
+              "url": "https://github.com/xyq/xyq/releases/tag/xyq",
+              "isDraft": false,
+              "isPrerelease": false
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "Y3Vyc29yOnYyOpK5MjAyMC0xMC0wMVQwMjo1ODowNyswMjowMM4B6bt_",
+          "hasNextPage": false
+        }
+      }
+    }
+  }
+}`
+	rateLimitMessage = `{
+          "message": "API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
+          "documentation_url": "https://developer.github.com/v3/#rate-limiting"
+        }`
 )
 
 var _ = Describe("GitHub Client", func() {
@@ -24,7 +123,7 @@ var _ = Describe("GitHub Client", func() {
 	})
 
 	JustBeforeEach(func() {
-		source.GitHubAPIURL = server.URL()
+		source.GitHubAPIURL = server.URL() + "/"
 
 		var err error
 		client, err = NewGitHubClient(source)
@@ -63,10 +162,11 @@ var _ = Describe("GitHub Client", func() {
 				AccessToken: "abc123",
 			}
 
+			server.SetAllowUnhandledRequests(true)
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases"),
-					ghttp.RespondWith(200, "[]"),
+					ghttp.VerifyRequest("POST", "/graphql"),
+					ghttp.RespondWith(200, singlePageResp),
 					ghttp.VerifyHeaderKV("Authorization", "Bearer abc123"),
 				),
 			)
@@ -100,50 +200,24 @@ var _ = Describe("GitHub Client", func() {
 		})
 	})
 
-	Describe("when the source is configured with the deprecated user field", func() {
+	Describe("ListReleases with access token", func() {
 		BeforeEach(func() {
 			source = Source{
-				User:       "some-owner",
-				Repository: "some-repo",
-			}
-
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/repos/some-owner/some-repo/releases"),
-					ghttp.RespondWith(200, "[]"),
-				),
-			)
-		})
-
-		It("uses the provided user as the owner", func() {
-			_, err := client.ListReleases()
-			Ω(err).ShouldNot(HaveOccurred())
-		})
-	})
-
-	Describe("ListReleases", func() {
-		BeforeEach(func() {
-			source = Source{
-				Owner:      "concourse",
-				Repository: "concourse",
+				Owner:       "concourse",
+				Repository:  "concourse",
+				AccessToken: "test",
 			}
 		})
-		Context("When list of releases return more then 100 items", func() {
+		Context("List graphql releases", func() {
 			BeforeEach(func() {
-				var result []*github.RepositoryRelease
-				for i := 1; i < 102; i++ {
-					result = append(result, &github.RepositoryRelease{ID: github.Int(i)})
-
-				}
-
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100"),
-						ghttp.RespondWithJSONEncoded(200, result[:100], http.Header{"Link": []string{`</releases?page=2>; rel="next"`}}),
+						ghttp.VerifyRequest("POST", "/graphql"),
+						ghttp.RespondWith(200, multiPageResp),
 					),
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100&page=2"),
-						ghttp.RespondWithJSONEncoded(200, result[100:]),
+						ghttp.VerifyRequest("POST", "/graphql"),
+						ghttp.RespondWith(200, singlePageResp),
 					),
 				)
 			})
@@ -151,8 +225,61 @@ var _ = Describe("GitHub Client", func() {
 			It("list releases", func() {
 				releases, err := client.ListReleases()
 				Ω(err).ShouldNot(HaveOccurred())
-				Expect(releases).To(HaveLen(101))
+				Expect(releases).To(HaveLen(3))
 				Expect(server.ReceivedRequests()).To(HaveLen(2))
+				Expect(releases).To(Equal([]*github.RepositoryRelease{
+					{TagName: github.String("xyz"), Name: github.String("xyz"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(32095103), CreatedAt: &github.Timestamp{time.Date(2010, time.October, 01, 00, 58, 07, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.October, 02, 15, 39, 53, 0, time.UTC)}, URL: github.String("https://github.com/xyz/xyz/releases/tag/xyz")},
+					{TagName: github.String("xyz"), Name: github.String("xyz"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(30230659), CreatedAt: &github.Timestamp{time.Date(2010, time.August, 27, 13, 55, 36, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.August, 27, 17, 18, 06, 0, time.UTC)}, URL: github.String("https://github.com/xyz/xyz/releases/tag/xyz")},
+					{TagName: github.String("xyq"), Name: github.String("xyq"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(33222243), CreatedAt: &github.Timestamp{time.Date(2010, time.October, 10, 01, 01, 07, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.October, 10, 15, 39, 53, 0, time.UTC)}, URL: github.String("https://github.com/xyq/xyq/releases/tag/xyq")},
+				}))
+			})
+		})
+
+		Context("List graphql releases with bad id", func() {
+			BeforeEach(func() {
+				server.SetAllowUnhandledRequests(true)
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/graphql"),
+						ghttp.RespondWith(200, invalidPageIdResp),
+					))
+			})
+			It("list releases with incorrect id", func() {
+				_, err := client.ListReleases()
+				Ω(err).Should(HaveOccurred())
+			})
+		})
+	})
+
+	Describe("ListReleases without access token", func() {
+		BeforeEach(func() {
+			source = Source{
+				Owner:      "concourse",
+				Repository: "concourse",
+			}
+		})
+		Context("When list of releases return more then 100 items", func() {
+			Context("List graphql releases", func() {
+				BeforeEach(func() {
+					var result []*github.RepositoryRelease
+					for i := 1; i < 102; i++ {
+						result = append(result, &github.RepositoryRelease{ID: github.Int64(int64(i))})
+					}
+					server.AppendHandlers(
+						ghttp.CombineHandlers(ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100"),
+							ghttp.RespondWithJSONEncoded(200, result[:100], http.Header{"Link": []string{`</releases?page=2>; rel="next"`}}),
+						),
+						ghttp.CombineHandlers(ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases", "per_page=100&page=2"),
+							ghttp.RespondWithJSONEncoded(200, result[100:])),
+					)
+				})
+				It("list releases", func() {
+					releases, err := client.ListReleases()
+					Ω(err).ShouldNot(HaveOccurred())
+					Expect(releases).To(HaveLen(101))
+					Expect(server.ReceivedRequests()).To(HaveLen(2))
+				})
+
 			})
 		})
 	})
@@ -166,10 +293,7 @@ var _ = Describe("GitHub Client", func() {
 		})
 		Context("When GitHub's rate limit has been exceeded", func() {
 			BeforeEach(func() {
-				rateLimitResponse := `{
-          "message": "API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
-          "documentation_url": "https://developer.github.com/v3/#rate-limiting"
-        }`
+				rateLimitResponse := rateLimitMessage
 
 				rateLimitHeaders := http.Header(map[string][]string{
 					"X-RateLimit-Limit":     {"60"},
@@ -203,10 +327,7 @@ var _ = Describe("GitHub Client", func() {
 
 		Context("When GitHub's rate limit has been exceeded", func() {
 			BeforeEach(func() {
-				rateLimitResponse := `{
-          "message": "API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
-          "documentation_url": "https://developer.github.com/v3/#rate-limiting"
-        }`
+				rateLimitResponse := rateLimitMessage
 
 				rateLimitHeaders := http.Header(map[string][]string{
 					"X-RateLimit-Limit":     {"60"},
@@ -241,7 +362,7 @@ var _ = Describe("GitHub Client", func() {
 
 			It("Returns a populated github.RepositoryRelease", func() {
 				expectedRelease := &github.RepositoryRelease{
-					ID: github.Int(1),
+					ID: github.Int64(1),
 				}
 
 				release, err := client.GetReleaseByTag("some-tag")
@@ -262,10 +383,7 @@ var _ = Describe("GitHub Client", func() {
 
 		Context("When GitHub's rate limit has been exceeded", func() {
 			BeforeEach(func() {
-				rateLimitResponse := `{
-          "message": "API rate limit exceeded for 127.0.0.1. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
-          "documentation_url": "https://developer.github.com/v3/#rate-limiting"
-        }`
+				rateLimitResponse := rateLimitMessage
 
 				rateLimitHeaders := http.Header(map[string][]string{
 					"X-RateLimit-Limit":     {"60"},
@@ -275,7 +393,7 @@ var _ = Describe("GitHub Client", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/refs/tags/some-tag"),
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/ref/tags/some-tag"),
 						ghttp.RespondWith(403, rateLimitResponse, rateLimitHeaders),
 					),
 				)
@@ -292,7 +410,7 @@ var _ = Describe("GitHub Client", func() {
 			BeforeEach(func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/refs/tags/some-tag"),
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/ref/tags/some-tag"),
 						ghttp.RespondWith(200, `{ "ref": "refs/tags/some-tag", "object" : { "type": "commit", "sha": "some-sha"} }`),
 					),
 				)
@@ -310,7 +428,7 @@ var _ = Describe("GitHub Client", func() {
 			BeforeEach(func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/refs/tags/some-tag"),
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/ref/tags/some-tag"),
 						ghttp.RespondWith(200, `{ "ref": "refs/tags/some-tag", "object" : { "type": "tag", "sha": "some-tag-sha"} }`),
 					),
 				)
@@ -360,7 +478,7 @@ var _ = Describe("GitHub Client", func() {
 		)
 
 		var (
-			assetID   int
+			assetID   int64
 			asset     github.ReleaseAsset
 			assetPath string
 		)
@@ -380,10 +498,10 @@ var _ = Describe("GitHub Client", func() {
 				authHeaderValue = []string{"Bearer abc123"}
 			}
 			server.AppendHandlers(ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", fmt.Sprintf("%s", path)),
-					ghttp.RespondWith(statusCode, body, headers...),
-					ghttp.VerifyHeaderKV("Accept", "application/octet-stream"),
-					ghttp.VerifyHeaderKV("Authorization", authHeaderValue...),
+				ghttp.VerifyRequest("GET", path),
+				ghttp.RespondWith(statusCode, body, headers...),
+				ghttp.VerifyHeaderKV("Accept", "application/octet-stream"),
+				ghttp.VerifyHeaderKV("Authorization", authHeaderValue...),
 			))
 		}
 
@@ -392,7 +510,6 @@ var _ = Describe("GitHub Client", func() {
 			header.Add("Location", url)
 			return header
 		}
-
 
 		Context("when the asset can be downloaded directly", func() {
 			Context("when the asset is downloaded successfully", func() {
@@ -486,7 +603,7 @@ var _ = Describe("GitHub Client", func() {
 				BeforeEach(func() {
 					externalServer = ghttp.NewServer()
 
-					appendGetHandler(server, redirectPath, 307, "", true, locationHeader(externalServer.URL() + "/somewhere-else"))
+					appendGetHandler(server, redirectPath, 307, "", true, locationHeader(externalServer.URL()+"/somewhere-else"))
 					appendGetHandler(externalServer, "/somewhere-else", 200, redirectFileContents, false)
 				})
 
@@ -568,7 +685,7 @@ var _ = Describe("GitHub Client", func() {
 			BeforeEach(func() {
 				externalServer = ghttp.NewServer()
 
-				appendGetHandler(server, assetPath, 307, "", true, locationHeader(externalServer.URL() + "/somewhere-else"))
+				appendGetHandler(server, assetPath, 307, "", true, locationHeader(externalServer.URL()+"/somewhere-else"))
 				appendGetHandler(externalServer, "/somewhere-else", 200, redirectFileContents, false)
 			})
 

@@ -2,7 +2,7 @@ package resource
 
 import (
 	"github.com/cppforlife/go-semi-semantic/version"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 	"sort"
 )
 
