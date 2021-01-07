@@ -84,7 +84,13 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 			return nil, err
 		}
 
-		clientV4 = githubv4.NewEnterpriseClient(source.GitHubAPIURL+"graphql", httpClient)
+		var v4URL string
+		if strings.Contains(source.GitHubAPIURL, "v3") {
+			v4URL = strings.Replace(source.GitHubAPIURL, "v3/", "graphql", 1)
+		} else {
+			v4URL = source.GitHubAPIURL + "graphql"
+		}
+		clientV4 = githubv4.NewEnterpriseClient(v4URL, httpClient)
 	}
 
 	if source.GitHubV4APIURL != "" {
