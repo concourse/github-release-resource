@@ -154,6 +154,52 @@ var _ = Describe("GitHub Client", func() {
 		})
 	})
 
+	Context("with good URLs", func() {
+		var err error
+		BeforeEach(func() {
+			source = Source{
+				Owner:      "concourse",
+				Repository: "concourse",
+			}
+		})
+		Context("given only the v3 API endpoint", func() {
+			It("should replace v3 with graphql", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/api/graphql"),
+						ghttp.RespondWith(200, singlePageResp),
+					),
+				)
+
+				source.GitHubAPIURL = server.URL() + "/api/v3"
+				//setting the access token is how we ensure the v4 client is used
+				source.AccessToken = "abc123"
+				client, err = NewGitHubClient(source)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				_, err := client.ListReleases()
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+			It("should always append graphql", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/api/graphql"),
+						ghttp.RespondWith(200, singlePageResp),
+					),
+				)
+
+				source.GitHubAPIURL = server.URL() + "/api/"
+				//setting the access token is how we ensure the v4 client is used
+				source.AccessToken = "abc123"
+				client, err = NewGitHubClient(source)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				_, err := client.ListReleases()
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+		})
+	})
+
 	Context("with an OAuth Token", func() {
 		BeforeEach(func() {
 			source = Source{
