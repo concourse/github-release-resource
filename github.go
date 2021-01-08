@@ -85,8 +85,8 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 		}
 
 		var v4URL string
-		if strings.Contains(source.GitHubAPIURL, "v3") {
-			v4URL = strings.Replace(source.GitHubAPIURL, "v3/", "graphql", 1)
+		if strings.HasSuffix(source.GitHubAPIURL, "/v3/") {
+			v4URL = source.GitHubAPIURL[:len(source.GitHubAPIURL)-4] + "/graphql"
 		} else {
 			v4URL = source.GitHubAPIURL + "graphql"
 		}
