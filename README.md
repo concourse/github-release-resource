@@ -52,6 +52,10 @@ Fetches and creates versioned GitHub resources.
   will be detected and published. Note that releases must have [semver compliant](https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions)
   tags to be detected, even if they're drafts.
 
+* `semver_constraint`: *Optional.* If set, constrain the returned semver tags according
+  to a semver constraint, e.g. `"~1.2.x"`, `">= 1.2 < 3.0.0 || >= 4.2.3"`.
+  Follows the rules outlined in https://github.com/Masterminds/semver#checking-version-constraints.
+
 * `tag_filter`: *Optional.* If set, override default tag filter regular
   expression of `v?([^v].*)`. If the filter includes a capture group, the capture
   group is used as the release version; otherwise, the entire matching substring

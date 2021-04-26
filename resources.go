@@ -20,8 +20,9 @@ type Source struct {
 	Release          bool   `json:"release"`
 	Insecure         bool   `json:"insecure"`
 
-	TagFilter string `json:"tag_filter"`
-	OrderBy   string `json:"order_by"`
+	TagFilter        string `json:"tag_filter"`
+	OrderBy          string `json:"order_by"`
+	SemverConstraint string `json:"semver_constraint"`
 }
 
 type CheckRequest struct {
