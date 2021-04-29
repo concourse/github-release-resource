@@ -64,8 +64,15 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		return []Version{}, err
 	}
 
-	for _, release := range releases {
+	var constraint *semver.Constraints
+	if request.Source.SemverConstraint != "" {
+		constraint, err = semver.NewConstraint(request.Source.SemverConstraint)
+		if err != nil {
+			return []Version{}, err
+		}
+	}
 
+	for _, release := range releases {
 		if request.Source.Drafts != *release.Draft {
 			continue
 		}
@@ -77,12 +84,7 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 			continue
 		}
 
-		if request.Source.SemverConstraint != "" {
-			constraint, err := semver.NewConstraint(request.Source.SemverConstraint)
-			if err != nil {
-				return []Version{}, err
-			}
-
+		if constraint != nil {
 			if release.TagName == nil {
 				// Release has no tag, so certainly isn't a valid semver
 				continue
