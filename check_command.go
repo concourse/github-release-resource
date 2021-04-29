@@ -1,9 +1,11 @@
 package resource
 
 import (
+	"sort"
+
+	"github.com/Masterminds/semver"
 	"github.com/cppforlife/go-semi-semantic/version"
 	"github.com/google/go-github/v32/github"
-	"sort"
 )
 
 type CheckCommand struct {
@@ -62,8 +64,15 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		return []Version{}, err
 	}
 
-	for _, release := range releases {
+	var constraint *semver.Constraints
+	if request.Source.SemverConstraint != "" {
+		constraint, err = semver.NewConstraint(request.Source.SemverConstraint)
+		if err != nil {
+			return []Version{}, err
+		}
+	}
 
+	for _, release := range releases {
 		if request.Source.Drafts != *release.Draft {
 			continue
 		}
@@ -73,6 +82,22 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		//   b- release condition match  prerealse in github since github has true/false to describe release/prerelase
 		if request.Source.PreRelease != *release.Prerelease && request.Source.Release == *release.Prerelease {
 			continue
+		}
+
+		if constraint != nil {
+			if release.TagName == nil {
+				// Release has no tag, so certainly isn't a valid semver
+				continue
+			}
+			version, err := semver.NewVersion(versionParser.parse(*release.TagName))
+			if err != nil {
+				// Release is not tagged with a valid semver
+				continue
+			}
+			if !constraint.Check(version) {
+				// Valid semver, but does not satisfy constraint
+				continue
+			}
 		}
 
 		if orderByTime {

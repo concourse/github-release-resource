@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/go-github/v32/github"
 
-	"github.com/concourse/github-release-resource"
+	resource "github.com/concourse/github-release-resource"
 	"github.com/concourse/github-release-resource/fakes"
 )
 
@@ -100,6 +100,55 @@ var _ = Describe("Check Command", func() {
 
 					Ω(response).Should(HaveLen(1))
 					Ω(response[0]).Should(Equal(newVersionWithTimestamp(2, "v0.1.3", 3)))
+				})
+			})
+
+			Context("when there is a semver constraint", func() {
+				BeforeEach(func() {
+					returnedReleases = []*github.RepositoryRelease{
+						newRepositoryReleaseWithCreatedTime(1, "v0.4.0", 2),
+						newRepositoryReleaseWithCreatedTime(2, "0.1.3", 3),
+						newRepositoryReleaseWithCreatedTime(3, "v0.1.2", 1),
+						newRepositoryReleaseWithCreatedTime(4, "invalid-semver", 4),
+					}
+				})
+
+				It("keeps only those versions matching the constraint", func() {
+					command := resource.NewCheckCommand(githubClient)
+
+					response, err := command.Run(resource.CheckRequest{
+						Source: resource.Source{SemverConstraint: "0.1.x"},
+					})
+					Ω(err).ShouldNot(HaveOccurred())
+
+					Ω(response).Should(HaveLen(1))
+					Ω(response[0]).Should(Equal(newVersionWithTimestamp(2, "0.1.3", 3)))
+				})
+
+				Context("when there is a custom tag filter", func() {
+					BeforeEach(func() {
+						returnedReleases = []*github.RepositoryRelease{
+							newRepositoryReleaseWithCreatedTime(1, "foo-0.4.0", 2),
+							newRepositoryReleaseWithCreatedTime(2, "foo-0.1.3", 3),
+							newRepositoryReleaseWithCreatedTime(3, "foo-0.1.2", 1),
+							newRepositoryReleaseWithCreatedTime(4, "0.1.4", 4),
+						}
+					})
+
+					It("uses the filter", func() {
+						command := resource.NewCheckCommand(githubClient)
+
+						response, err := command.Run(resource.CheckRequest{
+							Source: resource.Source{
+								SemverConstraint: "0.1.x",
+								TagFilter:        "foo-(.*)",
+							},
+						})
+						Ω(err).ShouldNot(HaveOccurred())
+
+						Ω(response).Should(HaveLen(1))
+						Ω(response[0]).Should(Equal(newVersionWithTimestamp(2, "foo-0.1.3", 3)))
+					})
 				})
 			})
 		})
