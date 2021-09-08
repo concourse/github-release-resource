@@ -50,7 +50,7 @@ func (g *GitHubClient) listReleasesV4() ([]*github.RepositoryRelease, error) {
 			publishedAt, _ := time.ParseInLocation(time.RFC3339, r.Node.PublishedAt.Time.Format(time.RFC3339), time.UTC)
 			createdAt, _ := time.ParseInLocation(time.RFC3339, r.Node.CreatedAt.Time.Format(time.RFC3339), time.UTC)
 			var releaseID int64
-			if r.Node.DatabaseId == "" {
+			if r.Node.DatabaseId == 0 {
 				decodedID, err := base64.StdEncoding.DecodeString(r.Node.ID)
 				if err != nil {
 					return nil, err
@@ -65,12 +65,7 @@ func (g *GitHubClient) listReleasesV4() ([]*github.RepositoryRelease, error) {
 					return nil, err
 				}
 			} else {
-				var id int64
-				id, err := strconv.ParseInt(r.Node.DatabaseId, 10, 64)
-				if err != nil {
-					return nil, err
-				}
-				releaseID = id
+				releaseID = int64(r.Node.DatabaseId)
 			}
 
 			allReleases = append(allReleases, &github.RepositoryRelease{

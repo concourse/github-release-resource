@@ -25,7 +25,7 @@ const (
            "node": {
              "createdAt": "2010-10-01T00:58:07Z",
              "id": "MDc6UmVsZWFzZTMyMDk1MTAz",
-			 "databaseId": "32095103",
+			 "databaseId": 32095103,
              "name": "xyz",
              "publishedAt": "2010-10-02T15:39:53Z",
              "tagName": "xyz",
@@ -38,7 +38,7 @@ const (
            "node": {
              "createdAt": "2010-08-27T13:55:36Z",
              "id": "MDc6UmVsZWFzZTMwMjMwNjU5",
-			 "databaseId": "30230659",
+			 "databaseId": 30230659,
              "name": "xyz",
              "publishedAt": "2010-08-27T17:18:06Z",
              "tagName": "xyz",
@@ -66,7 +66,7 @@ const (
             "node": {
               "createdAt": "2010-10-10T01:01:07Z",
               "id": "MDc6UmVsZWFzZTMzMjIyMjQz",
-			  "databaseId":"33222243",
+			  "databaseId": 33222243,
               "name": "xyq",
               "publishedAt": "2010-10-10T15:39:53Z",
               "tagName": "xyq",
