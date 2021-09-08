@@ -2,9 +2,7 @@ package resource
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
-	"regexp"
 	"strconv"
 	"time"
 
@@ -50,16 +48,7 @@ func (g *GitHubClient) listReleasesV4() ([]*github.RepositoryRelease, error) {
 			publishedAt, _ := time.ParseInLocation(time.RFC3339, r.Node.PublishedAt.Time.Format(time.RFC3339), time.UTC)
 			createdAt, _ := time.ParseInLocation(time.RFC3339, r.Node.CreatedAt.Time.Format(time.RFC3339), time.UTC)
 			var releaseID int64
-			decodedID, err := base64.StdEncoding.DecodeString(r.Node.ID)
-			if err != nil {
-				return nil, err
-			}
-			re := regexp.MustCompile(`.*[^\d]`)
-			decodedID = re.ReplaceAll(decodedID, []byte(""))
-			if string(decodedID) == "" {
-				return nil, errors.New("bad release id from graph ql api")
-			}
-			releaseID, err = strconv.ParseInt(string(decodedID), 10, 64)
+			releaseID, err := strconv.ParseInt(r.Node.DatabaseId, 10, 64)
 			if err != nil {
 				return nil, err
 			}
