@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	resource "github.com/concourse/github-release-resource"
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v39/github"
 )
 
 type FakeGitHub struct {
@@ -175,15 +175,16 @@ func (fake *FakeGitHub) CreateRelease(arg1 github.RepositoryRelease) (*github.Re
 	fake.createReleaseArgsForCall = append(fake.createReleaseArgsForCall, struct {
 		arg1 github.RepositoryRelease
 	}{arg1})
+	stub := fake.CreateReleaseStub
+	fakeReturns := fake.createReleaseReturns
 	fake.recordInvocation("CreateRelease", []interface{}{arg1})
 	fake.createReleaseMutex.Unlock()
-	if fake.CreateReleaseStub != nil {
-		return fake.CreateReleaseStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.createReleaseReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -238,15 +239,16 @@ func (fake *FakeGitHub) DeleteReleaseAsset(arg1 github.ReleaseAsset) error {
 	fake.deleteReleaseAssetArgsForCall = append(fake.deleteReleaseAssetArgsForCall, struct {
 		arg1 github.ReleaseAsset
 	}{arg1})
+	stub := fake.DeleteReleaseAssetStub
+	fakeReturns := fake.deleteReleaseAssetReturns
 	fake.recordInvocation("DeleteReleaseAsset", []interface{}{arg1})
 	fake.deleteReleaseAssetMutex.Unlock()
-	if fake.DeleteReleaseAssetStub != nil {
-		return fake.DeleteReleaseAssetStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deleteReleaseAssetReturns
 	return fakeReturns.result1
 }
 
@@ -298,15 +300,16 @@ func (fake *FakeGitHub) DownloadReleaseAsset(arg1 github.ReleaseAsset) (io.ReadC
 	fake.downloadReleaseAssetArgsForCall = append(fake.downloadReleaseAssetArgsForCall, struct {
 		arg1 github.ReleaseAsset
 	}{arg1})
+	stub := fake.DownloadReleaseAssetStub
+	fakeReturns := fake.downloadReleaseAssetReturns
 	fake.recordInvocation("DownloadReleaseAsset", []interface{}{arg1})
 	fake.downloadReleaseAssetMutex.Unlock()
-	if fake.DownloadReleaseAssetStub != nil {
-		return fake.DownloadReleaseAssetStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.downloadReleaseAssetReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -361,15 +364,16 @@ func (fake *FakeGitHub) GetRelease(arg1 int) (*github.RepositoryRelease, error) 
 	fake.getReleaseArgsForCall = append(fake.getReleaseArgsForCall, struct {
 		arg1 int
 	}{arg1})
+	stub := fake.GetReleaseStub
+	fakeReturns := fake.getReleaseReturns
 	fake.recordInvocation("GetRelease", []interface{}{arg1})
 	fake.getReleaseMutex.Unlock()
-	if fake.GetReleaseStub != nil {
-		return fake.GetReleaseStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getReleaseReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -424,15 +428,16 @@ func (fake *FakeGitHub) GetReleaseByTag(arg1 string) (*github.RepositoryRelease,
 	fake.getReleaseByTagArgsForCall = append(fake.getReleaseByTagArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetReleaseByTagStub
+	fakeReturns := fake.getReleaseByTagReturns
 	fake.recordInvocation("GetReleaseByTag", []interface{}{arg1})
 	fake.getReleaseByTagMutex.Unlock()
-	if fake.GetReleaseByTagStub != nil {
-		return fake.GetReleaseByTagStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getReleaseByTagReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -487,15 +492,16 @@ func (fake *FakeGitHub) GetTarballLink(arg1 string) (*url.URL, error) {
 	fake.getTarballLinkArgsForCall = append(fake.getTarballLinkArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetTarballLinkStub
+	fakeReturns := fake.getTarballLinkReturns
 	fake.recordInvocation("GetTarballLink", []interface{}{arg1})
 	fake.getTarballLinkMutex.Unlock()
-	if fake.GetTarballLinkStub != nil {
-		return fake.GetTarballLinkStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getTarballLinkReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -550,15 +556,16 @@ func (fake *FakeGitHub) GetZipballLink(arg1 string) (*url.URL, error) {
 	fake.getZipballLinkArgsForCall = append(fake.getZipballLinkArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetZipballLinkStub
+	fakeReturns := fake.getZipballLinkReturns
 	fake.recordInvocation("GetZipballLink", []interface{}{arg1})
 	fake.getZipballLinkMutex.Unlock()
-	if fake.GetZipballLinkStub != nil {
-		return fake.GetZipballLinkStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getZipballLinkReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -613,15 +620,16 @@ func (fake *FakeGitHub) ListReleaseAssets(arg1 github.RepositoryRelease) ([]*git
 	fake.listReleaseAssetsArgsForCall = append(fake.listReleaseAssetsArgsForCall, struct {
 		arg1 github.RepositoryRelease
 	}{arg1})
+	stub := fake.ListReleaseAssetsStub
+	fakeReturns := fake.listReleaseAssetsReturns
 	fake.recordInvocation("ListReleaseAssets", []interface{}{arg1})
 	fake.listReleaseAssetsMutex.Unlock()
-	if fake.ListReleaseAssetsStub != nil {
-		return fake.ListReleaseAssetsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.listReleaseAssetsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -675,15 +683,16 @@ func (fake *FakeGitHub) ListReleases() ([]*github.RepositoryRelease, error) {
 	ret, specificReturn := fake.listReleasesReturnsOnCall[len(fake.listReleasesArgsForCall)]
 	fake.listReleasesArgsForCall = append(fake.listReleasesArgsForCall, struct {
 	}{})
+	stub := fake.ListReleasesStub
+	fakeReturns := fake.listReleasesReturns
 	fake.recordInvocation("ListReleases", []interface{}{})
 	fake.listReleasesMutex.Unlock()
-	if fake.ListReleasesStub != nil {
-		return fake.ListReleasesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.listReleasesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -731,15 +740,16 @@ func (fake *FakeGitHub) ResolveTagToCommitSHA(arg1 string) (string, error) {
 	fake.resolveTagToCommitSHAArgsForCall = append(fake.resolveTagToCommitSHAArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ResolveTagToCommitSHAStub
+	fakeReturns := fake.resolveTagToCommitSHAReturns
 	fake.recordInvocation("ResolveTagToCommitSHA", []interface{}{arg1})
 	fake.resolveTagToCommitSHAMutex.Unlock()
-	if fake.ResolveTagToCommitSHAStub != nil {
-		return fake.ResolveTagToCommitSHAStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.resolveTagToCommitSHAReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -794,15 +804,16 @@ func (fake *FakeGitHub) UpdateRelease(arg1 github.RepositoryRelease) (*github.Re
 	fake.updateReleaseArgsForCall = append(fake.updateReleaseArgsForCall, struct {
 		arg1 github.RepositoryRelease
 	}{arg1})
+	stub := fake.UpdateReleaseStub
+	fakeReturns := fake.updateReleaseReturns
 	fake.recordInvocation("UpdateRelease", []interface{}{arg1})
 	fake.updateReleaseMutex.Unlock()
-	if fake.UpdateReleaseStub != nil {
-		return fake.UpdateReleaseStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.updateReleaseReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -859,15 +870,16 @@ func (fake *FakeGitHub) UploadReleaseAsset(arg1 github.RepositoryRelease, arg2 s
 		arg2 string
 		arg3 *os.File
 	}{arg1, arg2, arg3})
+	stub := fake.UploadReleaseAssetStub
+	fakeReturns := fake.uploadReleaseAssetReturns
 	fake.recordInvocation("UploadReleaseAsset", []interface{}{arg1, arg2, arg3})
 	fake.uploadReleaseAssetMutex.Unlock()
-	if fake.UploadReleaseAssetStub != nil {
-		return fake.UploadReleaseAssetStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.uploadReleaseAssetReturns
 	return fakeReturns.result1
 }
 

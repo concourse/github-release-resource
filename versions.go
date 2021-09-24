@@ -1,7 +1,7 @@
 package resource
 
 import (
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v39/github"
 	"regexp"
 	"strconv"
 	"time"

@@ -5,7 +5,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/cppforlife/go-semi-semantic/version"
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v39/github"
 )
 
 type CheckCommand struct {

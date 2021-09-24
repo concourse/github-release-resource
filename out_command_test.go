@@ -12,7 +12,7 @@ import (
 	"github.com/concourse/github-release-resource"
 	"github.com/concourse/github-release-resource/fakes"
 
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v39/github"
 )
 
 func file(path, contents string) {
