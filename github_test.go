@@ -57,6 +57,45 @@ const (
  }
 }`
 
+	multiPageRespEnterprise = `{
+ "data": {
+   "repository": {
+     "releases": {
+       "edges": [
+         {
+           "node": {
+             "createdAt": "2010-10-01T00:58:07Z",
+             "id": "MDc6UmVsZWFzZTMyMDk1MTAz",
+             "name": "xyz",
+             "publishedAt": "2010-10-02T15:39:53Z",
+             "tagName": "xyz",
+             "url": "https://github.com/xyz/xyz/releases/tag/xyz",
+             "isDraft": false,
+             "isPrerelease": false
+           }
+         },
+         {
+           "node": {
+             "createdAt": "2010-08-27T13:55:36Z",
+             "id": "MDc6UmVsZWFzZTMwMjMwNjU5",
+             "name": "xyz",
+             "publishedAt": "2010-08-27T17:18:06Z",
+             "tagName": "xyz",
+             "url": "https://github.com/xyz/xyz/releases/tag/xyz",
+             "isDraft": false,
+             "isPrerelease": false
+           }
+         }
+       ],
+       "pageInfo": {
+         "endCursor": "Y3Vyc29yOnYyOpK5MjAyMC0xMC0wMVQwMjo1ODowNyswMjowMM4B6bt_",
+         "hasNextPage": true
+       }
+     }
+   }
+ }
+}`
+
 	singlePageResp = `{
   "data": {
     "repository": {
@@ -67,6 +106,33 @@ const (
               "createdAt": "2010-10-10T01:01:07Z",
               "id": "MDc6UmVsZWFzZTMzMjIyMjQz",
 			  "databaseId": 33222243,
+              "name": "xyq",
+              "publishedAt": "2010-10-10T15:39:53Z",
+              "tagName": "xyq",
+              "url": "https://github.com/xyq/xyq/releases/tag/xyq",
+              "isDraft": false,
+              "isPrerelease": false
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "Y3Vyc29yOnYyOpK5MjAyMC0xMC0wMVQwMjo1ODowNyswMjowMM4B6bt_",
+          "hasNextPage": false
+        }
+      }
+    }
+  }
+}`
+
+	singlePageRespEnterprise = `{
+  "data": {
+    "repository": {
+      "releases": {
+        "edges": [
+          {
+            "node": {
+              "createdAt": "2010-10-10T01:01:07Z",
+              "id": "MDc6UmVsZWFzZTMzMjIyMjQz",
               "name": "xyq",
               "publishedAt": "2010-10-10T15:39:53Z",
               "tagName": "xyq",
@@ -171,7 +237,7 @@ var _ = Describe("GitHub Client", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/api/graphql"),
-						ghttp.RespondWith(200, singlePageResp),
+						ghttp.RespondWith(200, singlePageRespEnterprise),
 					),
 				)
 
@@ -188,7 +254,7 @@ var _ = Describe("GitHub Client", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/api/graphql"),
-						ghttp.RespondWith(200, singlePageResp),
+						ghttp.RespondWith(200, singlePageRespEnterprise),
 					),
 				)
 
@@ -216,7 +282,7 @@ var _ = Describe("GitHub Client", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/graphql"),
-					ghttp.RespondWith(200, singlePageResp),
+					ghttp.RespondWith(200, singlePageRespEnterprise),
 					ghttp.VerifyHeaderKV("Authorization", "Bearer abc123"),
 				),
 			)
@@ -263,11 +329,11 @@ var _ = Describe("GitHub Client", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/graphql"),
-						ghttp.RespondWith(200, multiPageResp),
+						ghttp.RespondWith(200, multiPageRespEnterprise),
 					),
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/graphql"),
-						ghttp.RespondWith(200, singlePageResp),
+						ghttp.RespondWith(200, singlePageRespEnterprise),
 					),
 				)
 			})
