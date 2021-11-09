@@ -98,6 +98,7 @@ func NewGitHubClient(source Source) (*GitHubClient, error) {
 
 	if source.GitHubV4APIURL != "" {
 		clientV4 = githubv4.NewEnterpriseClient(source.GitHubV4APIURL, httpClient)
+		isEnterprise = true
 	}
 
 	if source.GitHubUploadsURL != "" {
