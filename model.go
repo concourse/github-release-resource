@@ -17,6 +17,7 @@ type ReleaseObject struct {
 }
 
 // ReleaseObjectEnterprise Workaround until DatabaseId will appear in enterprise installation
+// https://github.com/concourse/github-release-resource/issues/109
 type ReleaseObjectEnterprise struct {
 	CreatedAt    githubv4.DateTime `graphql:"createdAt"`
 	PublishedAt  githubv4.DateTime `graphql:"publishedAt"`
