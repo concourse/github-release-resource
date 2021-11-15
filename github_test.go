@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	multiPageResp = `{
+	multiPageRespEnterprise = `{
  "data": {
    "repository": {
      "releases": {
@@ -25,7 +25,6 @@ const (
            "node": {
              "createdAt": "2010-10-01T00:58:07Z",
              "id": "MDc6UmVsZWFzZTMyMDk1MTAz",
-			 "databaseId": 32095103,
              "name": "xyz",
              "publishedAt": "2010-10-02T15:39:53Z",
              "tagName": "xyz",
@@ -38,7 +37,6 @@ const (
            "node": {
              "createdAt": "2010-08-27T13:55:36Z",
              "id": "MDc6UmVsZWFzZTMwMjMwNjU5",
-			 "databaseId": 30230659,
              "name": "xyz",
              "publishedAt": "2010-08-27T17:18:06Z",
              "tagName": "xyz",
@@ -57,7 +55,7 @@ const (
  }
 }`
 
-	singlePageResp = `{
+	singlePageRespEnterprise = `{
   "data": {
     "repository": {
       "releases": {
@@ -66,7 +64,6 @@ const (
             "node": {
               "createdAt": "2010-10-10T01:01:07Z",
               "id": "MDc6UmVsZWFzZTMzMjIyMjQz",
-			  "databaseId": 33222243,
               "name": "xyq",
               "publishedAt": "2010-10-10T15:39:53Z",
               "tagName": "xyq",
@@ -171,7 +168,7 @@ var _ = Describe("GitHub Client", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/api/graphql"),
-						ghttp.RespondWith(200, singlePageResp),
+						ghttp.RespondWith(200, singlePageRespEnterprise),
 					),
 				)
 
@@ -188,7 +185,7 @@ var _ = Describe("GitHub Client", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/api/graphql"),
-						ghttp.RespondWith(200, singlePageResp),
+						ghttp.RespondWith(200, singlePageRespEnterprise),
 					),
 				)
 
@@ -216,7 +213,7 @@ var _ = Describe("GitHub Client", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/graphql"),
-					ghttp.RespondWith(200, singlePageResp),
+					ghttp.RespondWith(200, singlePageRespEnterprise),
 					ghttp.VerifyHeaderKV("Authorization", "Bearer abc123"),
 				),
 			)
@@ -263,11 +260,11 @@ var _ = Describe("GitHub Client", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/graphql"),
-						ghttp.RespondWith(200, multiPageResp),
+						ghttp.RespondWith(200, multiPageRespEnterprise),
 					),
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/graphql"),
-						ghttp.RespondWith(200, singlePageResp),
+						ghttp.RespondWith(200, singlePageRespEnterprise),
 					),
 				)
 			})
