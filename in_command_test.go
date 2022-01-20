@@ -58,13 +58,15 @@ var _ = Describe("In Command", func() {
 
 	buildRelease := func(id int64, tag string, draft bool) *github.RepositoryRelease {
 		return &github.RepositoryRelease{
-			ID:         github.Int64(id),
-			TagName:    github.String(tag),
-			HTMLURL:    github.String("http://google.com"),
-			Name:       github.String("release-name"),
-			Body:       github.String("*markdown*"),
-			Draft:      github.Bool(draft),
-			Prerelease: github.Bool(false),
+			ID:          github.Int64(id),
+			TagName:     github.String(tag),
+			HTMLURL:     github.String("http://google.com"),
+			Name:        github.String("release-name"),
+			Body:        github.String("*markdown*"),
+			CreatedAt:   &github.Timestamp{Time: exampleTimeStamp(1)},
+			PublishedAt: &github.Timestamp{Time: exampleTimeStamp(1)},
+			Draft:       github.Bool(draft),
+			Prerelease:  github.Bool(false),
 		}
 	}
 
@@ -74,6 +76,7 @@ var _ = Describe("In Command", func() {
 			HTMLURL:    github.String("http://google.com"),
 			Name:       github.String("release-name"),
 			Body:       github.String("*markdown*"),
+			CreatedAt:  &github.Timestamp{Time: exampleTimeStamp(1)},
 			Draft:      github.Bool(true),
 			Prerelease: github.Bool(false),
 		}
@@ -120,7 +123,7 @@ var _ = Describe("In Command", func() {
 				It("returns the fetched version", func() {
 					inResponse, inErr = command.Run(destDir, inRequest)
 
-					Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1", Tag: "v0.35.0"}))
+					Ω(inResponse.Version).Should(Equal(newVersionWithTimestamp(1, "v0.35.0", 1)))
 				})
 
 				It("has some sweet metadata", func() {
@@ -167,6 +170,10 @@ var _ = Describe("In Command", func() {
 					contents, err = ioutil.ReadFile(path.Join(destDir, "body"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("*markdown*"))
+
+					contents, err = ioutil.ReadFile(path.Join(destDir, "timestamp"))
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(string(contents)).Should(Equal("2018-01-01T00:00:00Z"))
 
 					contents, err = ioutil.ReadFile(path.Join(destDir, "url"))
 					Ω(err).ShouldNot(HaveOccurred())
@@ -378,7 +385,7 @@ var _ = Describe("In Command", func() {
 				})
 
 				It("returns the fetched version", func() {
-					Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1", Tag: "v0.35.0"}))
+					Ω(inResponse.Version).Should(Equal(newVersionWithTimestamp(1, "v0.35.0", 1)))
 				})
 
 				It("has some sweet metadata", func() {
@@ -471,7 +478,7 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("returns the fetched version", func() {
-				Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1", Tag: "v0.35.0"}))
+				Ω(inResponse.Version).Should(Equal(newVersionWithTimestamp(1, "v0.35.0", 1)))
 			})
 
 			It("has some sweet metadata", func() {
@@ -512,7 +519,7 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("returns the fetched version", func() {
-				Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1"}))
+				Ω(inResponse.Version).Should(Equal(newVersionWithTimestamp(1, "", 1)))
 			})
 
 			It("has some sweet metadata", func() {
@@ -551,7 +558,7 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("returns the fetched version", func() {
-				Ω(inResponse.Version).Should(Equal(resource.Version{ID: "1"}))
+				Ω(inResponse.Version).Should(Equal(newVersionWithTimestamp(1, "", 1)))
 			})
 
 			It("has some sweet metadata", func() {

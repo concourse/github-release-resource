@@ -3,13 +3,14 @@ package resource
 import (
 	"errors"
 	"fmt"
-	"github.com/google/go-github/v39/github"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/google/go-github/v39/github"
 )
 
 type InCommand struct {
@@ -91,6 +92,18 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			body := *foundRelease.Body
 			bodyPath := filepath.Join(destDir, "body")
 			err = ioutil.WriteFile(bodyPath, []byte(body), 0644)
+			if err != nil {
+				return InResponse{}, err
+			}
+		}
+
+		if foundRelease.PublishedAt != nil || foundRelease.CreatedAt != nil {
+			timestampPath := filepath.Join(destDir, "timestamp")
+			timestamp, err := getTimestamp(foundRelease).MarshalText()
+			if err != nil {
+				return InResponse{}, err
+			}
+			err = ioutil.WriteFile(timestampPath, timestamp, 0644)
 			if err != nil {
 				return InResponse{}, err
 			}
