@@ -13,8 +13,7 @@ require (
 	github.com/onsi/gomega v1.10.3
 	github.com/shurcooL/githubv4 v0.0.0-20210922025249-6831e00d857f
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	golang.org/x/net v0.0.0-20210917221730-978cfadd31cf // indirect
+	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 	google.golang.org/protobuf v1.27.1 // indirect
 )
