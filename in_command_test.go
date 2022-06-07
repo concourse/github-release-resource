@@ -83,9 +83,20 @@ var _ = Describe("In Command", func() {
 	}
 
 	buildAsset := func(id int64, name string) *github.ReleaseAsset {
+		state := "uploaded"
 		return &github.ReleaseAsset{
-			ID:   github.Int64(id),
-			Name: &name,
+			ID:    github.Int64(id),
+			Name:  &name,
+			State: &state,
+		}
+	}
+
+	buildFailedAsset := func(id int64, name string) *github.ReleaseAsset {
+		state := "starter"
+		return &github.ReleaseAsset{
+			ID:    github.Int64(id),
+			Name:  &name,
+			State: &state,
 		}
 	}
 
@@ -99,6 +110,7 @@ var _ = Describe("In Command", func() {
 					buildAsset(0, "example.txt"),
 					buildAsset(1, "example.rtf"),
 					buildAsset(2, "example.wtf"),
+					buildFailedAsset(3, "example.doc"),
 				}, nil)
 
 				inRequest.Version = &resource.Version{
@@ -402,6 +414,7 @@ var _ = Describe("In Command", func() {
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(0)).Should(Equal(*buildAsset(0, "example.txt")))
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(1)).Should(Equal(*buildAsset(1, "example.rtf")))
 					Ω(githubClient.DownloadReleaseAssetArgsForCall(2)).Should(Equal(*buildAsset(2, "example.wtf")))
+					Ω(githubClient.DownloadReleaseAssetCallCount()).Should(Equal(3))
 				})
 			})
 
