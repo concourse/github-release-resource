@@ -116,6 +116,11 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 	}
 
 	for _, asset := range assets {
+		state := asset.State
+		if state == nil || *state != "uploaded" {
+			continue
+		}
+
 		path := filepath.Join(destDir, *asset.Name)
 
 		var matchFound bool
