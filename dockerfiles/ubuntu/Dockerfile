@@ -1,7 +1,7 @@
-ARG base_image
+ARG base_image=ubuntu:latest
 ARG builder_image=concourse/golang-builder
 
-FROM ${builder_image} as builder
+FROM ${builder_image} AS builder
 COPY . $GOPATH/src/github.com/concourse/github-release-resource
 ENV CGO_ENABLED 0
 WORKDIR $GOPATH/src/github.com/concourse/github-release-resource
