@@ -63,13 +63,16 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		prerelease = request.Source.PreRelease
 	}
 
+	generateReleaseNotes := request.Params.GenerateReleaseNotes
+
 	release := &github.RepositoryRelease{
-		Name:            github.String(name),
-		TagName:         github.String(tag),
-		Body:            github.String(body),
-		Draft:           github.Bool(draft),
-		Prerelease:      github.Bool(prerelease),
-		TargetCommitish: github.String(targetCommitish),
+		Name:                 github.String(name),
+		TagName:              github.String(tag),
+		Body:                 github.String(body),
+		Draft:                github.Bool(draft),
+		Prerelease:           github.Bool(prerelease),
+		TargetCommitish:      github.String(targetCommitish),
+		GenerateReleaseNotes: github.Bool(generateReleaseNotes),
 	}
 
 	existingReleases, err := c.github.ListReleases()

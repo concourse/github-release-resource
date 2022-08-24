@@ -71,11 +71,12 @@ type OutRequest struct {
 }
 
 type OutParams struct {
-	NamePath      string `json:"name"`
-	BodyPath      string `json:"body"`
-	TagPath       string `json:"tag"`
-	CommitishPath string `json:"commitish"`
-	TagPrefix     string `json:"tag_prefix"`
+	NamePath             string `json:"name"`
+	BodyPath             string `json:"body"`
+	TagPath              string `json:"tag"`
+	CommitishPath        string `json:"commitish"`
+	TagPrefix            string `json:"tag_prefix"`
+	GenerateReleaseNotes bool   `json:"generate_release_notes"`
 
 	Globs []string `json:"globs"`
 }
