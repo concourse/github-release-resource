@@ -88,6 +88,7 @@ Fetches and creates versioned GitHub resources.
     body: path/to/body/file
     globs:
     - paths/to/files/to/upload-*.tgz
+    generate_release_notes: true
 ```
 
 To get a specific version of a release:
@@ -179,6 +180,11 @@ prepended with this string. This is useful for adding v in front of version numb
 
 * `globs`: *Optional.* A list of globs for files that will be uploaded alongside
   the created release.
+
+* `generate_release_notes`: *Optional.* Causes GitHub to autogenerate the release notes
+  when creating a new release, based on the commits since the last release.
+  If `body` is specified, the body will be pre-pended to the automatically generated
+  notes. Has no effect when updating an existing release. Defaults to `false`.
 
 ## Development
 
