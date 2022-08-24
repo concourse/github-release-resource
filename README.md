@@ -206,7 +206,7 @@ Run the tests with the following commands for both `alpine` and `ubuntu` images:
 
 ```sh
 docker build -t github-release-resource -f dockerfiles/alpine/Dockerfile .
-docker build -t github-release-resource -f dockerfiles/ubuntu/Dockerfile .
+docker build -t github-release-resource -f dockerfiles/ubuntu/Dockerfile --build-arg base_image=ubuntu:latest .
 ```
 
 ### Contributing

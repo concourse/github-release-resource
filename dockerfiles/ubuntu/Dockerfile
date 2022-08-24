@@ -1,4 +1,4 @@
-ARG base_image=ubuntu:latest
+ARG base_image
 ARG builder_image=concourse/golang-builder
 
 FROM ${builder_image} AS builder
