@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/google/go-github/v66/github"
 )
@@ -105,6 +106,13 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			if err != nil {
 				return InResponse{}, err
 			}
+
+			// Escape UTF-8 characters for Concourse metadata
+			body = strconv.QuoteToASCII(*foundRelease.Body)
+			body = strings.Replace(body, `\n`, "\n", -1)
+			body = strings.Replace(body, `\r`, "\r", -1)
+			body = strings.Replace(body, `\t`, "\t", -1)
+			foundRelease.Body = &body
 		}
 
 		if foundRelease.PublishedAt != nil || foundRelease.CreatedAt != nil {
