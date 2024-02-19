@@ -19,6 +19,7 @@ type Source struct {
 	PreRelease       bool   `json:"pre_release"`
 	Release          bool   `json:"release"`
 	Insecure         bool   `json:"insecure"`
+	AssetDir         bool   `json:"asset_dir"`
 
 	TagFilter        string `json:"tag_filter"`
 	OrderBy          string `json:"order_by"`

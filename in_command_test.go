@@ -270,6 +270,16 @@ var _ = Describe("In Command", func() {
 								Expect(err).NotTo(HaveOccurred())
 								Expect(fContents).To(Equal("source-tar-file-contents"))
 							})
+
+							It("saves the source tarball in the assets directory, if desired", func() {
+								inRequest.Source.AssetDir = true
+								inResponse, inErr = command.Run(destDir, inRequest)
+
+								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "assets", "source.tar.gz"))
+								fContents := string(fileContents)
+								Expect(err).NotTo(HaveOccurred())
+								Expect(fContents).To(Equal("source-tar-file-contents"))
+							})
 						})
 
 						Context("when downloading the tarball fails", func() {
@@ -346,6 +356,16 @@ var _ = Describe("In Command", func() {
 								inResponse, inErr = command.Run(destDir, inRequest)
 
 								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.zip"))
+								fContents := string(fileContents)
+								Expect(err).NotTo(HaveOccurred())
+								Expect(fContents).To(Equal("source-zip-file-contents"))
+							})
+
+							It("saves the source tarball in the assets directory, if desired", func() {
+								inRequest.Source.AssetDir = true
+								inResponse, inErr = command.Run(destDir, inRequest)
+
+								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "assets", "source.tar.gz"))
 								fContents := string(fileContents)
 								Expect(err).NotTo(HaveOccurred())
 								Expect(fContents).To(Equal("source-zip-file-contents"))
