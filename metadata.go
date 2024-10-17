@@ -1,6 +1,6 @@
 package resource
 
-import "github.com/google/go-github/v39/github"
+import "github.com/google/go-github/v66/github"
 
 func metadataFromRelease(release *github.RepositoryRelease, commitSHA string) []MetadataPair {
 	metadata := []MetadataPair{}

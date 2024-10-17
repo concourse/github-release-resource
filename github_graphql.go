@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"github.com/google/go-github/v39/github"
-	"github.com/shurcooL/githubv4"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/google/go-github/v66/github"
+	"github.com/shurcooL/githubv4"
 )
 
 func (g *GitHubClient) listReleasesV4EnterPrice() ([]*github.RepositoryRelease, error) {

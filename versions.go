@@ -1,10 +1,11 @@
 package resource
 
 import (
-	"github.com/google/go-github/v39/github"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/google/go-github/v66/github"
 )
 
 var defaultTagFilter = "^v?([^v].*)"

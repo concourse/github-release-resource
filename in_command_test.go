@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	"github.com/google/go-github/v39/github"
+	"github.com/google/go-github/v66/github"
 
 	resource "github.com/concourse/github-release-resource"
 	"github.com/concourse/github-release-resource/fakes"

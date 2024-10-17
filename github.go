@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/google/go-github/v39/github"
+	"github.com/google/go-github/v66/github"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
@@ -289,7 +289,7 @@ func (g *GitHubClient) DownloadReleaseAsset(asset github.ReleaseAsset) (io.ReadC
 
 func (g *GitHubClient) GetTarballLink(tag string) (*url.URL, error) {
 	opt := &github.RepositoryContentGetOptions{Ref: tag}
-	u, res, err := g.client.Repositories.GetArchiveLink(context.TODO(), g.owner, g.repository, github.Tarball, opt, true)
+	u, res, err := g.client.Repositories.GetArchiveLink(context.TODO(), g.owner, g.repository, github.Tarball, opt, 10)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +299,7 @@ func (g *GitHubClient) GetTarballLink(tag string) (*url.URL, error) {
 
 func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 	opt := &github.RepositoryContentGetOptions{Ref: tag}
-	u, res, err := g.client.Repositories.GetArchiveLink(context.TODO(), g.owner, g.repository, github.Zipball, opt, true)
+	u, res, err := g.client.Repositories.GetArchiveLink(context.TODO(), g.owner, g.repository, github.Zipball, opt, 10)
 	if err != nil {
 		return nil, err
 	}

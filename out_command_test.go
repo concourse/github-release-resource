@@ -9,10 +9,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/concourse/github-release-resource"
+	resource "github.com/concourse/github-release-resource"
 	"github.com/concourse/github-release-resource/fakes"
 
-	"github.com/google/go-github/v39/github"
+	"github.com/google/go-github/v66/github"
 )
 
 func file(path, contents string) {
