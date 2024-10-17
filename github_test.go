@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 
 	. "github.com/concourse/github-release-resource"
@@ -649,8 +650,11 @@ var _ = Describe("GitHub Client", func() {
 
 				BeforeEach(func() {
 					externalServer = ghttp.NewServer()
+					u, err := url.Parse(externalServer.URL())
+					Expect(err).NotTo(HaveOccurred())
+					externalUrl := fmt.Sprintf("http://localhost:%s", u.Port())
 
-					appendGetHandler(server, redirectPath, 307, "", true, locationHeader(externalServer.URL()+"/somewhere-else"))
+					appendGetHandler(server, redirectPath, 307, "", true, locationHeader(externalUrl+"/somewhere-else"))
 					appendGetHandler(externalServer, "/somewhere-else", 200, redirectFileContents, false)
 				})
 
