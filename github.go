@@ -47,8 +47,8 @@ type GitHubClient struct {
 }
 
 func NewGitHubClient(source Source) (*GitHubClient, error) {
-	var httpClient = &http.Client{}
-	var ctx = context.TODO()
+	httpClient := &http.Client{}
+	ctx := context.TODO()
 
 	if source.Insecure {
 		httpClient.Transport = &http.Transport{
@@ -214,17 +214,24 @@ func (g *GitHubClient) UpdateRelease(release github.RepositoryRelease) (*github.
 
 func (g *GitHubClient) ListReleaseAssets(release github.RepositoryRelease) ([]*github.ReleaseAsset, error) {
 	opt := &github.ListOptions{PerPage: 100}
-	assets, res, err := g.client.Repositories.ListReleaseAssets(context.TODO(), g.owner, g.repository, *release.ID, opt)
-	if err != nil {
-		return nil, err
+	var allAssets []*github.ReleaseAsset
+	for {
+		assets, res, err := g.client.Repositories.ListReleaseAssets(context.TODO(), g.owner, g.repository, *release.ID, opt)
+		if err != nil {
+			return []*github.ReleaseAsset{}, err
+		}
+		allAssets = append(allAssets, assets...)
+		if res.NextPage == 0 {
+			err = res.Body.Close()
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+		opt.Page = res.NextPage
 	}
 
-	err = res.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	return assets, nil
+	return allAssets, nil
 }
 
 func (g *GitHubClient) UploadReleaseAsset(release github.RepositoryRelease, name string, file *os.File) error {
@@ -309,7 +316,6 @@ func (g *GitHubClient) GetZipballLink(tag string) (*url.URL, error) {
 
 func (g *GitHubClient) ResolveTagToCommitSHA(tagName string) (string, error) {
 	ref, res, err := g.client.Git.GetRef(context.TODO(), g.owner, g.repository, "tags/"+tagName)
-
 	if err != nil {
 		return "", err
 	}
@@ -328,7 +334,6 @@ func (g *GitHubClient) ResolveTagToCommitSHA(tagName string) (string, error) {
 
 	// Resolve tag to commit sha
 	tag, res, err := g.client.Git.GetTag(context.TODO(), g.owner, g.repository, *ref.Object.SHA)
-
 	if err != nil {
 		return "", err
 	}
