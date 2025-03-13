@@ -16,9 +16,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Last run with counterfeiter v6
-//go:generate counterfeiter -o fakes/fake_git_hub.go . GitHub
-
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_git_hub.go . GitHub
 type GitHub interface {
 	ListReleases() ([]*github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)

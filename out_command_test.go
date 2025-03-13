@@ -2,11 +2,11 @@ package resource_test
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	resource "github.com/concourse/github-release-resource"
@@ -16,7 +16,7 @@ import (
 )
 
 func file(path, contents string) {
-	Ω(ioutil.WriteFile(path, []byte(contents), 0644)).Should(Succeed())
+	Ω(os.WriteFile(path, []byte(contents), 0644)).Should(Succeed())
 }
 
 var _ = Describe("Out Command", func() {
@@ -33,9 +33,9 @@ var _ = Describe("Out Command", func() {
 		var err error
 
 		githubClient = &fakes.FakeGitHub{}
-		command = resource.NewOutCommand(githubClient, ioutil.Discard)
+		command = resource.NewOutCommand(githubClient, io.Discard)
 
-		sourcesDir, err = ioutil.TempDir("", "github-release")
+		sourcesDir, err = os.MkdirTemp("", "github-release")
 		Ω(err).ShouldNot(HaveOccurred())
 
 		githubClient.CreateReleaseStub = func(gh github.RepositoryRelease) (*github.RepositoryRelease, error) {
@@ -514,7 +514,7 @@ var _ = Describe("Out Command", func() {
 					}, nil)
 
 					githubClient.UploadReleaseAssetStub = func(rel github.RepositoryRelease, name string, file *os.File) error {
-						Expect(ioutil.ReadAll(file)).To(Equal([]byte("matching")))
+						Expect(io.ReadAll(file)).To(Equal([]byte("matching")))
 						Expect(existingAsset).To(BeFalse())
 						existingAsset = true
 						return errors.New("some-error")

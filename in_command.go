@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -59,7 +58,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 	if foundRelease.HTMLURL != nil && *foundRelease.HTMLURL != "" {
 		urlPath := filepath.Join(destDir, "url")
-		err = ioutil.WriteFile(urlPath, []byte(*foundRelease.HTMLURL), 0644)
+		err = os.WriteFile(urlPath, []byte(*foundRelease.HTMLURL), 0644)
 		if err != nil {
 			return InResponse{}, err
 		}
@@ -67,7 +66,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 
 	if foundRelease.TagName != nil && *foundRelease.TagName != "" {
 		tagPath := filepath.Join(destDir, "tag")
-		err = ioutil.WriteFile(tagPath, []byte(*foundRelease.TagName), 0644)
+		err = os.WriteFile(tagPath, []byte(*foundRelease.TagName), 0644)
 		if err != nil {
 			return InResponse{}, err
 		}
@@ -78,7 +77,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		}
 		version := versionParser.parse(*foundRelease.TagName)
 		versionPath := filepath.Join(destDir, "version")
-		err = ioutil.WriteFile(versionPath, []byte(version), 0644)
+		err = os.WriteFile(versionPath, []byte(version), 0644)
 		if err != nil {
 			return InResponse{}, err
 		}
@@ -91,7 +90,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			}
 
 			if commitSHA != "" {
-				err = ioutil.WriteFile(commitPath, []byte(commitSHA), 0644)
+				err = os.WriteFile(commitPath, []byte(commitSHA), 0644)
 				if err != nil {
 					return InResponse{}, err
 				}
@@ -101,7 +100,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 		if foundRelease.Body != nil && *foundRelease.Body != "" {
 			body := *foundRelease.Body
 			bodyPath := filepath.Join(destDir, "body")
-			err = ioutil.WriteFile(bodyPath, []byte(body), 0644)
+			err = os.WriteFile(bodyPath, []byte(body), 0644)
 			if err != nil {
 				return InResponse{}, err
 			}
@@ -113,7 +112,7 @@ func (c *InCommand) Run(destDir string, request InRequest) (InResponse, error) {
 			if err != nil {
 				return InResponse{}, err
 			}
-			err = ioutil.WriteFile(timestampPath, timestamp, 0644)
+			err = os.WriteFile(timestampPath, timestamp, 0644)
 			if err != nil {
 				return InResponse{}, err
 			}

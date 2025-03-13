@@ -3,7 +3,6 @@ package resource
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -153,7 +152,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 }
 
 func (c *OutCommand) fileContents(path string) (string, error) {
-	contents, err := ioutil.ReadFile(path)
+	contents, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
@@ -167,7 +166,7 @@ func (c *OutCommand) upload(release *github.RepositoryRelease, filePath string) 
 	name := filepath.Base(filePath)
 
 	var retryErr error
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		file, err := os.Open(filePath)
 		if err != nil {
 			return err

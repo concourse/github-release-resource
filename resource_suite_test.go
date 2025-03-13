@@ -7,7 +7,7 @@ import (
 
 	resource "github.com/concourse/github-release-resource"
 	"github.com/google/go-github/v66/github"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -60,7 +60,7 @@ func newRepositoryReleaseWithCreatedTime(id int, version string, day int) *githu
 		Draft:      github.Bool(false),
 		Prerelease: github.Bool(false),
 		ID:         github.Int64(int64(id)),
-		CreatedAt:  &github.Timestamp{exampleTimeStamp(day)},
+		CreatedAt:  &github.Timestamp{Time: exampleTimeStamp(day)},
 	}
 }
 
@@ -70,7 +70,7 @@ func newRepositoryReleaseWithPublishedTime(id int, version string, day int) *git
 		Draft:       github.Bool(false),
 		Prerelease:  github.Bool(false),
 		ID:          github.Int64(int64(id)),
-		PublishedAt: &github.Timestamp{exampleTimeStamp(day)},
+		PublishedAt: &github.Timestamp{Time: exampleTimeStamp(day)},
 	}
 }
 
@@ -80,8 +80,8 @@ func newRepositoryReleaseWithCreatedAndPublishedTime(id int, version string, cre
 		Draft:       github.Bool(false),
 		Prerelease:  github.Bool(false),
 		ID:          github.Int64(int64(id)),
-		CreatedAt:   &github.Timestamp{exampleTimeStamp(createdDay)},
-		PublishedAt: &github.Timestamp{exampleTimeStamp(publishedDay)},
+		CreatedAt:   &github.Timestamp{Time: exampleTimeStamp(createdDay)},
+		PublishedAt: &github.Timestamp{Time: exampleTimeStamp(publishedDay)},
 	}
 }
 
