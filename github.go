@@ -229,6 +229,12 @@ func (g *GitHubClient) ListReleaseAssets(release github.RepositoryRelease) ([]*g
 			break
 		}
 		opt.Page = res.NextPage
+
+		err = res.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+		break
 	}
 
 	return allAssets, nil
