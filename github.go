@@ -14,8 +14,6 @@ import (
 	"github.com/google/go-github/v66/github"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
-
-	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_git_hub.go . GitHub

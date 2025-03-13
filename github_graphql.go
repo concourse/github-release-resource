@@ -32,7 +32,7 @@ func (g *GitHubClient) listReleasesV4EnterPrice() ([]*github.RepositoryRelease, 
 		} `graphql:"repository(owner:$repositoryOwner,name:$repositoryName)"`
 	}
 
-	vars := map[string]interface{}{
+	vars := map[string]any{
 		"repositoryOwner": githubv4.String(g.owner),
 		"repositoryName":  githubv4.String(g.repository),
 		"releaseCursor":   (*githubv4.String)(nil),
@@ -103,7 +103,7 @@ func (g *GitHubClient) listReleasesV4() ([]*github.RepositoryRelease, error) {
 		} `graphql:"repository(owner:$repositoryOwner,name:$repositoryName)"`
 	}
 
-	vars := map[string]interface{}{
+	vars := map[string]any{
 		"repositoryOwner": githubv4.String(g.owner),
 		"repositoryName":  githubv4.String(g.repository),
 		"releaseCursor":   (*githubv4.String)(nil),

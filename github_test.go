@@ -2,7 +2,7 @@ package resource_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -276,9 +276,36 @@ var _ = Describe("GitHub Client", func() {
 				Expect(releases).To(HaveLen(3))
 				Expect(server.ReceivedRequests()).To(HaveLen(2))
 				Expect(releases).To(Equal([]*github.RepositoryRelease{
-					{TagName: github.String("xyz"), Name: github.String("xyz"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(32095103), CreatedAt: &github.Timestamp{time.Date(2010, time.October, 01, 00, 58, 07, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.October, 02, 15, 39, 53, 0, time.UTC)}, URL: github.String("https://github.com/xyz/xyz/releases/tag/xyz")},
-					{TagName: github.String("xyz"), Name: github.String("xyz"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(30230659), CreatedAt: &github.Timestamp{time.Date(2010, time.August, 27, 13, 55, 36, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.August, 27, 17, 18, 06, 0, time.UTC)}, URL: github.String("https://github.com/xyz/xyz/releases/tag/xyz")},
-					{TagName: github.String("xyq"), Name: github.String("xyq"), Draft: github.Bool(false), Prerelease: github.Bool(false), ID: github.Int64(33222243), CreatedAt: &github.Timestamp{time.Date(2010, time.October, 10, 01, 01, 07, 0, time.UTC)}, PublishedAt: &github.Timestamp{time.Date(2010, time.October, 10, 15, 39, 53, 0, time.UTC)}, URL: github.String("https://github.com/xyq/xyq/releases/tag/xyq")},
+					{
+						TagName:     github.String("xyz"),
+						Name:        github.String("xyz"),
+						Draft:       github.Bool(false),
+						Prerelease:  github.Bool(false),
+						ID:          github.Int64(32095103),
+						CreatedAt:   &github.Timestamp{Time: time.Date(2010, time.October, 01, 00, 58, 07, 0, time.UTC)},
+						PublishedAt: &github.Timestamp{Time: time.Date(2010, time.October, 02, 15, 39, 53, 0, time.UTC)},
+						URL:         github.String("https://github.com/xyz/xyz/releases/tag/xyz"),
+					},
+					{
+						TagName:     github.String("xyz"),
+						Name:        github.String("xyz"),
+						Draft:       github.Bool(false),
+						Prerelease:  github.Bool(false),
+						ID:          github.Int64(30230659),
+						CreatedAt:   &github.Timestamp{Time: time.Date(2010, time.August, 27, 13, 55, 36, 0, time.UTC)},
+						PublishedAt: &github.Timestamp{Time: time.Date(2010, time.August, 27, 17, 18, 06, 0, time.UTC)},
+						URL:         github.String("https://github.com/xyz/xyz/releases/tag/xyz"),
+					},
+					{
+						TagName:     github.String("xyq"),
+						Name:        github.String("xyq"),
+						Draft:       github.Bool(false),
+						Prerelease:  github.Bool(false),
+						ID:          github.Int64(33222243),
+						CreatedAt:   &github.Timestamp{Time: time.Date(2010, time.October, 10, 01, 01, 07, 0, time.UTC)},
+						PublishedAt: &github.Timestamp{Time: time.Date(2010, time.October, 10, 15, 39, 53, 0, time.UTC)},
+						URL:         github.String("https://github.com/xyq/xyq/releases/tag/xyq"),
+					},
 				}))
 			})
 		})
@@ -574,7 +601,7 @@ var _ = Describe("GitHub Client", func() {
 					Expect(err).NotTo(HaveOccurred())
 					defer readCloser.Close()
 
-					body, err := ioutil.ReadAll(readCloser)
+					body, err := io.ReadAll(readCloser)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(body)).To(Equal(fileContents))
 				})
@@ -613,7 +640,7 @@ var _ = Describe("GitHub Client", func() {
 					Expect(err).NotTo(HaveOccurred())
 					defer readCloser.Close()
 
-					body, err := ioutil.ReadAll(readCloser)
+					body, err := io.ReadAll(readCloser)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(body)).To(Equal(redirectFileContents))
 				})
@@ -635,7 +662,7 @@ var _ = Describe("GitHub Client", func() {
 					Expect(err).NotTo(HaveOccurred())
 					defer readCloser.Close()
 
-					body, err := ioutil.ReadAll(readCloser)
+					body, err := io.ReadAll(readCloser)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(body)).To(Equal(redirectFileContents))
 				})
@@ -663,7 +690,7 @@ var _ = Describe("GitHub Client", func() {
 					Expect(err).NotTo(HaveOccurred())
 					defer readCloser.Close()
 
-					body, err := ioutil.ReadAll(readCloser)
+					body, err := io.ReadAll(readCloser)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(body)).To(Equal(redirectFileContents))
 				})
@@ -745,7 +772,7 @@ var _ = Describe("GitHub Client", func() {
 				Expect(err).NotTo(HaveOccurred())
 				defer readCloser.Close()
 
-				body, err := ioutil.ReadAll(readCloser)
+				body, err := io.ReadAll(readCloser)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(body)).To(Equal(redirectFileContents))
 			})

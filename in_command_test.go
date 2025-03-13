@@ -3,7 +3,7 @@ package resource_test
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,14 +40,14 @@ var _ = Describe("In Command", func() {
 
 		githubClient = &fakes.FakeGitHub{}
 		githubServer = ghttp.NewServer()
-		command = resource.NewInCommand(githubClient, ioutil.Discard)
+		command = resource.NewInCommand(githubClient, io.Discard)
 
-		tmpDir, err = ioutil.TempDir("", "github-release")
+		tmpDir, err = os.MkdirTemp("", "github-release")
 		Ω(err).ShouldNot(HaveOccurred())
 
 		destDir = filepath.Join(tmpDir, "destination")
 
-		githubClient.DownloadReleaseAssetReturns(ioutil.NopCloser(bytes.NewBufferString("some-content")), nil)
+		githubClient.DownloadReleaseAssetReturns(io.NopCloser(bytes.NewBufferString("some-content")), nil)
 
 		inRequest = resource.InRequest{}
 	})
@@ -167,27 +167,27 @@ var _ = Describe("In Command", func() {
 				It("does create the body, tag, version, and url files", func() {
 					inResponse, inErr = command.Run(destDir, inRequest)
 
-					contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
+					contents, err := os.ReadFile(path.Join(destDir, "tag"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("v0.35.0"))
 
-					contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
+					contents, err = os.ReadFile(path.Join(destDir, "version"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("0.35.0"))
 
-					contents, err = ioutil.ReadFile(path.Join(destDir, "commit_sha"))
+					contents, err = os.ReadFile(path.Join(destDir, "commit_sha"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("f28085a4a8f744da83411f5e09fd7b1709149eee"))
 
-					contents, err = ioutil.ReadFile(path.Join(destDir, "body"))
+					contents, err = os.ReadFile(path.Join(destDir, "body"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("*markdown*"))
 
-					contents, err = ioutil.ReadFile(path.Join(destDir, "timestamp"))
+					contents, err = os.ReadFile(path.Join(destDir, "timestamp"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("2018-01-01T00:00:00Z"))
 
-					contents, err = ioutil.ReadFile(path.Join(destDir, "url"))
+					contents, err = os.ReadFile(path.Join(destDir, "url"))
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(contents)).Should(Equal("http://google.com"))
 				})
@@ -211,15 +211,15 @@ var _ = Describe("In Command", func() {
 					It("does create the tag, version, and url files", func() {
 						inResponse, inErr = command.Run(destDir, inRequest)
 
-						contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
+						contents, err := os.ReadFile(path.Join(destDir, "tag"))
 						Ω(err).ShouldNot(HaveOccurred())
 						Ω(string(contents)).Should(Equal("package-0.35.0"))
 
-						contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
+						contents, err = os.ReadFile(path.Join(destDir, "version"))
 						Ω(err).ShouldNot(HaveOccurred())
 						Ω(string(contents)).Should(Equal("0.35.0"))
 
-						contents, err = ioutil.ReadFile(path.Join(destDir, "url"))
+						contents, err = os.ReadFile(path.Join(destDir, "url"))
 						Ω(err).ShouldNot(HaveOccurred())
 						Ω(string(contents)).Should(Equal("http://google.com"))
 					})
@@ -265,7 +265,7 @@ var _ = Describe("In Command", func() {
 							It("saves the source tarball in the destination directory", func() {
 								inResponse, inErr = command.Run(destDir, inRequest)
 
-								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.tar.gz"))
+								fileContents, err := os.ReadFile(filepath.Join(destDir, "source.tar.gz"))
 								fContents := string(fileContents)
 								Expect(err).NotTo(HaveOccurred())
 								Expect(fContents).To(Equal("source-tar-file-contents"))
@@ -275,7 +275,7 @@ var _ = Describe("In Command", func() {
 								inRequest.Source.AssetDir = true
 								inResponse, inErr = command.Run(destDir, inRequest)
 
-								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "assets", "source.tar.gz"))
+								fileContents, err := os.ReadFile(filepath.Join(destDir, "assets", "source.tar.gz"))
 								fContents := string(fileContents)
 								Expect(err).NotTo(HaveOccurred())
 								Expect(fContents).To(Equal("source-tar-file-contents"))
@@ -355,7 +355,7 @@ var _ = Describe("In Command", func() {
 							It("saves the source zip in the destination directory", func() {
 								inResponse, inErr = command.Run(destDir, inRequest)
 
-								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "source.zip"))
+								fileContents, err := os.ReadFile(filepath.Join(destDir, "source.zip"))
 								fContents := string(fileContents)
 								Expect(err).NotTo(HaveOccurred())
 								Expect(fContents).To(Equal("source-zip-file-contents"))
@@ -365,7 +365,7 @@ var _ = Describe("In Command", func() {
 								inRequest.Source.AssetDir = true
 								inResponse, inErr = command.Run(destDir, inRequest)
 
-								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "assets", "source.zip"))
+								fileContents, err := os.ReadFile(filepath.Join(destDir, "assets", "source.zip"))
 								fContents := string(fileContents)
 								Expect(err).NotTo(HaveOccurred())
 								Expect(fContents).To(Equal("source-zip-file-contents"))
@@ -525,15 +525,15 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("does create the tag, version, and URL files", func() {
-				contents, err := ioutil.ReadFile(path.Join(destDir, "tag"))
+				contents, err := os.ReadFile(path.Join(destDir, "tag"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("v0.35.0"))
 
-				contents, err = ioutil.ReadFile(path.Join(destDir, "version"))
+				contents, err = os.ReadFile(path.Join(destDir, "version"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("0.35.0"))
 
-				contents, err = ioutil.ReadFile(path.Join(destDir, "url"))
+				contents, err = os.ReadFile(path.Join(destDir, "url"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("http://google.com"))
 			})
@@ -572,7 +572,7 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("does create the url file", func() {
-				contents, err := ioutil.ReadFile(path.Join(destDir, "url"))
+				contents, err := os.ReadFile(path.Join(destDir, "url"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("http://google.com"))
 			})
@@ -610,7 +610,7 @@ var _ = Describe("In Command", func() {
 			})
 
 			It("does create the url file", func() {
-				contents, err := ioutil.ReadFile(path.Join(destDir, "url"))
+				contents, err := os.ReadFile(path.Join(destDir, "url"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(contents)).Should(Equal("http://google.com"))
 			})
