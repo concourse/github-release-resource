@@ -65,6 +65,10 @@ Fetches and creates versioned GitHub resources.
    Selects whether to order releases by version (as extracted by `tag_filter`)
    or by time. See `check` behavior described below for details.
 
+* `asset_dir`:  *Optional. Default `false`.* When set to `true`, downloaded assets
+  will be created in a separate directory called `assets`. Otherwise, they will be
+  created in the same directory as the other files.
+
 ### Example
 
 ``` yaml
@@ -135,7 +139,8 @@ Otherwise it returns the release with the latest version or time.
 
 ### `in`: Fetch assets from a release.
 
-Fetches artifacts from the requested release.
+Fetches artifacts from the requested release.  If `asset_dir` source param is set to `true`,
+artifacts will be created in a subdirectory called `assets`.
 
 Also creates the following files:
 
