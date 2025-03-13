@@ -365,7 +365,7 @@ var _ = Describe("In Command", func() {
 								inRequest.Source.AssetDir = true
 								inResponse, inErr = command.Run(destDir, inRequest)
 
-								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "assets", "source.tar.gz"))
+								fileContents, err := ioutil.ReadFile(filepath.Join(destDir, "assets", "source.zip"))
 								fContents := string(fileContents)
 								Expect(err).NotTo(HaveOccurred())
 								Expect(fContents).To(Equal("source-zip-file-contents"))
