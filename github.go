@@ -14,11 +14,11 @@ import (
 	"github.com/google/go-github/v66/github"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
+
+	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 )
 
-// Last run with counterfeiter v6
-//go:generate counterfeiter -o fakes/fake_git_hub.go . GitHub
-
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_git_hub.go . GitHub
 type GitHub interface {
 	ListReleases() ([]*github.RepositoryRelease, error)
 	GetReleaseByTag(tag string) (*github.RepositoryRelease, error)

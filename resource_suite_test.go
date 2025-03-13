@@ -7,8 +7,10 @@ import (
 
 	resource "github.com/concourse/github-release-resource"
 	"github.com/google/go-github/v66/github"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 )
 
 func TestGithubReleaseResource(t *testing.T) {
