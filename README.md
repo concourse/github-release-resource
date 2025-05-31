@@ -210,7 +210,7 @@ will stop the build.
 Run the tests with the following command:
 
 ```sh
-docker build -t github-release-resource --target tests --build-arg base_image=concourse/resource-types-base-image-static:latest .
+docker build -t github-release-resource --target tests .
 ```
 
 ### Contributing
