@@ -2,6 +2,11 @@
 
 Fetches and creates versioned GitHub resources.
 
+<a href="https://ci.concourse-ci.org/teams/main/pipelines/resource/jobs/build?vars.type=%22github-release%22">
+  <img src="https://ci.concourse-ci.org/api/v1/teams/main/pipelines/resource/jobs/build/badge?vars.type=%22github-release%22" alt="Build Status">
+</a>
+
+
 > If you're seeing rate limits affecting you then please add a token to the source
 > configuration. This will increase your number of allowed requests.
 
