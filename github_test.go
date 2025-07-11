@@ -359,6 +359,59 @@ var _ = Describe("GitHub Client", func() {
 		})
 	})
 
+	Describe("ListReleasesAssets without access token", func() {
+		BeforeEach(func() {
+			source = Source{
+				Owner:      "concourse",
+				Repository: "concourse",
+			}
+		})
+		Context("When list of assets return less than 100 items", func() {
+			BeforeEach(func() {
+				var result []*github.ReleaseAsset
+				for i := 1; i <= 50; i++ {
+					result = append(result, &github.ReleaseAsset{ID: github.Int64(int64(i))})
+				}
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases/1/assets", "per_page=100"),
+						ghttp.RespondWithJSONEncoded(200, result),
+					),
+				)
+			})
+			It("lists all release assets", func() {
+				releasesAssets, err := client.ListReleaseAssets(github.RepositoryRelease{ID: github.Int64(1)})
+				Ω(err).ShouldNot(HaveOccurred())
+				Expect(releasesAssets).To(HaveLen(50))
+				Expect(server.ReceivedRequests()).To(HaveLen(1))
+			})
+		})
+		Context("When list of assets return more then 100 items", func() {
+			Context("List graphql releases", func() {
+				BeforeEach(func() {
+					var result []*github.ReleaseAsset
+					for i := 1; i <= 102; i++ {
+						result = append(result, &github.ReleaseAsset{ID: github.Int64(int64(i))})
+					}
+					server.AppendHandlers(
+						ghttp.CombineHandlers(ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases/1/assets", "per_page=100"),
+							ghttp.RespondWithJSONEncoded(200, result[:100], http.Header{"Link": []string{`</releases/1/assets?page=2>; rel="next"`}}),
+						),
+						ghttp.CombineHandlers(ghttp.VerifyRequest("GET", "/repos/concourse/concourse/releases/1/assets", "per_page=100&page=2"),
+							ghttp.RespondWithJSONEncoded(200, result[100:])),
+					)
+				})
+				It("list release assets", func() {
+					releasesAssets, err := client.ListReleaseAssets(github.RepositoryRelease{ID: github.Int64(1)})
+					Ω(err).ShouldNot(HaveOccurred())
+					Expect(releasesAssets).To(HaveLen(102))
+					Expect(server.ReceivedRequests()).To(HaveLen(2))
+				})
+
+			})
+		})
+	})
+
 	Describe("GetRelease", func() {
 		BeforeEach(func() {
 			source = Source{
