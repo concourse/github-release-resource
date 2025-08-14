@@ -18,8 +18,11 @@ Fetches and creates versioned GitHub resources.
 * `repository`: *Required.* The repository name that contains the releases.
 
 * `access_token`: *Optional.* Used for accessing a release in a private-repo
-   during an `in` and pushing a release to a repo during an `out`. The access
-   token you create is only required to have the `repo` or `public_repo` scope.
+    during an `in` and pushing a release to a repo during an `out`. The
+    [fine-grained access
+    token](https://github.com/settings/personal-access-tokens) you create is
+    only required to have the `content` permission. For classic access tokens,
+    you need the `repo` or `public_repo` permission.
 
 * `github_api_url`: *Optional.* If you use a non-public GitHub deployment then
   you can set your API URL here.
