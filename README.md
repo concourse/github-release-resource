@@ -153,7 +153,7 @@ artifacts will be created in a subdirectory called `assets`.
 Also creates the following files:
 
 * `tag` containing the git tag name of the release being fetched.
-* `version` containing the version determined by the git tag of the release being fetched.
+* `version` containing the version determined by the git tag of the release being fetched. If a capture group is used in `tag_filter` then this will be the value of the capture group.
 * `body` containing the body text of the release.
 * `timestamp` containing the publish or creation timestamp for the release in RFC 3339 format.
 * `commit_sha` containing the commit SHA the tag is pointing to.
