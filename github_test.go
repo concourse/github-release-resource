@@ -597,6 +597,96 @@ var _ = Describe("GitHub Client", func() {
 			})
 
 		})
+		Context("When GitHub returns a chain of annotated tags", func() {
+			BeforeEach(func() {
+				// First call: get the ref which points to the first tag
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/ref/tags/v1.0.0-rc90"),
+						ghttp.RespondWith(200, `{ "ref": "refs/tags/v1.0.0-rc90", "object" : { "type": "tag", "sha": "first-tag-sha"} }`),
+					),
+				)
+
+				// Second call: get the first tag object, which points to another tag
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/tags/first-tag-sha"),
+						ghttp.RespondWith(200, `{ "object" : { "type": "tag", "sha": "second-tag-sha"} }`),
+					),
+				)
+
+				// Third call: get the second tag object, which finally points to a commit
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/tags/second-tag-sha"),
+						ghttp.RespondWith(200, `{ "object" : { "type": "commit", "sha": "final-commit-sha"} }`),
+					),
+				)
+			})
+
+			It("follows the chain and returns the final commit SHA", func() {
+				commitSHA, err := client.ResolveTagToCommitSHA("v1.0.0-rc90")
+
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(commitSHA).To(Equal("final-commit-sha"))
+			})
+		})
+
+		Context("When GitHub returns a very deep chain of annotated tags", func() {
+			BeforeEach(func() {
+				// First call: get the ref
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/ref/tags/deeply-nested"),
+						ghttp.RespondWith(200, `{ "ref": "refs/tags/deeply-nested", "object" : { "type": "tag", "sha": "tag-sha-0"} }`),
+					),
+				)
+
+				// Add 11 tag-to-tag redirections (exceeding our max depth of 10)
+				for i := 0; i < 11; i++ {
+					currentSHA := fmt.Sprintf("tag-sha-%d", i)
+					nextSHA := fmt.Sprintf("tag-sha-%d", i+1)
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", fmt.Sprintf("/repos/concourse/concourse/git/tags/%s", currentSHA)),
+							ghttp.RespondWith(200, fmt.Sprintf(`{ "object" : { "type": "tag", "sha": "%s"} }`, nextSHA)),
+						),
+					)
+				}
+			})
+
+			It("returns an error when max depth is exceeded", func() {
+				_, err := client.ResolveTagToCommitSHA("deeply-nested")
+
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("exceeded maximum tag chain depth"))
+			})
+		})
+
+		Context("When a tag in the chain points to an unexpected object type", func() {
+			BeforeEach(func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/ref/tags/bad-tag"),
+						ghttp.RespondWith(200, `{ "ref": "refs/tags/bad-tag", "object" : { "type": "tag", "sha": "tag-sha"} }`),
+					),
+				)
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/repos/concourse/concourse/git/tags/tag-sha"),
+						ghttp.RespondWith(200, `{ "object" : { "type": "tree", "sha": "tree-sha"} }`),
+					),
+				)
+			})
+
+			It("returns an error for unexpected object types", func() {
+				_, err := client.ResolveTagToCommitSHA("bad-tag")
+
+				Expect(err).Should(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("expected 'commit' or 'tag'"))
+			})
+		})
 	})
 
 	Describe("DownloadReleaseAsset", func() {
