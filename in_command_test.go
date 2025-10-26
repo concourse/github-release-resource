@@ -150,7 +150,7 @@ var _ = Describe("In Command", func() {
 					))
 				})
 
-				It("calls #GetReleast with the correct arguments", func() {
+				It("calls #GetRelease with the correct arguments", func() {
 					command.Run(destDir, inRequest)
 
 					Ω(githubClient.GetReleaseArgsForCall(0)).Should(Equal(1))
@@ -222,6 +222,39 @@ var _ = Describe("In Command", func() {
 						contents, err = os.ReadFile(path.Join(destDir, "url"))
 						Ω(err).ShouldNot(HaveOccurred())
 						Ω(string(contents)).Should(Equal("http://google.com"))
+					})
+				})
+
+				Context("when custom tag filter has multiple capture groups", func() {
+					BeforeEach(func() {
+						inRequest.Source = resource.Source{
+							TagFilter: "^v([^-]|-[^r]|-r[^c].)*$",
+						}
+						githubClient.GetReleaseReturns(buildRelease(1, "v6.7.9", false), nil)
+						githubClient.ResolveTagToCommitSHAReturns("f28085a4a8f744da83411f5e09fd7b1709149eee", nil)
+
+						inRequest.Version = &resource.Version{
+							ID:  "1",
+							Tag: "v6.7.9",
+						}
+					})
+
+					It("extracts complete version from first capture group", func() {
+						inResponse, inErr = command.Run(destDir, inRequest)
+						Ω(inErr).ShouldNot(HaveOccurred())
+
+						contents, err := os.ReadFile(path.Join(destDir, "version"))
+						Ω(err).ShouldNot(HaveOccurred())
+						Ω(string(contents)).Should(Equal("6.7.9"))
+					})
+
+					It("tag file remains unchanged", func() {
+						inResponse, inErr = command.Run(destDir, inRequest)
+						Ω(inErr).ShouldNot(HaveOccurred())
+
+						contents, err := os.ReadFile(path.Join(destDir, "tag"))
+						Ω(err).ShouldNot(HaveOccurred())
+						Ω(string(contents)).Should(Equal("v6.7.9"))
 					})
 				})
 

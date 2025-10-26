@@ -3,6 +3,7 @@ package resource
 import (
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/v66/github"
@@ -27,10 +28,45 @@ func newVersionParser(filter string) (versionParser, error) {
 
 func (vp *versionParser) parse(tag string) string {
 	matches := vp.re.FindStringSubmatch(tag)
-	if len(matches) > 0 {
-		return matches[len(matches)-1]
+
+	// If regex doesn't match at all, return empty
+	if len(matches) == 0 {
+		return ""
 	}
-	return ""
+
+	// If regex has a capture group, try to use it
+	if len(matches) > 1 {
+		captured := matches[1]
+		// Only use capture group if it looks like a reasonable version
+		// (at least 3 chars or contains dots for semver)
+		if len(captured) >= 3 || strings.Contains(captured, ".") {
+			return captured
+		}
+	}
+
+	// Fallback: use full match and strip common version prefixes
+	version := matches[0]
+	prefixes := []string{
+		"v",
+		"version-",
+		"release-",
+		"rel-",
+		"r",
+		"v-",
+		"@",
+		"stable-",
+		"final-",
+		"prod-",
+		"production-",
+	}
+
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(version, prefix) {
+			version = strings.TrimPrefix(version, prefix)
+			break
+		}
+	}
+	return version
 }
 
 func getTimestamp(release *github.RepositoryRelease) time.Time {
