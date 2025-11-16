@@ -643,7 +643,7 @@ var _ = Describe("GitHub Client", func() {
 				)
 
 				// Add 11 tag-to-tag redirections (exceeding our max depth of 10)
-				for i := 0; i < 11; i++ {
+				for i := range 11 {
 					currentSHA := fmt.Sprintf("tag-sha-%d", i)
 					nextSHA := fmt.Sprintf("tag-sha-%d", i+1)
 					server.AppendHandlers(
@@ -658,6 +658,7 @@ var _ = Describe("GitHub Client", func() {
 			It("returns an error when max depth is exceeded", func() {
 				_, err := client.ResolveTagToCommitSHA("deeply-nested")
 
+				Expect(len(server.ReceivedRequests())).To(Equal(11)) // first call + max depth value
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("exceeded maximum tag chain depth"))
 			})

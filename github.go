@@ -332,7 +332,7 @@ func (g *GitHubClient) ResolveTagToCommitSHA(tagName string) (string, error) {
 	currentSHA := *ref.Object.SHA
 	maxDepth := 10
 
-	for i := 0; i < maxDepth; i++ {
+	for range maxDepth {
 		tag, res, err := g.client.Git.GetTag(context.TODO(), g.owner, g.repository, currentSHA)
 		if err != nil {
 			return "", fmt.Errorf("could not get tag object %q: %w", currentSHA, err)
