@@ -317,32 +317,40 @@ func (g *GitHubClient) ResolveTagToCommitSHA(tagName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	res.Body.Close()
 
-	// Lightweight tag
 	if *ref.Object.Type == "commit" {
 		return *ref.Object.SHA, nil
 	}
 
-	// Fail if we're not pointing to a annotated tag
+	// Fail if we're not pointing to a tag or commit
 	if *ref.Object.Type != "tag" {
-		return "", fmt.Errorf("could not resolve tag %q to commit: returned type is not 'commit' or 'tag'", tagName)
+		return "", fmt.Errorf("could not resolve tag %q to commit: ref type is %q, expected 'commit' or 'tag'", tagName, *ref.Object.Type)
 	}
 
-	// Resolve tag to commit sha
-	tag, res, err := g.client.Git.GetTag(context.TODO(), g.owner, g.repository, *ref.Object.SHA)
-	if err != nil {
-		return "", err
+	// Follow the chain of annotated tags until we reach a commit
+	currentSHA := *ref.Object.SHA
+	maxDepth := 10
+
+	for i := 0; i < maxDepth; i++ {
+		tag, res, err := g.client.Git.GetTag(context.TODO(), g.owner, g.repository, currentSHA)
+		if err != nil {
+			return "", fmt.Errorf("could not get tag object %q: %w", currentSHA, err)
+		}
+		res.Body.Close()
+
+		switch *tag.Object.Type {
+		case "commit":
+			return *tag.Object.SHA, nil
+		case "tag":
+			// Another annotated tag, continue following the chain
+			currentSHA = *tag.Object.SHA
+		default:
+			return "", fmt.Errorf("could not resolve tag %q to commit: tag object points to %q, expected 'commit' or 'tag'", tagName, *tag.Object.Type)
+		}
 	}
 
-	res.Body.Close()
-
-	if *tag.Object.Type != "commit" {
-		return "", fmt.Errorf("could not resolve tag %q to commit: returned type is not 'commit'", tagName)
-	}
-
-	return *tag.Object.SHA, nil
+	return "", fmt.Errorf("could not resolve tag %q to commit: exceeded maximum tag chain depth of %d", tagName, maxDepth)
 }
 
 func oauthClient(ctx context.Context, source Source) (*http.Client, error) {
