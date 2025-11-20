@@ -12,70 +12,130 @@ Fetches and creates versioned GitHub resources.
 
 ## Source Configuration
 
-* `owner`: *Required.* The GitHub user or organization name for the repository
-  that the releases are in.
-
-* `repository`: *Required.* The repository name that contains the releases.
-
-* `access_token`: *Optional.* Used for accessing a release in a private-repo
-    during an `in` and pushing a release to a repo during an `out`. The
-    [fine-grained access
-    token](https://github.com/settings/personal-access-tokens) you create is
-    only required to have the `content` permission. For classic access tokens,
-    you need the `repo` or `public_repo` permission.
-
-* `github_api_url`: *Optional.* If you use a non-public GitHub deployment then
-  you can set your API URL here.
-  
-* `github_v4_api_url`: *Optional.* If you use a non-public GitHub deployment then
-  you can set your API URL for graphql calls here.
-
-* `github_uploads_url`: *Optional.* Some GitHub instances have a separate URL
-  for uploading. If `github_api_url` is set, this value defaults to the same
-  value, but if you have your own endpoint, this field will override it.
-
-* `insecure`: *Optional. Default `false`.* When set to `true`, concourse will allow
-  insecure connection to your github API.
-
-* `release`: *Optional. Default `true`.* When set to `true`, `check` detects
-  final releases and `put` publishes final releases (as opposed to
-  pre-releases). If `false`, `check` will ignore final releases, and `put` will
-  publish pre-releases if `pre_release` is set to `true`
-
-* `pre_release`: *Optional. Default `false`.* When set to `true`, `check`
-  detects pre-releases, and `put` will produce pre-releases (if `release` is
-  also set to `false`). If `false`, only non-prerelease releases will be detected
-  and published.
-
-  **note:** if both `release` and `pre_release` are set to `true`, `put`
-  produces final releases and `check` detects both pre-releases and releases. In
-  order to produce pre-releases, you must set `pre_release` to `true` and
-  `release` to `false`.  
-  **note:** if both `release` and `pre_release` are set to `false`, `put` will
-  still produce final releases.  
-  **note:** releases must have [semver compliant](https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions) tags to be detected.
-
-* `drafts`: *Optional. Default `false`.* When set to `true`, `put` produces
-  drafts and `check` only detects drafts. If `false`, only non-draft releases
-  will be detected and published. Note that releases must have [semver compliant](https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions)
-  tags to be detected, even if they're drafts.
-
-* `semver_constraint`: *Optional.* If set, constrain the returned semver tags according
-  to a semver constraint, e.g. `"~1.2.x"`, `">= 1.2 < 3.0.0 || >= 4.2.3"`.
-  Follows the rules outlined in https://github.com/Masterminds/semver#checking-version-constraints.
-
-* `tag_filter`: *Optional.* If set, override default tag filter regular
-  expression of `v?([^v].*)`. If the filter includes a capture group, the capture
-  group is used as the release version; otherwise, the entire matching substring
-  is used as the version.
-
-* `order_by`: *Optional. One of [`version`, `time`]. Default `version`.*
-   Selects whether to order releases by version (as extracted by `tag_filter`)
-   or by time. See `check` behavior described below for details.
-
-* `asset_dir`:  *Optional. Default `false`.* When set to `true`, downloaded assets
-  will be created in a separate directory called `assets`. Otherwise, they will be
-  created in the same directory as the other files.
+<table>
+  <thead>
+    <tr>
+      <th>Field Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>owner</code> (Required)</td>
+      <td> The GitHub user or organization name for the repository that the releases are in.</td>
+    </tr>
+    <tr>
+      <td><code>repository</code> (Required)</td>
+      <td>The repository name that contains the releases.</td>
+    </tr>
+    <tr>
+      <td><code>access_token</code> (Optional)</td>
+      <td>
+        Used for accessing a release in a private-repo during an <code>in</code> and pushing a
+        release to a repo during an <code>out</code>. The
+        <a href="https://github.com/settings/personal-access-tokens">fine-grained access token</a> you create is only
+        required to have the <code>content</code> permission. For classic access tokens, you need the
+        <code>repo</code> or <code>public_repo</code> permission.
+      </td>
+    </tr>
+    <tr>
+      <td><code>github_api_url</code> (Optional)</td>
+      <td>If you use a non-public GitHub deployment then you can set your API URL here.</td>
+    </tr>
+    <tr>
+      <td><code>github_v4_api_url</code> (Optional)</td>
+      <td>
+        If you use a non-public GitHub deployment then you can set your API URL for graphql calls
+        here.
+      </td>
+    </tr>
+    <tr>
+      <td><code>github_uploads_url</code> (Optional)</td>
+      <td>
+        Some GitHub instances have a separate URL for uploading. If <code>github_api_url</code> is
+        set, this value defaults to the same value, but if you have your own endpoint, this field will override it.
+      </td>
+    </tr>
+    <tr>
+      <td><code>insecure</code> (Optional)</td>
+      <td>
+        Defaults to <code>false</code>. When set to <code>true</code>, concourse will allow insecure
+        connection to your github API.
+      </td>
+    </tr>
+    <tr>
+      <td><code>release</code> (Optional)</td>
+      <td>
+        Defaults to <code>true</code>. When set to <code>true</code>, <code>check</code> detects final
+        releases and <code>put</code> publishes final releases (as opposed to pre-releases). If <code>false</code>,
+        <code>check</code> will ignore final releases, and <code>put</code> will publish pre-releases if
+        <code>pre_release</code> is set to <code>true</code>
+      </td>
+    </tr>
+    <tr>
+      <td><code>pre_release</code> (Optional)</td>
+      <td>
+        Defaults to <code>false</code>. When set to <code>true</code>, <code>check</code> detects
+        pre-releases, and <code>put</code> will produce pre-releases (if <code>release</code> is also set to
+        <code>false</code>). If <code>false</code>, only non-prerelease releases will be detected and published.
+        <br/><br/>
+        <strong>NOTE:</strong>
+        If both <code>release</code> and <code>pre_release</code> are set to <code>true</code>,
+        <code>put</code> produces final releases and <code>check</code> detects both pre-releases and releases. In order
+        to produce pre-releases, you must set <code>pre_release</code> to <code>true</code> and <code>release</code> to
+        <code>false</code>.<br /><strong>note:</strong> if both <code>release</code> and <code>pre_release</code> are
+        set to <code>false</code>, <code>put</code> will still produce final releases.<br /><strong>note:</strong>
+        releases must have
+        <a href="https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions">semver compliant</a>
+        tags to be detected.
+      </td>
+    </tr>
+    <tr>
+      <td><code>drafts</code> (Optional)</td>
+      <td>
+        Defaults to <code>false</code>. When set to <code>true</code>, <code>put</code> produces drafts
+        and <code>check</code> only detects drafts. If <code>false</code>, only non-draft releases will be detected and
+        published. Note that releases must have
+        <a href="https://semver.org/#backusnaur-form-grammar-for-valid-semver-versions">semver compliant</a>
+        tags to be detected, even if they're drafts.
+      </td>
+    </tr>
+    <tr>
+      <td><code>semver_constraint</code> (Optional)</td>
+      <td>
+        If set, constrain the returned semver tags according to a semver constraint, e.g.
+        <code>"~1.2.x"</code>, <code>">= 1.2 < 3.0.0 || >= 4.2.3"</code>. Follows the rules outlined in
+        <a href="https://github.com/Masterminds/semver#checking-version-constraints"
+          >https://github.com/Masterminds/semver#checking-version-constraints</a
+        >.
+      </td>
+    </tr>
+    <tr>
+      <td><code>tag_filter</code> (Optional)</td>
+      <td>
+        If set, override default tag filter regular expression of <code>v?([^v].*)</code>. If the
+        filter includes a capture group, the capture group is used as the release version; otherwise, the entire
+        matching substring is used as the version. You can test your regex in the <a href="https://go.dev/play/p/shzMfC-rfI-">Go Playground</a>.
+      </td>
+    </tr>
+    <tr>
+      <td><code>order_by</code> (Optional)</td>
+      <td>
+        One of [<code>version</code>, <code>time</code>]. Defaults to <code>version</code>.
+        Selects whether to order releases by version (as extracted by <code>tag_filter</code>) or by time. See
+        <code>check</code> behavior described below for details.
+      </td>
+    </tr>
+    <tr>
+      <td><code>asset_dir</code> (Optional)</td>
+      <td>
+        Default <code>false</code>. When set to <code>true</code>, downloaded assets will be created
+        in a separate directory called <code>assets</code>. Otherwise, they will be created in the same directory as the
+        other files.
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ### Example
 
@@ -134,7 +194,7 @@ When sorting by time and a release is published, it uses the publication time, o
 
 The returned list contains an object of the following format for each release (with timestamp in the RFC3339 format):
 
-```
+```json
 {
     "id": "12345",
     "tag": "v1.2.3",
@@ -145,7 +205,7 @@ The returned list contains an object of the following format for each release (w
 When `check` is given such an object as the `version` parameter, it returns releases from the specified version or time on.
 Otherwise it returns the release with the latest version or time.
 
-### `in`: Fetch assets from a release.
+### `get`: Fetch assets from a release.
 
 Fetches artifacts from the requested release.  If `asset_dir` source param is set to `true`,
 artifacts will be created in a subdirectory called `assets`.
@@ -161,16 +221,33 @@ Also creates the following files:
 
 #### Parameters
 
-* `globs`: *Optional.* A list of globs for files that will be downloaded from
-  the release. If not specified, all assets will be fetched.
+<table>
+  <thead>
+    <tr>
+      <th>Field Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>globs</code> (Optional)</td>
+      <td>A list of globs for files that will be downloaded from the release. If
+      not specified, all assets will be fetched.</td>
+    </tr>
+    <tr>
+      <td><code>include_source_tarball</code> (Optional)</td>
+      <td>Enables downloading of the source artifact tarball for the release as
+      <code>source.tar.gz</code>. Defaults to <code>false</code>.</td>
+    </tr>
+    <tr>
+      <td><code>include_source_zip</code> (Optional)</td>
+      <td>Enables downloading of the source artifact zip for the release as
+      <code>source.zip</code>. Defaults to <code>false</code>.</td>
+    </tr>
+  </tbody>
+</table>
 
-* `include_source_tarball`: *Optional.* Enables downloading of the source
-  artifact tarball for the release as `source.tar.gz`. Defaults to `false`.
-
-* `include_source_zip`: *Optional.* Enables downloading of the source
-  artifact zip for the release as `source.zip`. Defaults to `false`.
-
-### `out`: Publish a release.
+### `put`: Publish a release.
 
 Given a name specified in `name`, a body specified in `body`, and the tag to use
 specified in `tag`, this creates a release on GitHub then uploads the files
@@ -178,26 +255,50 @@ matching the patterns in `globs` to the release.
 
 #### Parameters
 
-* `name`: *Required.* A path to a file containing the name of the release.
-
-* `tag`: *Required.* A path to a file containing the name of the Git tag to use
-  for the release.
-
-* `tag_prefix`: *Optional.*  If specified, the tag read from the file will be
-prepended with this string. This is useful for adding v in front of version numbers.
-
-* `commitish`: *Optional.* A path to a file containing the commitish (SHA, tag,
-  branch name) that the release should be associated with.
-
-* `body`: *Optional.* A path to a file containing the body text of the release.
-
-* `globs`: *Optional.* A list of globs for files that will be uploaded alongside
-  the created release.
-
-* `generate_release_notes`: *Optional.* Causes GitHub to autogenerate the release notes
-  when creating a new release, based on the commits since the last release.
-  If `body` is specified, the body will be pre-pended to the automatically generated
-  notes. Has no effect when updating an existing release. Defaults to `false`.
+<table>
+  <thead>
+    <tr>
+      <th>Field Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code> (Required)</td>
+      <td>A path to a file containing the name of the release.</td>
+    </tr>
+    <tr>
+      <td><code>tag</code> (Required)</td>
+      <td>A path to a file containing the name of the Git tag to use for the release.</td>
+    </tr>
+    <tr>
+      <td><code>tag_prefix</code> (Optional)</td>
+      <td>If specified, the tag read from the file will be prepended with this
+      string. This is useful for adding v in front of version numbers.</td>
+    </tr>
+    <tr>
+      <td><code>commitish</code> (Optional)</td>
+      <td>A path to a file containing the commitish (SHA, tag, branch name) that
+      the release should be associated with.</td>
+    </tr>
+    <tr>
+      <td><code>body</code> (Optional)</td>
+      <td>A path to a file containing the body text of the release.</td>
+    </tr>
+    <tr>
+      <td><code>globs</code> (Optional)</td>
+      <td>A list of globs for files that will be uploaded alongside the created release.</td>
+    </tr>
+    <tr>
+      <td><code>generate_release_notes</code> (Optional)</td>
+      <td>Causes GitHub to autogenerate the release notes when creating a new
+      release, based on the commits since the last release. If <code>body</code>
+      is specified, the body will be pre-pended to the automatically generated
+      notes. Has no effect when updating an existing release. Defaults to
+      <code>false</code>.</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Development
 
