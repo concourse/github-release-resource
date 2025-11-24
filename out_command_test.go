@@ -185,7 +185,7 @@ var _ = Describe("Out Command", func() {
 		})
 
 		Context("when a commitish is not supplied", func() {
-			It("does not update the target commitish", func() {
+			It("updates the existing release", func() {
 				_, err := command.Run(sourcesDir, request)
 				Ω(err).ShouldNot(HaveOccurred())
 
@@ -194,7 +194,7 @@ var _ = Describe("Out Command", func() {
 				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
 				Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
 				Ω(*updatedRelease.Body).Should(Equal("this is a great release"))
-				Ω(updatedRelease.TargetCommitish).Should(BeNil())
+				Ω(updatedRelease.TargetCommitish).Should(BeNil(), "does not set the TargetCommitish")
 			})
 		})
 
