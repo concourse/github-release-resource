@@ -194,7 +194,7 @@ var _ = Describe("Out Command", func() {
 				updatedRelease := githubClient.UpdateReleaseArgsForCall(0)
 				Ω(*updatedRelease.Name).Should(Equal("v0.3.12"))
 				Ω(*updatedRelease.Body).Should(Equal("this is a great release"))
-				Ω(updatedRelease.TargetCommitish).Should(Equal(github.String("")))
+				Ω(updatedRelease.TargetCommitish).Should(BeNil(), "does not set the TargetCommitish")
 			})
 		})
 

@@ -48,7 +48,7 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		}
 	}
 
-	targetCommitish := ""
+	var targetCommitish string
 	if request.Params.CommitishPath != "" {
 		targetCommitish, err = c.fileContents(filepath.Join(sourceDir, request.Params.CommitishPath))
 		if err != nil {
@@ -94,9 +94,12 @@ func (c *OutCommand) Run(sourceDir string, request OutRequest) (OutResponse, err
 		}
 
 		existingRelease.Name = github.String(name)
-		existingRelease.TargetCommitish = github.String(targetCommitish)
 		existingRelease.Draft = github.Bool(draft)
 		existingRelease.Prerelease = github.Bool(prerelease)
+
+		if targetCommitish != "" {
+			existingRelease.TargetCommitish = github.String(targetCommitish)
+		}
 
 		if bodySpecified {
 			existingRelease.Body = github.String(body)
