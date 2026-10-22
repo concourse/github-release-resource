@@ -14,10 +14,8 @@ import (
 type FakeGitHub struct {
 	CreateReleaseStub        func(github.RepositoryRelease) (*github.RepositoryRelease, error)
 	createReleaseMutex       sync.RWMutex
-	createReleaseArgsForCall []struct {
-		arg1 github.RepositoryRelease
-	}
-	createReleaseReturns struct {
+	createReleaseArgsForCall []FakeGitHubCreateReleaseArgs
+	createReleaseReturns     struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
@@ -27,10 +25,8 @@ type FakeGitHub struct {
 	}
 	DeleteReleaseAssetStub        func(github.ReleaseAsset) error
 	deleteReleaseAssetMutex       sync.RWMutex
-	deleteReleaseAssetArgsForCall []struct {
-		arg1 github.ReleaseAsset
-	}
-	deleteReleaseAssetReturns struct {
+	deleteReleaseAssetArgsForCall []FakeGitHubDeleteReleaseAssetArgs
+	deleteReleaseAssetReturns     struct {
 		result1 error
 	}
 	deleteReleaseAssetReturnsOnCall map[int]struct {
@@ -38,10 +34,8 @@ type FakeGitHub struct {
 	}
 	DownloadReleaseAssetStub        func(github.ReleaseAsset) (io.ReadCloser, error)
 	downloadReleaseAssetMutex       sync.RWMutex
-	downloadReleaseAssetArgsForCall []struct {
-		arg1 github.ReleaseAsset
-	}
-	downloadReleaseAssetReturns struct {
+	downloadReleaseAssetArgsForCall []FakeGitHubDownloadReleaseAssetArgs
+	downloadReleaseAssetReturns     struct {
 		result1 io.ReadCloser
 		result2 error
 	}
@@ -51,10 +45,8 @@ type FakeGitHub struct {
 	}
 	GetReleaseStub        func(int) (*github.RepositoryRelease, error)
 	getReleaseMutex       sync.RWMutex
-	getReleaseArgsForCall []struct {
-		arg1 int
-	}
-	getReleaseReturns struct {
+	getReleaseArgsForCall []FakeGitHubGetReleaseArgs
+	getReleaseReturns     struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
@@ -64,10 +56,8 @@ type FakeGitHub struct {
 	}
 	GetReleaseByTagStub        func(string) (*github.RepositoryRelease, error)
 	getReleaseByTagMutex       sync.RWMutex
-	getReleaseByTagArgsForCall []struct {
-		arg1 string
-	}
-	getReleaseByTagReturns struct {
+	getReleaseByTagArgsForCall []FakeGitHubGetReleaseByTagArgs
+	getReleaseByTagReturns     struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
@@ -77,10 +67,8 @@ type FakeGitHub struct {
 	}
 	GetTarballLinkStub        func(string) (*url.URL, error)
 	getTarballLinkMutex       sync.RWMutex
-	getTarballLinkArgsForCall []struct {
-		arg1 string
-	}
-	getTarballLinkReturns struct {
+	getTarballLinkArgsForCall []FakeGitHubGetTarballLinkArgs
+	getTarballLinkReturns     struct {
 		result1 *url.URL
 		result2 error
 	}
@@ -90,10 +78,8 @@ type FakeGitHub struct {
 	}
 	GetZipballLinkStub        func(string) (*url.URL, error)
 	getZipballLinkMutex       sync.RWMutex
-	getZipballLinkArgsForCall []struct {
-		arg1 string
-	}
-	getZipballLinkReturns struct {
+	getZipballLinkArgsForCall []FakeGitHubGetZipballLinkArgs
+	getZipballLinkReturns     struct {
 		result1 *url.URL
 		result2 error
 	}
@@ -103,10 +89,8 @@ type FakeGitHub struct {
 	}
 	ListReleaseAssetsStub        func(github.RepositoryRelease) ([]*github.ReleaseAsset, error)
 	listReleaseAssetsMutex       sync.RWMutex
-	listReleaseAssetsArgsForCall []struct {
-		arg1 github.RepositoryRelease
-	}
-	listReleaseAssetsReturns struct {
+	listReleaseAssetsArgsForCall []FakeGitHubListReleaseAssetsArgs
+	listReleaseAssetsReturns     struct {
 		result1 []*github.ReleaseAsset
 		result2 error
 	}
@@ -116,9 +100,8 @@ type FakeGitHub struct {
 	}
 	ListReleasesStub        func() ([]*github.RepositoryRelease, error)
 	listReleasesMutex       sync.RWMutex
-	listReleasesArgsForCall []struct {
-	}
-	listReleasesReturns struct {
+	listReleasesArgsForCall []struct{}
+	listReleasesReturns     struct {
 		result1 []*github.RepositoryRelease
 		result2 error
 	}
@@ -128,10 +111,8 @@ type FakeGitHub struct {
 	}
 	ResolveTagToCommitSHAStub        func(string) (string, error)
 	resolveTagToCommitSHAMutex       sync.RWMutex
-	resolveTagToCommitSHAArgsForCall []struct {
-		arg1 string
-	}
-	resolveTagToCommitSHAReturns struct {
+	resolveTagToCommitSHAArgsForCall []FakeGitHubResolveTagToCommitSHAArgs
+	resolveTagToCommitSHAReturns     struct {
 		result1 string
 		result2 error
 	}
@@ -141,10 +122,8 @@ type FakeGitHub struct {
 	}
 	UpdateReleaseStub        func(github.RepositoryRelease) (*github.RepositoryRelease, error)
 	updateReleaseMutex       sync.RWMutex
-	updateReleaseArgsForCall []struct {
-		arg1 github.RepositoryRelease
-	}
-	updateReleaseReturns struct {
+	updateReleaseArgsForCall []FakeGitHubUpdateReleaseArgs
+	updateReleaseReturns     struct {
 		result1 *github.RepositoryRelease
 		result2 error
 	}
@@ -154,27 +133,79 @@ type FakeGitHub struct {
 	}
 	UploadReleaseAssetStub        func(github.RepositoryRelease, string, *os.File) error
 	uploadReleaseAssetMutex       sync.RWMutex
-	uploadReleaseAssetArgsForCall []struct {
-		arg1 github.RepositoryRelease
-		arg2 string
-		arg3 *os.File
-	}
-	uploadReleaseAssetReturns struct {
+	uploadReleaseAssetArgsForCall []FakeGitHubUploadReleaseAssetArgs
+	uploadReleaseAssetReturns     struct {
 		result1 error
 	}
 	uploadReleaseAssetReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
+	callOrder        []string
 	invocationsMutex sync.RWMutex
+}
+
+// FakeGitHubCreateReleaseArgs holds the arguments of one call to CreateRelease.
+type FakeGitHubCreateReleaseArgs struct {
+	Arg1 github.RepositoryRelease
+}
+
+// FakeGitHubDeleteReleaseAssetArgs holds the arguments of one call to DeleteReleaseAsset.
+type FakeGitHubDeleteReleaseAssetArgs struct {
+	Arg1 github.ReleaseAsset
+}
+
+// FakeGitHubDownloadReleaseAssetArgs holds the arguments of one call to DownloadReleaseAsset.
+type FakeGitHubDownloadReleaseAssetArgs struct {
+	Arg1 github.ReleaseAsset
+}
+
+// FakeGitHubGetReleaseArgs holds the arguments of one call to GetRelease.
+type FakeGitHubGetReleaseArgs struct {
+	Arg1 int
+}
+
+// FakeGitHubGetReleaseByTagArgs holds the arguments of one call to GetReleaseByTag.
+type FakeGitHubGetReleaseByTagArgs struct {
+	Arg1 string
+}
+
+// FakeGitHubGetTarballLinkArgs holds the arguments of one call to GetTarballLink.
+type FakeGitHubGetTarballLinkArgs struct {
+	Arg1 string
+}
+
+// FakeGitHubGetZipballLinkArgs holds the arguments of one call to GetZipballLink.
+type FakeGitHubGetZipballLinkArgs struct {
+	Arg1 string
+}
+
+// FakeGitHubListReleaseAssetsArgs holds the arguments of one call to ListReleaseAssets.
+type FakeGitHubListReleaseAssetsArgs struct {
+	Arg1 github.RepositoryRelease
+}
+
+// FakeGitHubResolveTagToCommitSHAArgs holds the arguments of one call to ResolveTagToCommitSHA.
+type FakeGitHubResolveTagToCommitSHAArgs struct {
+	Arg1 string
+}
+
+// FakeGitHubUpdateReleaseArgs holds the arguments of one call to UpdateRelease.
+type FakeGitHubUpdateReleaseArgs struct {
+	Arg1 github.RepositoryRelease
+}
+
+// FakeGitHubUploadReleaseAssetArgs holds the arguments of one call to UploadReleaseAsset.
+type FakeGitHubUploadReleaseAssetArgs struct {
+	Arg1 github.RepositoryRelease
+	Arg2 string
+	Arg3 *os.File
 }
 
 func (fake *FakeGitHub) CreateRelease(arg1 github.RepositoryRelease) (*github.RepositoryRelease, error) {
 	fake.createReleaseMutex.Lock()
 	ret, specificReturn := fake.createReleaseReturnsOnCall[len(fake.createReleaseArgsForCall)]
-	fake.createReleaseArgsForCall = append(fake.createReleaseArgsForCall, struct {
-		arg1 github.RepositoryRelease
-	}{arg1})
+	fake.createReleaseArgsForCall = append(fake.createReleaseArgsForCall, FakeGitHubCreateReleaseArgs{arg1})
 	stub := fake.CreateReleaseStub
 	fakeReturns := fake.createReleaseReturns
 	fake.recordInvocation("CreateRelease", []interface{}{arg1})
@@ -204,7 +235,15 @@ func (fake *FakeGitHub) CreateReleaseArgsForCall(i int) github.RepositoryRelease
 	fake.createReleaseMutex.RLock()
 	defer fake.createReleaseMutex.RUnlock()
 	argsForCall := fake.createReleaseArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) CreateReleaseArgs() []FakeGitHubCreateReleaseArgs {
+	fake.createReleaseMutex.RLock()
+	defer fake.createReleaseMutex.RUnlock()
+	args := make([]FakeGitHubCreateReleaseArgs, len(fake.createReleaseArgsForCall))
+	copy(args, fake.createReleaseArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) CreateReleaseReturns(result1 *github.RepositoryRelease, result2 error) {
@@ -236,9 +275,7 @@ func (fake *FakeGitHub) CreateReleaseReturnsOnCall(i int, result1 *github.Reposi
 func (fake *FakeGitHub) DeleteReleaseAsset(arg1 github.ReleaseAsset) error {
 	fake.deleteReleaseAssetMutex.Lock()
 	ret, specificReturn := fake.deleteReleaseAssetReturnsOnCall[len(fake.deleteReleaseAssetArgsForCall)]
-	fake.deleteReleaseAssetArgsForCall = append(fake.deleteReleaseAssetArgsForCall, struct {
-		arg1 github.ReleaseAsset
-	}{arg1})
+	fake.deleteReleaseAssetArgsForCall = append(fake.deleteReleaseAssetArgsForCall, FakeGitHubDeleteReleaseAssetArgs{arg1})
 	stub := fake.DeleteReleaseAssetStub
 	fakeReturns := fake.deleteReleaseAssetReturns
 	fake.recordInvocation("DeleteReleaseAsset", []interface{}{arg1})
@@ -268,7 +305,15 @@ func (fake *FakeGitHub) DeleteReleaseAssetArgsForCall(i int) github.ReleaseAsset
 	fake.deleteReleaseAssetMutex.RLock()
 	defer fake.deleteReleaseAssetMutex.RUnlock()
 	argsForCall := fake.deleteReleaseAssetArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) DeleteReleaseAssetArgs() []FakeGitHubDeleteReleaseAssetArgs {
+	fake.deleteReleaseAssetMutex.RLock()
+	defer fake.deleteReleaseAssetMutex.RUnlock()
+	args := make([]FakeGitHubDeleteReleaseAssetArgs, len(fake.deleteReleaseAssetArgsForCall))
+	copy(args, fake.deleteReleaseAssetArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) DeleteReleaseAssetReturns(result1 error) {
@@ -297,9 +342,7 @@ func (fake *FakeGitHub) DeleteReleaseAssetReturnsOnCall(i int, result1 error) {
 func (fake *FakeGitHub) DownloadReleaseAsset(arg1 github.ReleaseAsset) (io.ReadCloser, error) {
 	fake.downloadReleaseAssetMutex.Lock()
 	ret, specificReturn := fake.downloadReleaseAssetReturnsOnCall[len(fake.downloadReleaseAssetArgsForCall)]
-	fake.downloadReleaseAssetArgsForCall = append(fake.downloadReleaseAssetArgsForCall, struct {
-		arg1 github.ReleaseAsset
-	}{arg1})
+	fake.downloadReleaseAssetArgsForCall = append(fake.downloadReleaseAssetArgsForCall, FakeGitHubDownloadReleaseAssetArgs{arg1})
 	stub := fake.DownloadReleaseAssetStub
 	fakeReturns := fake.downloadReleaseAssetReturns
 	fake.recordInvocation("DownloadReleaseAsset", []interface{}{arg1})
@@ -329,7 +372,15 @@ func (fake *FakeGitHub) DownloadReleaseAssetArgsForCall(i int) github.ReleaseAss
 	fake.downloadReleaseAssetMutex.RLock()
 	defer fake.downloadReleaseAssetMutex.RUnlock()
 	argsForCall := fake.downloadReleaseAssetArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) DownloadReleaseAssetArgs() []FakeGitHubDownloadReleaseAssetArgs {
+	fake.downloadReleaseAssetMutex.RLock()
+	defer fake.downloadReleaseAssetMutex.RUnlock()
+	args := make([]FakeGitHubDownloadReleaseAssetArgs, len(fake.downloadReleaseAssetArgsForCall))
+	copy(args, fake.downloadReleaseAssetArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) DownloadReleaseAssetReturns(result1 io.ReadCloser, result2 error) {
@@ -361,9 +412,7 @@ func (fake *FakeGitHub) DownloadReleaseAssetReturnsOnCall(i int, result1 io.Read
 func (fake *FakeGitHub) GetRelease(arg1 int) (*github.RepositoryRelease, error) {
 	fake.getReleaseMutex.Lock()
 	ret, specificReturn := fake.getReleaseReturnsOnCall[len(fake.getReleaseArgsForCall)]
-	fake.getReleaseArgsForCall = append(fake.getReleaseArgsForCall, struct {
-		arg1 int
-	}{arg1})
+	fake.getReleaseArgsForCall = append(fake.getReleaseArgsForCall, FakeGitHubGetReleaseArgs{arg1})
 	stub := fake.GetReleaseStub
 	fakeReturns := fake.getReleaseReturns
 	fake.recordInvocation("GetRelease", []interface{}{arg1})
@@ -393,7 +442,15 @@ func (fake *FakeGitHub) GetReleaseArgsForCall(i int) int {
 	fake.getReleaseMutex.RLock()
 	defer fake.getReleaseMutex.RUnlock()
 	argsForCall := fake.getReleaseArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) GetReleaseArgs() []FakeGitHubGetReleaseArgs {
+	fake.getReleaseMutex.RLock()
+	defer fake.getReleaseMutex.RUnlock()
+	args := make([]FakeGitHubGetReleaseArgs, len(fake.getReleaseArgsForCall))
+	copy(args, fake.getReleaseArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) GetReleaseReturns(result1 *github.RepositoryRelease, result2 error) {
@@ -425,9 +482,7 @@ func (fake *FakeGitHub) GetReleaseReturnsOnCall(i int, result1 *github.Repositor
 func (fake *FakeGitHub) GetReleaseByTag(arg1 string) (*github.RepositoryRelease, error) {
 	fake.getReleaseByTagMutex.Lock()
 	ret, specificReturn := fake.getReleaseByTagReturnsOnCall[len(fake.getReleaseByTagArgsForCall)]
-	fake.getReleaseByTagArgsForCall = append(fake.getReleaseByTagArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.getReleaseByTagArgsForCall = append(fake.getReleaseByTagArgsForCall, FakeGitHubGetReleaseByTagArgs{arg1})
 	stub := fake.GetReleaseByTagStub
 	fakeReturns := fake.getReleaseByTagReturns
 	fake.recordInvocation("GetReleaseByTag", []interface{}{arg1})
@@ -457,7 +512,15 @@ func (fake *FakeGitHub) GetReleaseByTagArgsForCall(i int) string {
 	fake.getReleaseByTagMutex.RLock()
 	defer fake.getReleaseByTagMutex.RUnlock()
 	argsForCall := fake.getReleaseByTagArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) GetReleaseByTagArgs() []FakeGitHubGetReleaseByTagArgs {
+	fake.getReleaseByTagMutex.RLock()
+	defer fake.getReleaseByTagMutex.RUnlock()
+	args := make([]FakeGitHubGetReleaseByTagArgs, len(fake.getReleaseByTagArgsForCall))
+	copy(args, fake.getReleaseByTagArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) GetReleaseByTagReturns(result1 *github.RepositoryRelease, result2 error) {
@@ -489,9 +552,7 @@ func (fake *FakeGitHub) GetReleaseByTagReturnsOnCall(i int, result1 *github.Repo
 func (fake *FakeGitHub) GetTarballLink(arg1 string) (*url.URL, error) {
 	fake.getTarballLinkMutex.Lock()
 	ret, specificReturn := fake.getTarballLinkReturnsOnCall[len(fake.getTarballLinkArgsForCall)]
-	fake.getTarballLinkArgsForCall = append(fake.getTarballLinkArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.getTarballLinkArgsForCall = append(fake.getTarballLinkArgsForCall, FakeGitHubGetTarballLinkArgs{arg1})
 	stub := fake.GetTarballLinkStub
 	fakeReturns := fake.getTarballLinkReturns
 	fake.recordInvocation("GetTarballLink", []interface{}{arg1})
@@ -521,7 +582,15 @@ func (fake *FakeGitHub) GetTarballLinkArgsForCall(i int) string {
 	fake.getTarballLinkMutex.RLock()
 	defer fake.getTarballLinkMutex.RUnlock()
 	argsForCall := fake.getTarballLinkArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) GetTarballLinkArgs() []FakeGitHubGetTarballLinkArgs {
+	fake.getTarballLinkMutex.RLock()
+	defer fake.getTarballLinkMutex.RUnlock()
+	args := make([]FakeGitHubGetTarballLinkArgs, len(fake.getTarballLinkArgsForCall))
+	copy(args, fake.getTarballLinkArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) GetTarballLinkReturns(result1 *url.URL, result2 error) {
@@ -553,9 +622,7 @@ func (fake *FakeGitHub) GetTarballLinkReturnsOnCall(i int, result1 *url.URL, res
 func (fake *FakeGitHub) GetZipballLink(arg1 string) (*url.URL, error) {
 	fake.getZipballLinkMutex.Lock()
 	ret, specificReturn := fake.getZipballLinkReturnsOnCall[len(fake.getZipballLinkArgsForCall)]
-	fake.getZipballLinkArgsForCall = append(fake.getZipballLinkArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.getZipballLinkArgsForCall = append(fake.getZipballLinkArgsForCall, FakeGitHubGetZipballLinkArgs{arg1})
 	stub := fake.GetZipballLinkStub
 	fakeReturns := fake.getZipballLinkReturns
 	fake.recordInvocation("GetZipballLink", []interface{}{arg1})
@@ -585,7 +652,15 @@ func (fake *FakeGitHub) GetZipballLinkArgsForCall(i int) string {
 	fake.getZipballLinkMutex.RLock()
 	defer fake.getZipballLinkMutex.RUnlock()
 	argsForCall := fake.getZipballLinkArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) GetZipballLinkArgs() []FakeGitHubGetZipballLinkArgs {
+	fake.getZipballLinkMutex.RLock()
+	defer fake.getZipballLinkMutex.RUnlock()
+	args := make([]FakeGitHubGetZipballLinkArgs, len(fake.getZipballLinkArgsForCall))
+	copy(args, fake.getZipballLinkArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) GetZipballLinkReturns(result1 *url.URL, result2 error) {
@@ -617,9 +692,7 @@ func (fake *FakeGitHub) GetZipballLinkReturnsOnCall(i int, result1 *url.URL, res
 func (fake *FakeGitHub) ListReleaseAssets(arg1 github.RepositoryRelease) ([]*github.ReleaseAsset, error) {
 	fake.listReleaseAssetsMutex.Lock()
 	ret, specificReturn := fake.listReleaseAssetsReturnsOnCall[len(fake.listReleaseAssetsArgsForCall)]
-	fake.listReleaseAssetsArgsForCall = append(fake.listReleaseAssetsArgsForCall, struct {
-		arg1 github.RepositoryRelease
-	}{arg1})
+	fake.listReleaseAssetsArgsForCall = append(fake.listReleaseAssetsArgsForCall, FakeGitHubListReleaseAssetsArgs{arg1})
 	stub := fake.ListReleaseAssetsStub
 	fakeReturns := fake.listReleaseAssetsReturns
 	fake.recordInvocation("ListReleaseAssets", []interface{}{arg1})
@@ -649,7 +722,15 @@ func (fake *FakeGitHub) ListReleaseAssetsArgsForCall(i int) github.RepositoryRel
 	fake.listReleaseAssetsMutex.RLock()
 	defer fake.listReleaseAssetsMutex.RUnlock()
 	argsForCall := fake.listReleaseAssetsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) ListReleaseAssetsArgs() []FakeGitHubListReleaseAssetsArgs {
+	fake.listReleaseAssetsMutex.RLock()
+	defer fake.listReleaseAssetsMutex.RUnlock()
+	args := make([]FakeGitHubListReleaseAssetsArgs, len(fake.listReleaseAssetsArgsForCall))
+	copy(args, fake.listReleaseAssetsArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) ListReleaseAssetsReturns(result1 []*github.ReleaseAsset, result2 error) {
@@ -681,8 +762,7 @@ func (fake *FakeGitHub) ListReleaseAssetsReturnsOnCall(i int, result1 []*github.
 func (fake *FakeGitHub) ListReleases() ([]*github.RepositoryRelease, error) {
 	fake.listReleasesMutex.Lock()
 	ret, specificReturn := fake.listReleasesReturnsOnCall[len(fake.listReleasesArgsForCall)]
-	fake.listReleasesArgsForCall = append(fake.listReleasesArgsForCall, struct {
-	}{})
+	fake.listReleasesArgsForCall = append(fake.listReleasesArgsForCall, struct{}{})
 	stub := fake.ListReleasesStub
 	fakeReturns := fake.listReleasesReturns
 	fake.recordInvocation("ListReleases", []interface{}{})
@@ -737,9 +817,7 @@ func (fake *FakeGitHub) ListReleasesReturnsOnCall(i int, result1 []*github.Repos
 func (fake *FakeGitHub) ResolveTagToCommitSHA(arg1 string) (string, error) {
 	fake.resolveTagToCommitSHAMutex.Lock()
 	ret, specificReturn := fake.resolveTagToCommitSHAReturnsOnCall[len(fake.resolveTagToCommitSHAArgsForCall)]
-	fake.resolveTagToCommitSHAArgsForCall = append(fake.resolveTagToCommitSHAArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.resolveTagToCommitSHAArgsForCall = append(fake.resolveTagToCommitSHAArgsForCall, FakeGitHubResolveTagToCommitSHAArgs{arg1})
 	stub := fake.ResolveTagToCommitSHAStub
 	fakeReturns := fake.resolveTagToCommitSHAReturns
 	fake.recordInvocation("ResolveTagToCommitSHA", []interface{}{arg1})
@@ -769,7 +847,15 @@ func (fake *FakeGitHub) ResolveTagToCommitSHAArgsForCall(i int) string {
 	fake.resolveTagToCommitSHAMutex.RLock()
 	defer fake.resolveTagToCommitSHAMutex.RUnlock()
 	argsForCall := fake.resolveTagToCommitSHAArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) ResolveTagToCommitSHAArgs() []FakeGitHubResolveTagToCommitSHAArgs {
+	fake.resolveTagToCommitSHAMutex.RLock()
+	defer fake.resolveTagToCommitSHAMutex.RUnlock()
+	args := make([]FakeGitHubResolveTagToCommitSHAArgs, len(fake.resolveTagToCommitSHAArgsForCall))
+	copy(args, fake.resolveTagToCommitSHAArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) ResolveTagToCommitSHAReturns(result1 string, result2 error) {
@@ -801,9 +887,7 @@ func (fake *FakeGitHub) ResolveTagToCommitSHAReturnsOnCall(i int, result1 string
 func (fake *FakeGitHub) UpdateRelease(arg1 github.RepositoryRelease) (*github.RepositoryRelease, error) {
 	fake.updateReleaseMutex.Lock()
 	ret, specificReturn := fake.updateReleaseReturnsOnCall[len(fake.updateReleaseArgsForCall)]
-	fake.updateReleaseArgsForCall = append(fake.updateReleaseArgsForCall, struct {
-		arg1 github.RepositoryRelease
-	}{arg1})
+	fake.updateReleaseArgsForCall = append(fake.updateReleaseArgsForCall, FakeGitHubUpdateReleaseArgs{arg1})
 	stub := fake.UpdateReleaseStub
 	fakeReturns := fake.updateReleaseReturns
 	fake.recordInvocation("UpdateRelease", []interface{}{arg1})
@@ -833,7 +917,15 @@ func (fake *FakeGitHub) UpdateReleaseArgsForCall(i int) github.RepositoryRelease
 	fake.updateReleaseMutex.RLock()
 	defer fake.updateReleaseMutex.RUnlock()
 	argsForCall := fake.updateReleaseArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeGitHub) UpdateReleaseArgs() []FakeGitHubUpdateReleaseArgs {
+	fake.updateReleaseMutex.RLock()
+	defer fake.updateReleaseMutex.RUnlock()
+	args := make([]FakeGitHubUpdateReleaseArgs, len(fake.updateReleaseArgsForCall))
+	copy(args, fake.updateReleaseArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) UpdateReleaseReturns(result1 *github.RepositoryRelease, result2 error) {
@@ -865,11 +957,7 @@ func (fake *FakeGitHub) UpdateReleaseReturnsOnCall(i int, result1 *github.Reposi
 func (fake *FakeGitHub) UploadReleaseAsset(arg1 github.RepositoryRelease, arg2 string, arg3 *os.File) error {
 	fake.uploadReleaseAssetMutex.Lock()
 	ret, specificReturn := fake.uploadReleaseAssetReturnsOnCall[len(fake.uploadReleaseAssetArgsForCall)]
-	fake.uploadReleaseAssetArgsForCall = append(fake.uploadReleaseAssetArgsForCall, struct {
-		arg1 github.RepositoryRelease
-		arg2 string
-		arg3 *os.File
-	}{arg1, arg2, arg3})
+	fake.uploadReleaseAssetArgsForCall = append(fake.uploadReleaseAssetArgsForCall, FakeGitHubUploadReleaseAssetArgs{arg1, arg2, arg3})
 	stub := fake.UploadReleaseAssetStub
 	fakeReturns := fake.uploadReleaseAssetReturns
 	fake.recordInvocation("UploadReleaseAsset", []interface{}{arg1, arg2, arg3})
@@ -899,7 +987,15 @@ func (fake *FakeGitHub) UploadReleaseAssetArgsForCall(i int) (github.RepositoryR
 	fake.uploadReleaseAssetMutex.RLock()
 	defer fake.uploadReleaseAssetMutex.RUnlock()
 	argsForCall := fake.uploadReleaseAssetArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3
+}
+
+func (fake *FakeGitHub) UploadReleaseAssetArgs() []FakeGitHubUploadReleaseAssetArgs {
+	fake.uploadReleaseAssetMutex.RLock()
+	defer fake.uploadReleaseAssetMutex.RUnlock()
+	args := make([]FakeGitHubUploadReleaseAssetArgs, len(fake.uploadReleaseAssetArgsForCall))
+	copy(args, fake.uploadReleaseAssetArgsForCall)
+	return args
 }
 
 func (fake *FakeGitHub) UploadReleaseAssetReturns(result1 error) {
@@ -935,9 +1031,18 @@ func (fake *FakeGitHub) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
+func (fake *FakeGitHub) CallOrder() []string {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	order := make([]string, len(fake.callOrder))
+	copy(order, fake.callOrder)
+	return order
+}
+
 func (fake *FakeGitHub) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
+	fake.callOrder = append(fake.callOrder, key)
 	if fake.invocations == nil {
 		fake.invocations = map[string][][]interface{}{}
 	}
